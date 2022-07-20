@@ -1,0 +1,23 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "private": "true",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@ibot/ibot": "0.7.0-dev.15",
+    "@wxik/core": "^0.5.5",
+    "lodash": "^4.*",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^2.0.0",
+    "@wxik/react-form": "link:..",
+    "prop-types": "^15.*",
+    "vite": "^3.0.2"
+  }
+}
