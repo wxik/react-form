@@ -3,8 +3,8 @@
  * @sine 2020-04-11 16:03
  */
 import React from 'react';
-import { Tools, Types } from '@wxik/core';
-import { observable, raw } from '@wxik/observer';
+import {Tools, Types} from '@wxik/core';
+import {observable, raw} from '@wxik/observer';
 
 /**
  * @typedef FormData
@@ -47,12 +47,12 @@ const CCFormContext = React.createContext();
 
 export class CCForm extends React.Component {
   static getDerivedStateFromProps(nextProps, prevState) {
-    const { data, initialValue } = nextProps;
+    const {data, initialValue} = nextProps;
     if (data && data !== prevState.originData) {
-      return { data: observable(data), originData: data };
+      return {data: observable(data), originData: data};
     }
     if (initialValue && initialValue !== prevState.initialValue) {
-      return { data: observable({}), originData: {}, initialValue };
+      return {data: observable({}), originData: {}, initialValue};
     }
     return null;
   }
@@ -60,8 +60,8 @@ export class CCForm extends React.Component {
   constructor(props) {
     super(props);
     let that = this;
-    const { emitter } = props;
-    that.state = { data: observable({}), originData: {} };
+    const {emitter} = props;
+    that.state = {data: observable({}), originData: {}};
     that.changeState = StateConst.DEFAULT;
     that.fields = new Set();
     that.updateFields = new Set();
@@ -172,7 +172,7 @@ export class CCForm extends React.Component {
    */
   handleFieldChange(name, value, options = {}) {
     let that = this;
-    const { raw = false } = options;
+    const {raw = false} = options;
     if (!name || that.state.data[name] === value) return;
     raw ? that._setFieldRawValue(name, value) : that._setFieldValue(name, value);
 
@@ -180,7 +180,7 @@ export class CCForm extends React.Component {
   }
 
   handleDeleteField(name, options = {}) {
-    const { isChange = true, raw: isRaw = false } = options;
+    const {isChange = true, raw: isRaw = false} = options;
     if (name) {
       delete this.state.data[name];
       delete this.state.originData[name];
@@ -219,7 +219,7 @@ export class CCForm extends React.Component {
    * @param {Object} field
    */
   setField(field) {
-    const { form, fieldType } = field.config;
+    const {form, fieldType} = field.config;
 
     if (fieldType === Const.Field) {
       this.fields.add(field);
@@ -241,7 +241,7 @@ export class CCForm extends React.Component {
   getField(name) {
     if (Types.isBlank(name)) return null;
     for (const f of this.fields) {
-      const { form } = f.config;
+      const {form} = f.config;
       if (form === name) return f;
     }
     return null;
@@ -252,7 +252,7 @@ export class CCForm extends React.Component {
    * @param field
    */
   unmountField(field) {
-    const { form, fieldType } = field.config;
+    const {form, fieldType} = field.config;
     if (fieldType === Const.Field) {
       field.unObserveData();
       this.fields.delete(field);
@@ -268,7 +268,7 @@ export class CCForm extends React.Component {
   setOriginData(data) {
     this.originData = data;
     for (const f of this.listFields) {
-      const { form } = f.config;
+      const {form} = f.config;
       if (form) {
         const value = Tools.get(data, form);
         value && f.setData(value);
@@ -276,7 +276,7 @@ export class CCForm extends React.Component {
         f.setData(data);
       }
     }
-    this.setData(data, { isGet: true, isChange: false });
+    this.setData(data, {isGet: true, isChange: false});
   }
 
   /**
@@ -285,7 +285,7 @@ export class CCForm extends React.Component {
    * @param {Object} options
    */
   setFieldData(data, options = {}) {
-    this.setData(data, { isGet: true, isChange: true });
+    this.setData(data, {isGet: true, isChange: true});
   }
 
   /**
@@ -296,7 +296,7 @@ export class CCForm extends React.Component {
   setData(data, options = {}) {
     const that = this;
     if (Types.isEmpty(data)) return;
-    const { isGet = false, isChange = false } = options;
+    const {isGet = false, isChange = false} = options;
     that.changeState = StateConst.SET;
 
     let count = 0;
@@ -307,7 +307,7 @@ export class CCForm extends React.Component {
       });
     };
     for (const f of this.fields) {
-      let { form, getValue, alias } = f.config;
+      let {form, getValue, alias} = f.config;
       if (form) {
         let sym = Symbol();
         let prevValue = f.value;
@@ -377,10 +377,10 @@ export class CCForm extends React.Component {
    * @returns {Object}
    */
   subData(options = {}) {
-    const { merge = false } = options;
+    const {merge = false} = options;
     const config = [],
       ignoreKeys = [];
-    const { data, initialValue } = this.state;
+    const {data, initialValue} = this.state;
     for (const f of this.fields) {
       const field = f.config;
       if (field.form) {
@@ -401,7 +401,7 @@ export class CCForm extends React.Component {
     const originData = this.originData ?? initialValue;
     if (merge && originData) {
       for (const f of this.listFields) {
-        const { form } = f.config;
+        const {form} = f.config;
         const listData = f.getData();
         let deleteIndex = f.deleteIndex;
         const subListData = Tools.get(subData, form);
@@ -425,7 +425,7 @@ export class CCForm extends React.Component {
   }
 
   render() {
-    const { data, originData, initialValue } = this.state;
+    const {data, originData, initialValue} = this.state;
     const providerValue = this.providerValue;
     providerValue.data = data;
     providerValue.originData = originData;

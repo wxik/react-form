@@ -4,8 +4,8 @@
  * @sine 2020-04-20 11:27
  */
 import React from 'react';
-import { CCForm } from './CCForm';
-import { Tools, Types } from '@wxik/core';
+import {CCForm} from './CCForm';
+import {Tools, Types} from '@wxik/core';
 
 const FormListContext = React.createContext();
 
@@ -31,7 +31,7 @@ class CCFormListComponentWrapper extends React.Component {
       props = that.props,
       context = that.context;
     that._initID();
-    let { initRows, initialValue } = props;
+    let {initRows, initialValue} = props;
 
     const form = this.getFormName(props);
 
@@ -50,7 +50,7 @@ class CCFormListComponentWrapper extends React.Component {
     }
 
     const value = Array(initRows).fill(1).map(this.genID);
-    return { value, data };
+    return {value, data};
   }
 
   _initID() {
@@ -62,12 +62,12 @@ class CCFormListComponentWrapper extends React.Component {
   }
 
   getFormName(props) {
-    const { form, eachConfig } = props;
+    const {form, eachConfig} = props;
     return eachConfig ? (form ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
   }
 
   setData(data) {
-    const { initRows } = this.props;
+    const {initRows} = this.props;
     if (Types.isEmpty(data) || !Types.isArray(data)) {
       data = [];
     } else if (data.length === 0) {
@@ -77,7 +77,7 @@ class CCFormListComponentWrapper extends React.Component {
     // this._initID();
     this.removeOutData(data.length);
     const value = Array.from(data).fill(1).map(this.genID);
-    this.setState({ value, data });
+    this.setState({value, data});
   }
 
   getData() {
@@ -86,11 +86,11 @@ class CCFormListComponentWrapper extends React.Component {
 
   addItem(item = {}) {
     let that = this;
-    let { data, value } = that.state;
+    let {data, value} = that.state;
     value = Array.from(value);
     value.push(that.genID());
     data.push(item);
-    that.setState({ value, data });
+    that.setState({value, data});
     that.context?.formChange();
   }
 
@@ -98,25 +98,25 @@ class CCFormListComponentWrapper extends React.Component {
     let that = this;
     that.deleteIndex.push(index);
     that.removeListEndData();
-    let { data, value } = that.state;
+    let {data, value} = that.state;
 
     value = Array.from(value);
     value.splice(index, 1);
     data.splice(index, 1);
-    that.setState({ value, data });
+    that.setState({value, data});
   }
 
   removeListEndData() {
     const form = this.getFormName(this.props);
-    const { value } = this.state;
+    const {value} = this.state;
     const key = value.length - 1;
     const pad = form ? `${form}.${key}` : key;
 
-    const { data, originData, deleteField } = this.context;
+    const {data, originData, deleteField} = this.context;
 
     Object.keys(data).forEach((fi, index) => {
       if (fi.indexOf(pad) === 0) {
-        deleteField(fi, { raw: true });
+        deleteField(fi, {raw: true});
       }
     });
   }
@@ -127,10 +127,12 @@ class CCFormListComponentWrapper extends React.Component {
    */
   removeOutData(size) {
     const form = this.getFormName(this.props);
-    const { data, originData, deleteField } = this.context;
+    const {data, originData, deleteField} = this.context;
     const inForms =
       form &&
-      Array(size).fill(1).map((d, ix) => `${form}.${ix}`);
+      Array(size)
+        .fill(1)
+        .map((d, ix) => `${form}.${ix}`);
 
     Object.keys(data).forEach((fi) => {
       let flag = false;
@@ -138,19 +140,19 @@ class CCFormListComponentWrapper extends React.Component {
         let nfi = Number(fi);
         let ois = fi.substr(0, fi.indexOf('.'));
         if (String(nfi) === fi && nfi < size) {
-          deleteField(fi, { isChange: false });
+          deleteField(fi, {isChange: false});
         } else if (/^[0-9]+$/.test(ois) && Number(ois) >= size) {
-          deleteField(fi, { isChange: false });
+          deleteField(fi, {isChange: false});
         }
       } else if (fi.indexOf(form) === 0 && inForms.findIndex((da) => fi.indexOf(da) !== -1) === -1) {
-        deleteField(fi, { isChange: false });
+        deleteField(fi, {isChange: false});
       }
     });
   }
 
   get config() {
     const form = this.getFormName(this.props);
-    return { form, fieldType: CCForm.Const.List };
+    return {form, fieldType: CCForm.Const.List};
   }
 
   componentDidMount() {
@@ -168,30 +170,30 @@ class CCFormListComponentWrapper extends React.Component {
   render() {
     const that = this;
     const form = this.getFormName(this.props);
-    const { children } = that.props;
-    const { value, data } = that.state;
+    const {children} = that.props;
+    const {value, data} = that.state;
 
     if (!children) return null;
     return Array.isArray(value)
       ? value.map((key, index) => {
-        const pro = {
-          form: Types.isBlank(form) ? index : `${form}.${index}`,
-          index,
-          key,
-          length: value.length,
-          data,
-        };
-        const cfg = {
-          ...pro,
-          target: that,
-          key,
-        };
-        return (
-          <FormListContext.Provider value={pro} key={key}>
-            {children(cfg)}
-          </FormListContext.Provider>
-        );
-      })
+          const pro = {
+            form: Types.isBlank(form) ? index : `${form}.${index}`,
+            index,
+            key,
+            length: value.length,
+            data,
+          };
+          const cfg = {
+            ...pro,
+            target: that,
+            key,
+          };
+          return (
+            <FormListContext.Provider value={pro} key={key}>
+              {children(cfg)}
+            </FormListContext.Provider>
+          );
+        })
       : null;
   }
 }
@@ -199,14 +201,12 @@ class CCFormListComponentWrapper extends React.Component {
 export const CCFormList = React.forwardRef((props, ref) => (
   <FormListContext.Consumer>
     {(eachData) => {
-      let { form, initialValue } = props;
+      let {form, initialValue} = props;
       if (eachData) {
         const item = eachData.data[eachData.index];
         initialValue = form ? (Types.isObject(item) && form in item ? item[form] : initialValue) : item;
       }
-      return (
-        <CCFormListComponentWrapper {...props} ref={ref} initialValue={initialValue} eachConfig={eachData} />
-      );
+      return <CCFormListComponentWrapper {...props} ref={ref} initialValue={initialValue} eachConfig={eachData} />;
     }}
   </FormListContext.Consumer>
 ));
