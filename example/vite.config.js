@@ -10,8 +10,7 @@ export default defineConfig({
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx'],
     alias: {
-      // '@wxik/react-form': path.resolve('../src'),
-      '@wxik/react-form': path.resolve('../dist'),
+      '@wxik/react-form': path.resolve('../src'),
     },
   },
 });

@@ -29,6 +29,7 @@
     "@rollup/plugin-node-resolve": "^14.1.0",
     "@types/react": "^18.0.20",
     "@types/react-dom": "^18.0.6",
+    "@wxik/core": "^0.5.5",
     "prettier": "^2.7.1",
     "rollup": "^2.79.0",
     "rollup-plugin-async": "^1.2.0",

@@ -1308,6 +1308,11 @@
   resolved "https://registry.npmmirror.com/@types/scheduler/-/scheduler-0.16.2.tgz#1a62f89525723dde24ba1b01b092bf5df8ad4d39"
   integrity sha512-hppQEBDmlwhFAXKJX2KnWLYu5yMfi91yazPb2l+lbJiwW+wdo1gNeRA+3RgNSO39WYX2euey41KEwnqesU2Jew==
 
+"@wxik/core@^0.5.5":
+  version "0.5.5"
+  resolved "https://registry.npmmirror.com/@wxik/core/-/core-0.5.5.tgz#8d77698fa236872329796666ed15b0a7cae3a236"
+  integrity sha512-2mL9yKMiY+yfS++0xGY/PFw5bDkqoGjobrkuiL+YBOourOw2GVKq2q1+7QVEIMShbYn9cunw4Fcpabp7et9yGA==
+
 "@wxik/observer@^0.1":
   version "0.1.1"
   resolved "https://registry.npmmirror.com/@wxik/observer/-/observer-0.1.1.tgz#82e027a882ef24640759fb378daed008ebfe04b6"

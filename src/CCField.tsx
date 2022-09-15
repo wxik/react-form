@@ -6,55 +6,23 @@
 import React from 'react';
 import {CCForm} from './CCForm';
 import {Tools, Types} from '@wxik/core';
-import {CCFormList} from './CCFormList';
+import {CCFormListContext} from './CCFormList';
 import {autoRun, unobserve} from '@wxik/observer';
+import type {CCFieldProps, CCFieldState, CCFormContextValue, FormData, Required} from '../index';
+import {CCFieldRef, CCFormListConfig} from "../index";
 
-/**
- * @typedef Required
- * @property {boolean|((formData: Object)=> {})} required
- */
-
-/**
- * @typedef Props
- * @property {string} form  field name
- * @property {string | Array<string>} [alias] alias field name
- * @property {string | ((form?: string)=> string)} [title]  field title
- * @property {string} [label]
- * @property {boolean} [inline] 是否内联对象
- * @property {boolean} [ignore] 是否忽略此字段
- * @property {string} [unique] 唯一标识, 默认 = id
- * @property {string | ((data: any, formData: T) => any)} [field] 提交取值处理数据
- * @property {*} [value]
- * @property {(value: any) => void} [onChange]
- * @property {boolean | ((formData: T) => boolean)} [visible]
- * @property {boolean | ((formData: T) => boolean)} [disabled]
- * @property {((value: any, da:{ val: any, data: Object, form?: string })=> any)} [unionValue]
- * @property {boolean | Array<RegExp | Required> | Required | RegExp | ((formData: T) => boolean)} [rules] 验证
- * @property {boolean} [error]
- * @property {{ form: string, index: number, length: number }} [eachConfig] 循环内
- */
-
-/**
- * @typedef State
- * @property {*} value 存储的值
- * @property {*} defaultValue 默认值
- * @property {boolean} required 是否必填验证
- * @property {boolean} error 是否验证错误
- * @property {boolean} visible 是否显示
- * @property {boolean} disabled 是否禁用
- */
-
-class CCFieldComponentWrapper extends React.Component {
+class CCFieldComponentWrapper extends React.Component<CCFieldProps, CCFieldState> {
+  declare context: React.ContextType<typeof CCForm.Context>;
   static contextType = CCForm.Context;
 
   static defaultProps = {
     inline: true,
   };
 
-  static getDerivedStateFromProps(nextProps, prevState) {
-    let state = null;
+  static getDerivedStateFromProps(nextProps: CCFieldProps, prevState: CCFieldState) {
+    let state: {[x: string]: any} | null = null;
 
-    function p2s(name) {
+    function p2s(name: string) {
       let value = nextProps[name];
       if (typeof value !== 'undefined' && value !== prevState[`_${name}`]) {
         state = state ?? {};
@@ -67,7 +35,12 @@ class CCFieldComponentWrapper extends React.Component {
     return state;
   }
 
-  constructor(props, context) {
+  changeFlag: boolean = false;
+  changeForm: boolean = false;
+  _observeUS: Array<()=> void> | null = null;
+  unmount: boolean = false;
+
+  constructor(props: CCFieldProps, context: any) {
     super(props, context);
     let that = this;
     that.listenerValueChange = that.listenerValueChange.bind(that);
@@ -76,17 +49,17 @@ class CCFieldComponentWrapper extends React.Component {
     that._observeDisabled = that._observeDisabled.bind(that);
     that._observeRules = that._observeRules.bind(that);
     that.state = that.initState();
-    // console.log(">>>>>>", props.form)
+    console.log('>>>>>>', props.form);
   }
 
   initState() {
-    let that = this,
+    const that = this,
       props = that.props,
-      context = that.context;
-    let {initialValue, getValue, defaultValue, visible, disabled} = props;
+      context = that.context as CCFormContextValue;
+    const {initialValue, getValue, defaultValue, visible, disabled} = props;
 
-    let form = that.getFormName(props);
-    let formData = {},
+    const form = that.getFormName(props);
+    let formData: FormData = {},
       value = Types.isUndefined(initialValue) ? defaultValue : initialValue;
 
     if (!Types.isBlank(form) && context) {
@@ -117,28 +90,28 @@ class CCFieldComponentWrapper extends React.Component {
 
   /**
    * 字段名称
-   * @param {Props} [props]
+   * @param {CCFieldProps} [props]
    * @returns {string}
    */
-  getFormName(props) {
+  getFormName(props: CCFieldProps) {
     let {form, eachConfig} = props || this.props;
     return eachConfig ? (form ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
   }
 
   /**
    * 字段别名
-   * @param props
+   * @param {CCFieldProps} props
    * @returns {[string]}
    */
-  getFormAlias(props) {
+  getFormAlias(props: CCFieldProps) {
     let {alias, eachConfig} = props || this.props;
     if (Types.isBlank(alias)) return [];
 
-    alias = Types.isArray(alias) ? alias : [alias];
+    alias = (Types.isArray(alias) ? alias : [alias]) as string[];
     return alias.map((form) => (eachConfig ? (form ? `${eachConfig.form}.${form}` : eachConfig.form) : form));
   }
 
-  execGetValue(form, value, data) {
+  execGetValue(form: string, value: any, data: FormData) {
     let {getValue, eachConfig, inline} = this.props;
 
     if (!inline) {
@@ -172,11 +145,12 @@ class CCFieldComponentWrapper extends React.Component {
     that._observeUS?.forEach((da) => unobserve(da));
   }
 
-  getObserveOptions() {
+  getObserveOptions(): { data: FormData; options: {[key: string]: any}; originData: FormData } {
     let that = this;
     let {eachConfig} = that.props;
-    let data = that.context?.data;
-    let originData = that.context?.originData;
+    const context = that.context as CCFormContextValue;
+    let data = context?.data;
+    let originData = context?.originData;
     let options = {};
 
     if (eachConfig) {
@@ -231,7 +205,7 @@ class CCFieldComponentWrapper extends React.Component {
     if (!Types.isEmpty(rules)) {
       if (Array.isArray(rules)) {
         that.required =
-          rules.findIndex((da) => Types.isObject(da) && !!that.isCallbackKey(da.required, data, options)) !== -1;
+          rules.findIndex((da) => Types.isObject(da) && !!that.isCallbackKey((da as Required).required, data, options)) !== -1;
       } else {
         that.required = that.isCallbackKey(rules, data, options) === true;
       }
@@ -243,22 +217,23 @@ class CCFieldComponentWrapper extends React.Component {
    * @private
    */
   _observeUnion() {
-    let that = this;
+    const that = this;
     that._observeUS = null;
-    let union = that.getUnionList();
+    const context = that.context as CCFormContextValue;
+    const union = that.getUnionList();
     if (that.unmount || Types.isEmptyArray(union)) return;
 
     let {unionValue} = that.props;
     let {options, data, originData} = that.getObserveOptions();
-    let getField = this.context?.getField;
-    let target = this.context?.target;
+    let getField = context?.getField;
+    let target = context?.target;
 
     unionValue = Types.isFunction(unionValue) ? unionValue : () => void 0;
 
-    let findUnion = function (name, ks = []) {
+    let findUnion = function (name: string, ks: string[] = []) {
       let pUnions = getField(name)?.getUnionList() || [];
       pUnions.forEach((un) => {
-        let fd = Types.isArray(un) ? un[0] : un;
+        let fd = (Types.isArray(un) ? un[0] : un) as string;
         if (ks.indexOf(fd) === -1) {
           ks.push(fd);
           findUnion(fd, ks);
@@ -267,8 +242,8 @@ class CCFieldComponentWrapper extends React.Component {
       return ks;
     };
 
-    that._observeUS = union.map((un) => {
-      let [name, func] = Types.isArray(un) ? un : [un, unionValue];
+    that._observeUS = union.map((un: string | [string, Function]) => {
+      let [name, func] = Array.isArray(un) ? un : [un, unionValue];
       let unionAll = findUnion(name, [name]);
       let getUnValue = () => {
         let value = that.isCallbackKey(func, data[name], {
@@ -302,7 +277,7 @@ class CCFieldComponentWrapper extends React.Component {
     return union;
   }
 
-  isCallbackKey(func, ...args) {
+  isCallbackKey<T>(func: any | ((...a: T[])=> any), ...args: T[]) {
     try {
       return Types.isFunction(func) ? func(...args) : func;
     } catch (e) {
@@ -335,22 +310,23 @@ class CCFieldComponentWrapper extends React.Component {
     };
   }
 
-  onChange(value) {
+  onChange(value: any) {
     this.handleChange(value);
   }
 
-  handleChange(value, callback) {
-    let that = this;
-    if (!!that.unmount || value === that.state.value) return;
+  handleChange(value: any, callback?: () => void) {
+    const that = this;
+    if (that.unmount || value === that.state.value) return;
 
-    let {key, setValue} = that.getListener();
+    const context = this.context as CCFormContextValue;
+    const {key, setValue} = that.getListener();
     that.changeFlag = true;
     that.changeForm = true;
-    key && that.context?.emitter?.emit(key, setValue ? setValue(value, that.context?.data) : value);
+    key && context?.emitter?.emit(key, setValue ? setValue(value, context?.data) : value);
     that.handleValue(value, callback);
   }
 
-  setValue(value, callback) {
+  setValue(value: any, callback: () => void) {
     // 触发表单raw, 否则visible等不会执行
     this.changeForm = true;
     this.handleValue(value, callback);
@@ -360,7 +336,7 @@ class CCFieldComponentWrapper extends React.Component {
     return this.state.value;
   }
 
-  handleValue(value, callback) {
+  handleValue(value: any, callback?: () => void) {
     const {value: prevValue} = this.state;
     if (!this.unmount && !this.equalsValue(value, prevValue)) {
       this.setState({value}, callback);
@@ -373,17 +349,17 @@ class CCFieldComponentWrapper extends React.Component {
     this.handleValue(value);
   }
 
-  equalsValue(value, preValue) {
+  equalsValue(value: any, preValue: any): boolean {
     let {label, unique = 'id'} = this.props;
     if (value === preValue) return true;
 
-    let isEqualObject = (obj, prevObj) => {
+    let isEqualObject = (obj: {[key: string]: any}, prevObj: {[key: string]: any}) => {
       if (Types.isEmptyObject(obj) || Types.isEmptyObject(prevObj)) return false;
       let v1, v2;
       if (unique in obj || unique in prevObj) {
         v1 = obj[unique];
         v2 = prevObj[unique];
-      } else if (label in obj || label in prevObj) {
+      } else if (label && (label in obj || label in prevObj)) {
         v1 = obj[label];
         v2 = prevObj[label];
       }
@@ -391,11 +367,11 @@ class CCFieldComponentWrapper extends React.Component {
     };
     if (Types.isObject(value) || Types.isObject(preValue)) {
       return isEqualObject(value, preValue);
-    } else if (Types.isArray(value) || Types.isArray(preValue)) {
+    } else if (Array.isArray(value) || Array.isArray(preValue)) {
       if (Types.isEmptyArray(value) || Types.isEmptyArray(preValue)) return false;
       if (value.length !== preValue.length) return false;
 
-      return value.every((da, di) => this.equalsValue(da, preValue[di]));
+      return value.every((da: any, di: number) => this.equalsValue(da, preValue[di]));
     } else {
       return String(value) === String(preValue);
     }
@@ -425,7 +401,7 @@ class CCFieldComponentWrapper extends React.Component {
     visible !== this.state.visible && this.setState({visible});
   }
 
-  set error(error) {
+  set error(error: boolean) {
     error !== this.state.error && this.setState({error});
   }
 
@@ -434,7 +410,8 @@ class CCFieldComponentWrapper extends React.Component {
    * @returns {boolean}
    */
   validate() {
-    let that = this;
+    const that = this;
+    const context = that.context as CCFormContextValue;
     let {ignore, rules, eachConfig} = that.props;
     let {required, value} = that.state;
 
@@ -452,15 +429,16 @@ class CCFieldComponentWrapper extends React.Component {
     if (Array.isArray(rules)) {
       return rules.find((da) => {
         if (da instanceof RegExp) {
-          return !!da.test(value);
+          return da.test(value);
         } else if (Types.isFunction(da)) {
-          return !!da(that.context?.data, options);
+          // @ts-ignore
+          return da(context?.data, options);
         }
       });
     } else if (rules && rules instanceof RegExp) {
-      return !!rules.test(value);
+      return rules.test(value);
     } else if (Types.isFunction(rules)) {
-      return !!rules(that.context?.data, options);
+      return (rules as Function)(context?.data, options);
     }
     return true;
   }
@@ -469,11 +447,11 @@ class CCFieldComponentWrapper extends React.Component {
    * 验证是否为空数据
    * @returns {boolean}
    */
-  validateEmpty(value) {
+  validateEmpty(value: any): boolean {
     let {label} = this.props;
 
-    let isEmptyObject = (obj) => {
-      return Types.isEmptyObject(obj) || (Types.isBlank(obj[label]) && Types.isBlank(obj.name));
+    let isEmptyObject = (obj: {[key: string]: any}): boolean => {
+      return Types.isEmptyObject(obj) || !!(label && Types.isBlank(obj[label]) && Types.isBlank(obj.name));
     };
     if (Types.isEmpty(value)) {
       return true;
@@ -501,28 +479,31 @@ class CCFieldComponentWrapper extends React.Component {
     return {key, getValue, setValue};
   }
 
-  listenerValueChange(value) {
-    let that = this;
-    let {getValue} = that.getListener();
-    that.value = getValue ? getValue(value, this.context?.data) : value;
+  listenerValueChange(value: any) {
+    const that = this;
+    const context = this.context as CCFormContextValue;
+    const {getValue} = that.getListener();
+    that.value = getValue ? getValue(value, context?.data) : value;
   }
 
   componentDidMount() {
-    let that = this;
-    let {key} = this.getListener();
-    key && that.context?.emitter?.addListener(key, that.listenerValueChange);
-    that.context?.setField(that);
+    const that = this;
+    const context = this.context as CCFormContextValue;
+    const {key} = this.getListener();
+    key && context?.emitter?.addListener(key, that.listenerValueChange);
+    context?.setField(that as CCFieldRef);
   }
 
   componentWillUnmount() {
-    let that = this;
+    const that = this;
     that.unmount = true;
-    let {key} = this.getListener();
-    key && that.context?.emitter?.removeListener(key, that.listenerValueChange);
-    that.context?.unmountField(that);
+    const context = this.context as CCFormContextValue;
+    const {key} = this.getListener();
+    key && context?.emitter?.removeListener(key, that.listenerValueChange);
+    context?.unmountField(that as CCFieldRef);
   }
 
-  shouldComponentUpdate(nextProps, nextState, nextContext) {
+  shouldComponentUpdate(nextProps: CCFieldProps, nextState: CCFieldState) {
     let that = this,
       props = that.props,
       state = that.state;
@@ -537,19 +518,21 @@ class CCFieldComponentWrapper extends React.Component {
     );
   }
 
-  getSnapshotBeforeUpdate(prevProps, prevState) {
+  getSnapshotBeforeUpdate(prevProps:CCFieldProps, prevState:CCFieldState) {
     if (prevProps.form !== this.props.form) {
-      this.context?.unmountField(this);
+      const context = this.context as CCFormContextValue;
+      context?.unmountField(this as CCFieldRef);
     }
     return null;
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    let that = this;
-    let {value, required} = that.state;
-    let form = that.getFormName(that.props);
+  componentDidUpdate(prevProps:CCFieldProps, prevState:CCFieldState) {
+    const that = this;
+    const context = this.context as CCFormContextValue;
+    const {value, required} = that.state;
+    const form = that.getFormName(that.props);
     if (value !== prevState.value) {
-      that.context?.onFieldChange(form, value, {raw: !that.changeForm});
+      context?.onFieldChange(form, value, {raw: !that.changeForm});
       that.changeFlag && that.props.onChange?.(value);
     }
 
@@ -558,11 +541,11 @@ class CCFieldComponentWrapper extends React.Component {
     }
 
     if (prevProps.form !== that.props.form) {
-      that.context?.setField(that);
+      context?.setField(that as CCFieldRef);
     }
 
     if (form !== that.getFormName(prevProps)) {
-      that.context?.onFieldChange(form, value, {raw: true});
+      context?.onFieldChange(form, value, {raw: true});
     }
 
     that.changeFlag = false;
@@ -570,16 +553,16 @@ class CCFieldComponentWrapper extends React.Component {
   }
 
   render() {
-    let that = this;
-    let {value, required, error, disabled, visible} = that.state;
-    let {forwardRef, __Component__: Target, title, ...rest} = that.props;
+    const that = this;
+    const context = this.context as CCFormContextValue;
+    const {value, required, error, disabled, visible} = that.state;
+    const {forwardRef, __Component__: Target, title, ...rest} = that.props;
     if (!visible) return null;
-    title = that.title;
     return (
       <Target
         {...rest}
-        title={title}
-        data={that.context?.data}
+        title={that.title}
+        data={context?.data}
         value={value}
         required={required}
         disabled={disabled}
@@ -597,15 +580,16 @@ class CCFieldComponentWrapper extends React.Component {
  * }} options
  * @returns {function(*=): *}
  */
-export function CCField(options = {}) {
+export function CCField(options: {defaultValue?: any} = {}) {
   const {defaultValue} = options;
-  return function (Target) {
-    return React.forwardRef((props, ref) => (
-      <CCFormList.Context.Consumer>
+  return function (Target: React.ComponentType<CCFieldProps>) {
+    return React.forwardRef<CCFieldComponentWrapper, CCFieldProps>((props, ref) => (
+      <CCFormListContext.Consumer>
         {(eachData) => {
+          const listData = eachData as CCFormListConfig;
           let {initialValue, form, inline = true} = props;
-          if (eachData) {
-            const item = eachData.data[eachData.index];
+          if (listData) {
+            const item = listData.data[listData.index];
             initialValue = form
               ? Types.isObject(item) && form in item
                 ? item[form]
@@ -620,13 +604,13 @@ export function CCField(options = {}) {
               defaultValue={defaultValue}
               {...props}
               initialValue={initialValue}
-              eachConfig={eachData}
+              eachConfig={listData}
               ref={ref}
               __Component__={Target}
             />
           );
         }}
-      </CCFormList.Context.Consumer>
+      </CCFormListContext.Consumer>
     ));
   };
 }
