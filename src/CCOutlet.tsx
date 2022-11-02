@@ -8,7 +8,7 @@
 import React from 'react';
 import {CCFormListContext} from './CCFormList';
 import {CCForm} from "./CCForm";
-import type {CCFieldProps, CCFormListConfig} from "../index";
+import type {CCFieldProps, CCFormListConfig} from "./interface";
 
 export function CCOutlet() {
   return function<T> (Target: React.ComponentType<CCFieldProps>) {

@@ -12,8 +12,8 @@ import type {
   CCFormListRef,
   CCFieldProps,
   FormData,
-} from '../index';
-import {CCFormContextValue} from "../index";
+  CCFormContextValue,
+} from './interface';
 
 const Const = {
   Field: 1,

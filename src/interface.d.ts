@@ -1,17 +1,16 @@
-import * as React from 'react';
-import {ReactNode} from 'react';
+import React, {ReactNode} from 'react';
 
-export declare interface FormData {
+export interface FormData {
   [key: string]: any;
 }
 
-export declare interface Emitter {
+export interface Emitter {
   addListener: (key: string, Function) => void;
   removeListener: (key: string, Function) => void;
   emit: (key, ...value) => void;
 }
 
-export declare interface CCFormProps {
+export interface CCFormProps {
   data?: FormData;
   initialValue?: Object;
   onChange?: (data: FormData, fields: Array<CCFieldProps>) => void;
@@ -20,21 +19,21 @@ export declare interface CCFormProps {
   children: ReactNode;
 }
 
-export declare interface CCFormState {
+export interface CCFormState {
   data: FormData;
   originData: FormData;
   initialValue?: FormData;
 }
 
-export declare interface CCFieldOptions {
+export interface CCFieldOptions {
   defaultValue?: any;
 }
 
-export declare interface Required {
+export interface Required {
   required: boolean | ((formData: Object) => any);
 }
 
-export declare interface CCFieldProps {
+export interface CCFieldProps {
   form: string; // field name
   alias?: string | Array<string>; // alias field name
   title?: string | ((form?: string) => string); // field title
@@ -48,14 +47,14 @@ export declare interface CCFieldProps {
   onChange?: (value: any) => void;
   visible?: boolean | ((formData) => boolean);
   disabled?: boolean | ((formData) => boolean);
-  unionValue?: (value, data: { val: any; data: Object; form?: string }) => any;
+  unionValue?: (value, data: {val: any; data: Object; form?: string}) => any;
   rules?: boolean | Array<RegExp | Required> | Required | RegExp | ((formData) => boolean); // 验证
   error?: boolean;
   eachConfig?: CCFormListConfig; //循环内
   [key: string]: any;
 }
 
-export declare interface CCFieldState {
+export interface CCFieldState {
   value: any; // 存储的值
   defaultValue?: any; // 默认值
   required: boolean; // 是否必填验证
@@ -65,10 +64,9 @@ export declare interface CCFieldState {
   [key: string]: any;
 }
 
-export declare interface CCOutletOptions {
-}
+export interface CCOutletOptions {}
 
-export declare interface CCOutletProps {
+export interface CCOutletProps {
   data: Object;
   originData: Object;
   initialValue: Object;
@@ -80,7 +78,7 @@ export declare interface CCOutletProps {
   getField: () => any;
 }
 
-export declare interface CCFormListProps {
+export interface CCFormListProps {
   form: string;
   initRows?: number;
   initialValue?: Array<any>;
@@ -88,16 +86,16 @@ export declare interface CCFormListProps {
   children: (props: CCFormListRow) => React.ReactNode;
 }
 
-export declare interface CCFormListState {
+export interface CCFormListState {
   keys: string[]; // 存储的值
   data: any[];
 }
 
-export declare class CCFormRef extends React.Component<CCFieldProps, CCFieldState> {
+export class CCFormRef extends React.Component<CCFieldProps, CCFieldState> {
   changeState: 0 | 1;
 }
 
-export declare class CCFieldRef extends React.Component<CCFieldProps, CCFieldState> {
+export class CCFieldRef extends React.Component<CCFieldProps, CCFieldState> {
   initState: () => CCFieldState;
   getFormName: (props?: CCFieldProps) => string;
   unObserveData: () => void;
@@ -124,7 +122,7 @@ export declare class CCFieldRef extends React.Component<CCFieldProps, CCFieldSta
   };
 }
 
-export declare class CCFormListRef extends React.Component<CCFormListProps, CCFormListState> {
+export class CCFormListRef extends React.Component<CCFormListProps, CCFormListState> {
   initState: () => CCFormListState;
   removeOutData: (size: number) => void;
   setData: (data?: any[]) => void;
@@ -137,23 +135,23 @@ export declare class CCFormListRef extends React.Component<CCFormListProps, CCFo
   };
 }
 
-export declare interface CCFormContextValue {
+export interface CCFormContextValue {
   data: FormData;
   originData: FormData;
   initialValue?: FormData;
   formChange: (name?: string) => void;
-  deleteField: (name: string, options: { isChange?: boolean; raw?: boolean } = {}) => void;
+  deleteField: (name: string, options: {isChange?: boolean; raw?: boolean} = {}) => void;
   setField: (field: CCFieldRef | CCFormListRef) => void;
   unmountField: (field: CCFieldRef | CCFormListRef) => void;
   getField: (name: string) => CCFieldRef | null;
-  onFieldChange: (name: string, value: any, options: {raw?: boolean} = {})=> void;
+  onFieldChange: (name: string, value: any, options: {raw?: boolean} = {}) => void;
   emitter: Emitter;
   target: CCFormRef;
 }
 
-export declare function CCForm(props: CCFormProps): React.ReactElement<CCFormProps>;
+export function CCForm(props: CCFormProps): React.ReactElement<CCFormProps>;
 
-export declare interface CCFormListConfig {
+export interface CCFormListConfig {
   form: string;
   index: number;
   key: string;
@@ -161,13 +159,12 @@ export declare interface CCFormListConfig {
   data: any[];
 }
 
-export declare interface CCFormListRow extends CCFormListConfig {
+export interface CCFormListRow extends CCFormListConfig {
   target: CCFormListRef;
-
 }
 
-export declare function CCField(options: CCFieldOptions): React.ForwardRefExoticComponent<CCFieldProps>;
+export function CCField(options: CCFieldOptions): React.ForwardRefExoticComponent<CCFieldProps>;
 
-export declare function CCOutlet(options: CCOutletOptions): React.ReactElement<CCOutletProps>;
+export function CCOutlet(options: CCOutletOptions): React.ReactElement<CCOutletProps>;
 
-export declare function CCFormList(): React.ReactElement<CCFormListProps>;
+export function CCFormList(): React.ReactElement<CCFormListProps>;

@@ -10,9 +10,10 @@ import type {
   CCFormContextValue,
   CCFormListConfig,
   CCFormListProps,
-  CCFormListState
-} from '../index';
-import {CCFormListRef, CCFormListRow} from '../index';
+  CCFormListState,
+  CCFormListRef,
+  CCFormListRow,
+} from './interface';
 
 export const CCFormListContext = React.createContext<CCFormListConfig | null>(null);
 
@@ -193,7 +194,7 @@ class CCFormListComponentWrapper extends React.Component<CCFormListProps, CCForm
             length: keys.length,
             data,
           };
-          const cfg : CCFormListRow = {
+          const cfg: CCFormListRow = {
             ...pro,
             target: that as CCFormListRef,
           };
@@ -228,4 +229,3 @@ export const CCFormList = React.forwardRef<CCFormListComponentWrapper, CCFormLis
     }}
   </CCFormListContext.Consumer>
 ));
-

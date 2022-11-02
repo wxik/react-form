@@ -8,8 +8,15 @@ import {CCForm} from './CCForm';
 import {Tools, Types} from '@wxik/core';
 import {CCFormListContext} from './CCFormList';
 import {autoRun, unobserve} from '@wxik/observer';
-import type {CCFieldProps, CCFieldState, CCFormContextValue, FormData, Required} from '../index';
-import {CCFieldRef, CCFormListConfig} from "../index";
+import type {
+  CCFieldProps,
+  CCFieldState,
+  CCFormContextValue,
+  FormData,
+  Required,
+  CCFieldRef,
+  CCFormListConfig,
+} from './interface';
 
 class CCFieldComponentWrapper extends React.Component<CCFieldProps, CCFieldState> {
   declare context: React.ContextType<typeof CCForm.Context>;
@@ -37,7 +44,7 @@ class CCFieldComponentWrapper extends React.Component<CCFieldProps, CCFieldState
 
   changeFlag: boolean = false;
   changeForm: boolean = false;
-  _observeUS: Array<()=> void> | null = null;
+  _observeUS: Array<() => void> | null = null;
   unmount: boolean = false;
 
   constructor(props: CCFieldProps, context: any) {
@@ -145,7 +152,7 @@ class CCFieldComponentWrapper extends React.Component<CCFieldProps, CCFieldState
     that._observeUS?.forEach((da) => unobserve(da));
   }
 
-  getObserveOptions(): { data: FormData; options: {[key: string]: any}; originData: FormData } {
+  getObserveOptions(): {data: FormData; options: {[key: string]: any}; originData: FormData} {
     let that = this;
     let {eachConfig} = that.props;
     const context = that.context as CCFormContextValue;
@@ -205,7 +212,9 @@ class CCFieldComponentWrapper extends React.Component<CCFieldProps, CCFieldState
     if (!Types.isEmpty(rules)) {
       if (Array.isArray(rules)) {
         that.required =
-          rules.findIndex((da) => Types.isObject(da) && !!that.isCallbackKey((da as Required).required, data, options)) !== -1;
+          rules.findIndex(
+            (da) => Types.isObject(da) && !!that.isCallbackKey((da as Required).required, data, options),
+          ) !== -1;
       } else {
         that.required = that.isCallbackKey(rules, data, options) === true;
       }
@@ -277,7 +286,7 @@ class CCFieldComponentWrapper extends React.Component<CCFieldProps, CCFieldState
     return union;
   }
 
-  isCallbackKey<T>(func: any | ((...a: T[])=> any), ...args: T[]) {
+  isCallbackKey<T>(func: any | ((...a: T[]) => any), ...args: T[]) {
     try {
       return Types.isFunction(func) ? func(...args) : func;
     } catch (e) {
@@ -518,7 +527,7 @@ class CCFieldComponentWrapper extends React.Component<CCFieldProps, CCFieldState
     );
   }
 
-  getSnapshotBeforeUpdate(prevProps:CCFieldProps, prevState:CCFieldState) {
+  getSnapshotBeforeUpdate(prevProps: CCFieldProps, prevState: CCFieldState) {
     if (prevProps.form !== this.props.form) {
       const context = this.context as CCFormContextValue;
       context?.unmountField(this as CCFieldRef);
@@ -526,7 +535,7 @@ class CCFieldComponentWrapper extends React.Component<CCFieldProps, CCFieldState
     return null;
   }
 
-  componentDidUpdate(prevProps:CCFieldProps, prevState:CCFieldState) {
+  componentDidUpdate(prevProps: CCFieldProps, prevState: CCFieldState) {
     const that = this;
     const context = this.context as CCFormContextValue;
     const {value, required} = that.state;
