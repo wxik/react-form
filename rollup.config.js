@@ -1,39 +1,12 @@
+import typescript from '@rollup/plugin-typescript';
 import { terser } from 'rollup-plugin-terser';
-import babel from '@rollup/plugin-babel';
-import {nodeResolve} from '@rollup/plugin-node-resolve';
 
 export default {
-  input: 'src/index.js',
+  input: 'src/index.tsx',
   treeshake: false,
   plugins: [
-    nodeResolve({
-      extensions: ['.js', '.jsx', '.ts', '.tsx'],
-    }),
+    typescript(),
     terser(),
-    babel({
-      babelHelpers: 'bundled',
-      presets: [
-        [
-          '@babel/preset-env',
-          {
-            targets: {
-              esmodules: true,
-            },
-            loose: true,
-            ignoreBrowserslistConfig: false,
-          },
-        ],
-        [
-          '@babel/preset-react',
-          {
-            runtime: 'automatic',
-          },
-        ],
-      ],
-      plugins: [
-        ['@babel/plugin-proposal-function-bind'], // :: bind
-      ],
-    }),
   ],
   output: [{ file: 'dist/index.js', format: 'esm' }],
   external: ['react', '@wxik/core', '@wxik/observer', 'react/jsx-runtime'],
