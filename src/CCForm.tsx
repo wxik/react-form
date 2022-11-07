@@ -2,18 +2,46 @@
  * @author wxik
  * @sine 2020-04-11 16:03
  */
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {Tools, Types} from '@wxik/core';
 import {observable, raw} from '@wxik/observer';
-import type {
-  CCFormProps,
-  CCFormState,
-  CCFieldRef,
-  CCFormListRef,
-  CCFieldProps,
-  FormData,
-  CCFormContextValue,
-} from './interface';
+import type {FormData} from './interface';
+import {Emitter} from './interface';
+import type {CCFieldProps, CCFieldRef} from './CCField';
+import type {CCFormListRef} from './CCFormList';
+
+export interface CCFormProps {
+  data?: FormData;
+  initialValue?: Object;
+  onChange?: (data: FormData, fields: Array<CCFieldProps>) => void;
+  emitter?: Emitter; // 字段改变发射器
+  config?: Array<Object>; //表单配置,暂时不用
+  children: ReactNode;
+}
+
+interface CCFormState {
+  data: FormData;
+  originData: FormData;
+  initialValue?: FormData;
+}
+
+export interface CCFormContextValue {
+  data: FormData;
+  originData: FormData;
+  initialValue?: FormData;
+  formChange: (name?: string) => void;
+  deleteField: (name: string, options?: {isChange?: boolean; raw?: boolean}) => void;
+  setField: (field: CCFieldRef | CCFormListRef) => void;
+  unmountField: (field: CCFieldRef | CCFormListRef) => void;
+  getField: (name: string) => CCFieldRef | null;
+  onFieldChange: (name: string, value: any, options?: {raw?: boolean}) => void;
+  emitter: Emitter;
+  target: CCFormRef;
+}
+
+export interface CCFormRef extends React.Component {
+  changeState: 0 | 1;
+}
 
 const Const = {
   Field: 1,
@@ -49,9 +77,9 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
   updateFields = new Set<CCFieldRef>();
   listFields = new Set<CCFormListRef>();
   providerValue: CCFormContextValue | {} = {};
-  _timeoutChange: any = void 0;
-  _temp_fields: Array<CCFieldProps> = [];
-  _autoRunTime: any = void 0;
+  private timeoutChange: any = void 0;
+  private tempFields: Array<CCFieldProps> = [];
+  private autoRunTime: any = void 0;
 
   constructor(props: CCFormProps) {
     super(props);
@@ -182,13 +210,13 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
 
   handleFormChange(name?: string) {
     let that = this;
-    clearTimeout(that._timeoutChange);
+    clearTimeout(that.timeoutChange);
     let ps = name && that.getField(name)?.props;
-    that._temp_fields = that._temp_fields || [];
-    ps && that._temp_fields.push(ps);
-    that._timeoutChange = setTimeout(() => {
-      that.handleChange(that._temp_fields);
-      that._temp_fields = [];
+    that.tempFields = that.tempFields || [];
+    ps && that.tempFields.push(ps);
+    that.timeoutChange = setTimeout(() => {
+      that.handleChange(that.tempFields);
+      that.tempFields = [];
     });
   }
 
@@ -218,8 +246,8 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
       this._setFieldRawValue(form, (field as CCFieldRef).value);
       this.updateFields.add(field as CCFieldRef);
 
-      clearTimeout(this._autoRunTime);
-      this._autoRunTime = setTimeout(this.fieldAutoRun);
+      clearTimeout(this.autoRunTime);
+      this.autoRunTime = setTimeout(this.fieldAutoRun);
     } else {
       this.listFields.add(field as CCFormListRef);
     }
@@ -230,7 +258,7 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
    * @param {string} name
    * @returns {*}
    */
-  getField(name: string) {
+  getField(name: string): CCFieldRef | null {
     if (Types.isBlank(name)) return null;
     for (const f of this.fields) {
       const {form} = f.config;

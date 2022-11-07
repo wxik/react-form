@@ -2,7 +2,7 @@
   "name": "@wxik/react-form",
   "version": "0.3.10",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "index.d.ts",
   "description": "react form",
   "license": "MIT",
   "publishConfig": {
@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "rollup -c",
+    "dts": "rollup -c rollup.config.dts.mjs",
     "dev": "cd example && yarn dev"
   },
   "dependencies": {

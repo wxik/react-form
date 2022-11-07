@@ -6,14 +6,45 @@
 import React from 'react';
 import {CCForm} from './CCForm';
 import {Tools, Types} from '@wxik/core';
-import type {
-  CCFormContextValue,
-  CCFormListConfig,
-  CCFormListProps,
-  CCFormListState,
-  CCFormListRef,
-  CCFormListRow,
-} from './interface';
+import type {CCFormContextValue} from './CCForm';
+
+export interface CCFormListProps {
+  form: string;
+  initRows?: number;
+  initialValue?: Array<any>;
+  eachConfig?: CCFormListConfig;
+  children: (props: CCFormListRow) => React.ReactNode;
+}
+
+interface CCFormListState {
+  keys: string[]; // 存储的值
+  data: any[];
+}
+
+export interface CCFormListRef extends React.Component {
+  initState: () => CCFormListState;
+  removeOutData: (size: number) => void;
+  setData: (data?: any[]) => void;
+  getData: () => any[];
+  deleteIndex: number[];
+
+  get config(): {
+    form: string;
+    fieldType: number;
+  };
+}
+
+export interface CCFormListRow extends CCFormListConfig {
+  target: CCFormListRef;
+}
+
+export interface CCFormListConfig {
+  form: string;
+  index: number;
+  key: string;
+  length: number;
+  data: any[];
+}
 
 export const CCFormListContext = React.createContext<CCFormListConfig | null>(null);
 

@@ -7,16 +7,19 @@
  */
 import React from 'react';
 import {CCFormListContext} from './CCFormList';
-import {CCForm} from "./CCForm";
-import type {CCFieldProps, CCFormListConfig} from "./interface";
+import {CCForm} from './CCForm';
+import type {CCFieldProps} from './CCField';
+import type {CCFormListConfig} from './CCFormList';
 
 export function CCOutlet() {
-  return function<T> (Target: React.ComponentType<CCFieldProps>) {
+  return function <T>(Target: React.ComponentType<CCFieldProps>) {
     return React.forwardRef<T, CCFieldProps>((props, ref) => (
       <CCFormListContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>
-            {(fieldContext) => <Target {...props} ref={ref} {...fieldContext} eachConfig={eachContext as CCFormListConfig} />}
+            {(fieldContext) => (
+              <Target {...props} ref={ref} {...fieldContext} eachConfig={eachContext as CCFormListConfig} />
+            )}
           </CCForm.Context.Consumer>
         )}
       </CCFormListContext.Consumer>
