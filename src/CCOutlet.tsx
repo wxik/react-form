@@ -2,7 +2,7 @@
  * 对于普通组件也可以注入表单数据
  * 1. 循环体中的行数据
  * 2. 表单整体数据
- * @author wxik
+ * @author Quia
  * @since 2020-05-21 11:47
  */
 import React from 'react';

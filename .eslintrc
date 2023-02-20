@@ -1,0 +1,15 @@
+{
+  "extends": ["react-app"],
+  "rules": {
+    "import/first": "off",
+    "@typescript-eslint/consistent-type-imports": "error",
+    "no-restricted-syntax": ["error", "LogicalExpression[operator='??']"]
+  },
+  "overrides": [
+    {
+      "files": ["**/__tests__/**"],
+      "plugins": ["jest"],
+      "extends": ["plugin:jest/recommended"]
+    }
+  ]
+}

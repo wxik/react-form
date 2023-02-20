@@ -1,14 +1,14 @@
 /**
  *
- * @author wxik
+ * @author Quia
  * @sine 2020-04-20 11:27
  */
 import React from 'react';
-import {CCForm} from './CCForm';
-import {Tools, Types} from '@wxik/core';
 import type {CCFormContextValue} from './CCForm';
+import {CCFieldEnum, CCForm} from './CCForm';
+import {Tools, Types} from '@wxik/core';
 
-export interface CCFormListProps {
+interface CCFormListProps {
   form: string;
   initRows?: number;
   initialValue?: Array<any>;
@@ -21,21 +21,8 @@ interface CCFormListState {
   data: any[];
 }
 
-export interface CCFormListRef extends React.Component {
-  initState: () => CCFormListState;
-  removeOutData: (size: number) => void;
-  setData: (data?: any[]) => void;
-  getData: () => any[];
-  deleteIndex: number[];
-
-  get config(): {
-    form: string;
-    fieldType: number;
-  };
-}
-
 export interface CCFormListRow extends CCFormListConfig {
-  target: CCFormListRef;
+  target: CCFormListWrapper;
 }
 
 export interface CCFormListConfig {
@@ -48,7 +35,7 @@ export interface CCFormListConfig {
 
 export const CCFormListContext = React.createContext<CCFormListConfig | null>(null);
 
-class CCFormListComponentWrapper extends React.Component<CCFormListProps, CCFormListState> {
+export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormListState> {
   declare context: React.ContextType<typeof CCForm.Context>;
   static contextType = CCForm.Context;
 
@@ -57,7 +44,8 @@ class CCFormListComponentWrapper extends React.Component<CCFormListProps, CCForm
   };
 
   deleteIndex: number[] = [];
-  uuid: number = 0;
+  private uuid: number = 0;
+  public fieldType = CCFieldEnum.List;
 
   constructor(props: CCFormListProps, context: any) {
     super(props, context);
@@ -96,7 +84,7 @@ class CCFormListComponentWrapper extends React.Component<CCFormListProps, CCForm
     return {keys, data};
   }
 
-  _initID() {
+  private _initID() {
     this.uuid = 1000;
   }
 
@@ -194,15 +182,15 @@ class CCFormListComponentWrapper extends React.Component<CCFormListProps, CCForm
 
   get config() {
     const form = this.getFormName(this.props);
-    return {form, fieldType: CCForm.Const.List};
+    return {form};
   }
 
   componentDidMount() {
-    (this.context as CCFormContextValue).setField(this as CCFormListRef);
+    (this.context as CCFormContextValue).setField(this);
   }
 
   componentWillUnmount() {
-    (this.context as CCFormContextValue)?.unmountField(this as CCFormListRef);
+    (this.context as CCFormContextValue)?.unmountField(this);
   }
 
   shouldComponentUpdate(nextProps: CCFormListProps, nextState: CCFormListState) {
@@ -225,10 +213,7 @@ class CCFormListComponentWrapper extends React.Component<CCFormListProps, CCForm
             length: keys.length,
             data,
           };
-          const cfg: CCFormListRow = {
-            ...pro,
-            target: that as CCFormListRef,
-          };
+          const cfg: CCFormListRow = {...pro, target: that};
           return (
             <CCFormListContext.Provider value={pro} key={key}>
               {children(cfg)}
@@ -239,7 +224,7 @@ class CCFormListComponentWrapper extends React.Component<CCFormListProps, CCForm
   }
 }
 
-export const CCFormList = React.forwardRef<CCFormListComponentWrapper, CCFormListProps>((props, ref) => (
+export const CCFormList = React.forwardRef<CCFormListWrapper, CCFormListProps>((props, ref) => (
   <CCFormListContext.Consumer>
     {(eachData) => {
       let {form, initialValue, children} = props;
@@ -249,13 +234,7 @@ export const CCFormList = React.forwardRef<CCFormListComponentWrapper, CCFormLis
         initialValue = form ? (Types.isObject(item) && form in item ? item[form] : initialValue) : item;
       }
       return (
-        <CCFormListComponentWrapper
-          {...props}
-          ref={ref}
-          initialValue={initialValue}
-          eachConfig={listData}
-          children={children}
-        />
+        <CCFormListWrapper {...props} ref={ref} initialValue={initialValue} eachConfig={listData} children={children} />
       );
     }}
   </CCFormListContext.Consumer>

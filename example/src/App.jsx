@@ -121,7 +121,7 @@ class App extends React.Component {
     if (form.validate()) {
       console.log('验证>>', form.subData({merge: true}));
     } else {
-      console.log('<>', form.data);
+      console.log('<>', form.subData());
     }
     // this.setState({data});
   }
@@ -184,11 +184,11 @@ class App extends React.Component {
                 </div>
               ))}
               <CCFormList form={'sl'} initRows={1}>
-                {({target, key, index, form}) => (
+                {() => (
                   <CCFormList form="c" initRows={1}>
-                    {({target, key, index, form}) => (
+                    {({target, key, index}) => (
                       <div style={styles.form} key={key} data-key={key}>
-                        <TextField title={'SL 吃吃 - ' + index} />
+                        <TextField title={'SL 吃吃 - ' + index} form={index} />
                         <button style={{padding: 10}} onClick={() => target.addItem()}>
                           ++++++
                         </button>
@@ -201,9 +201,9 @@ class App extends React.Component {
                 )}
               </CCFormList>
               <CCFormList form={'sb'} initRows={1}>
-                {({target, key, index, form}) => (
+                {({target, key, index}) => (
                   <div style={styles.form} key={key} data-key={key}>
-                    <TextField title={'吃吃 - ' + index} />
+                    <TextField title={'吃吃 - ' + index} form={index} />
                     <button style={{padding: 10}} onClick={() => target.addItem()}>
                       ++++++
                     </button>
@@ -220,10 +220,10 @@ class App extends React.Component {
                       <TextField key={config.form} {...config} />
                     ))}
                     <button style={{padding: 10}} onClick={() => target.addItem()}>
-                      ++++++
+                      ++++{index}
                     </button>
                     <button style={{padding: 10}} onClick={() => target.removeItem(index)}>
-                      ------
+                      ----
                     </button>
                   </div>
                 )}

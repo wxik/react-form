@@ -3,13 +3,12 @@ import { terser } from 'rollup-plugin-terser';
 
 export default [
   {
-    input: 'src/index.tsx',
-    treeshake: false,
+    input: 'src/index.ts',
+    output: { file: 'dist/index.js', format: 'esm' },
+    external: ['react', '@wxik/core', '@wxik/observer'],
     plugins: [
       typescript(),
       terser(),
     ],
-    output: { file: 'dist/index.js', format: 'esm' },
-    external: ['react', '@wxik/core', '@wxik/observer', 'react/jsx-runtime'],
   }
 ]

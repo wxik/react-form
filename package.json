@@ -2,7 +2,7 @@
   "name": "@wxik/react-form",
   "version": "0.3.10",
   "main": "dist/index.js",
-  "types": "index.d.ts",
+  "types": "dist/index.d.ts",
   "description": "react form",
   "license": "MIT",
   "publishConfig": {
@@ -17,17 +17,16 @@
     "@wxik/observer": "^0.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.19.6",
-    "@rollup/plugin-typescript": "^9.0.2",
-    "@types/react": "^18.0.24",
-    "@types/react-dom": "^18.0.8",
-    "prettier": "^2.7.1",
+    "@babel/core": "^7.20.12",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
     "@wxik/core": "^0.5.5",
-    "rollup": "^3.2.5",
+    "prettier": "^2.8.4",
+    "rollup": "^3.17.1",
     "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-dts": "^5.0.0",
-    "tslib": "^2.4.1",
-    "typescript": "^4.8.4"
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5"
   },
   "peerDependencies": {
     "@wxik/core": "^0.5"
