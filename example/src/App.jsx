@@ -186,13 +186,13 @@ class App extends React.Component {
               <CCFormList form={'sl'} initRows={1}>
                 {() => (
                   <CCFormList form="c" initRows={1}>
-                    {({target, key, index}) => (
+                    {({add, remove, key, index}) => (
                       <div style={styles.form} key={key} data-key={key}>
                         <TextField title={'SL 吃吃 - ' + index} form={index} />
-                        <button style={{padding: 10}} onClick={() => target.addItem()}>
+                        <button style={{padding: 10}} onClick={add}>
                           ++++++
                         </button>
-                        <button style={{padding: 10}} onClick={() => target.removeItem(index)}>
+                        <button style={{padding: 10}} onClick={remove}>
                           ------
                         </button>
                       </div>
@@ -201,28 +201,28 @@ class App extends React.Component {
                 )}
               </CCFormList>
               <CCFormList form={'sb'} initRows={1}>
-                {({target, key, index}) => (
+                {({add, remove, key, index}) => (
                   <div style={styles.form} key={key} data-key={key}>
                     <TextField title={'吃吃 - ' + index} form={index} />
-                    <button style={{padding: 10}} onClick={() => target.addItem()}>
+                    <button style={{padding: 10}} onClick={add}>
                       ++++++
                     </button>
-                    <button style={{padding: 10}} onClick={() => target.removeItem(index)}>
+                    <button style={{padding: 10}} onClick={remove}>
                       ------
                     </button>
                   </div>
                 )}
               </CCFormList>
               <CCFormList form={'job'} ref={(rf) => (this.listRef = rf)} initRows={1}>
-                {({target, index}) => (
+                {({add, remove, index}) => (
                   <div style={styles.form}>
                     {this.formList.map((config) => (
                       <TextField key={config.form} {...config} />
                     ))}
-                    <button style={{padding: 10}} onClick={() => target.addItem()}>
+                    <button style={{padding: 10}} onClick={add}>
                       ++++{index}
                     </button>
-                    <button style={{padding: 10}} onClick={() => target.removeItem(index)}>
+                    <button style={{padding: 10}} onClick={remove}>
                       ----
                     </button>
                   </div>

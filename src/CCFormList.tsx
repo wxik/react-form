@@ -13,16 +13,12 @@ interface CCFormListProps {
   initRows?: number;
   initialValue?: Array<any>;
   eachConfig?: CCFormListConfig;
-  children: (props: CCFormListRow) => React.ReactNode;
+  children: (props: CCFormListConfig) => React.ReactNode;
 }
 
 interface CCFormListState {
   keys: string[]; // 存储的值
   data: any[];
-}
-
-export interface CCFormListRow extends CCFormListConfig {
-  target: CCFormListWrapper;
 }
 
 export interface CCFormListConfig {
@@ -31,6 +27,8 @@ export interface CCFormListConfig {
   key: string;
   length: number;
   data: any[];
+  remove: () => void;
+  add: (item?: Record<any, any>) => void;
 }
 
 export const CCFormListContext = React.createContext<CCFormListConfig | null>(null);
@@ -63,11 +61,11 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     that._initID();
     let {initRows, initialValue} = props;
 
-    const form = this.getFormName(props);
+    const formName = this.getFormName(props);
 
     if (context && context.initialValue) {
-      if (!Types.isBlank(form)) {
-        initialValue = Tools.get(context.initialValue, form, initialValue);
+      if (!Types.isBlank(formName)) {
+        initialValue = Tools.get(context.initialValue, formName, initialValue);
       } else if (Array.isArray(context.initialValue)) {
         initialValue = context.initialValue;
       }
@@ -104,7 +102,7 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     } else if (data.length === 0) {
       data = Array(initRows);
     }
-    //TODO 如果初始化 id 会导致之前的数据不刷新
+    // 如果初始化 id 会导致之前的数据不刷新
     // this._initID();
     this.removeOutData(data.length);
     const keys = Array.from(data).fill(1).map(this.genID);
@@ -115,14 +113,14 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     return this.state.data;
   }
 
-  addItem(item = {}) {
+  addItem(item: Record<any, any> = {}) {
     let that = this;
     let {data, keys} = that.state;
     keys = Array.from(keys);
     keys.push(that.genID());
     data.push(item);
     that.setState({keys, data});
-    (that.context as CCFormContextValue)?.formChange();
+    that.context?.form.onFormChange();
   }
 
   removeItem(index: number) {
@@ -137,17 +135,17 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     that.setState({keys, data});
   }
 
-  removeListEndData() {
-    const form = this.getFormName(this.props);
+  private removeListEndData() {
+    const formName = this.getFormName(this.props);
     const {keys} = this.state;
     const key = keys.length - 1;
-    const pad = form ? `${form}.${key}` : String(key);
+    const pad = formName ? `${formName}.${key}` : String(key);
 
-    const {data, deleteField} = this.context as CCFormContextValue;
+    const {data, form} = this.context!;
 
     Object.keys(data).forEach((fi) => {
       if (fi.indexOf(pad) === 0) {
-        deleteField(fi, {raw: true});
+        form.onDeleteField(fi);
       }
     });
   }
@@ -157,49 +155,55 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
    * @param {Number} size 存在行数量
    */
   removeOutData(size: number) {
-    const form = this.getFormName(this.props);
-    const {data, deleteField} = this.context as CCFormContextValue;
-    const inForms = form
+    const formName = this.getFormName(this.props);
+    const {data, form} = this.context!;
+    const inForms = formName
       ? Array(size)
           .fill(1)
-          .map((d, ix) => `${form}.${ix}`)
+          .map((d, ix) => `${formName}.${ix}`)
       : [];
 
     Object.keys(data).forEach((fi) => {
-      if (Types.isBlank(form)) {
+      if (Types.isBlank(formName)) {
         let nfi = Number(fi);
         let ois = fi.substr(0, fi.indexOf('.'));
         if (String(nfi) === fi && nfi < size) {
-          deleteField(fi, {isChange: false});
+          form.onDeleteField(fi, {isChange: false});
         } else if (/^[0-9]+$/.test(ois) && Number(ois) >= size) {
-          deleteField(fi, {isChange: false});
+          form.onDeleteField(fi, {isChange: false});
         }
-      } else if (fi.indexOf(form) === 0 && inForms.findIndex((da) => fi.indexOf(da) !== -1) === -1) {
-        deleteField(fi, {isChange: false});
+      } else if (fi.indexOf(formName) === 0 && inForms.findIndex((da) => fi.indexOf(da) !== -1) === -1) {
+        form.onDeleteField(fi, {isChange: false});
       }
     });
   }
 
   get config() {
-    const form = this.getFormName(this.props);
-    return {form};
+    const formName = this.getFormName(this.props);
+    return {form: formName};
   }
 
   componentDidMount() {
-    (this.context as CCFormContextValue).setField(this);
+    this.context?.form.setField(this);
   }
 
   componentWillUnmount() {
-    (this.context as CCFormContextValue)?.unmountField(this);
+    this.context?.form.unmountField(this);
   }
 
   shouldComponentUpdate(nextProps: CCFormListProps, nextState: CCFormListState) {
     return nextState.keys !== this.state.keys;
   }
 
+  componentDidUpdate(prevProps: Readonly<CCFormListProps>, prevState: Readonly<CCFormListState>, snapshot?: any) {
+    if (prevState.keys.length !== this.state.keys.length) {
+      this.context?.form.observeField();
+    }
+  }
+
   render() {
     const that = this;
-    const form = this.getFormName(this.props);
+    const formName = this.getFormName(this.props);
     const {children} = that.props;
     const {keys, data} = that.state;
 
@@ -207,16 +211,17 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     return Array.isArray(keys)
       ? keys.map((key, index) => {
           const pro: CCFormListConfig = {
-            form: Types.isBlank(form) ? String(index) : `${form}.${index}`,
+            form: Types.isBlank(formName) ? String(index) : `${formName}.${index}`,
             index,
             key,
             length: keys.length,
             data,
+            remove: that.removeItem.bind(that, index),
+            add: that.addItem.bind(that),
           };
-          const cfg: CCFormListRow = {...pro, target: that};
           return (
             <CCFormListContext.Provider value={pro} key={key}>
-              {children(cfg)}
+              {children(pro)}
             </CCFormListContext.Provider>
           );
         })

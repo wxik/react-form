@@ -36,14 +36,8 @@ export interface CCFormContextValue {
   data: CCFormData;
   originData: CCFormData;
   initialValue?: CCFormData;
-  formChange: (name?: string) => void;
-  deleteField: (name: string, options?: {isChange?: boolean; raw?: boolean}) => void;
-  setField: (field: CCFieldWrapper | CCFormListWrapper) => void;
-  unmountField: (field: CCFieldWrapper | CCFormListWrapper) => void;
-  getField: (name: string) => CCFieldWrapper | null;
-  onFieldChange: (name: string, value: any, options?: {raw?: boolean}) => void;
   emitter: CCEmitter;
-  target: CCForm;
+  form: CCForm;
 }
 
 export enum CCFieldEnum {
@@ -92,22 +86,16 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
     const {emitter} = props;
     that.state = {data: observable({}), originData: {}};
     that.handleChange = that.handleChange.bind(that);
-    that.handleFormChange = that.handleFormChange.bind(that);
-    that.handleDeleteField = that.handleDeleteField.bind(that);
-    that.handleFieldChange = that.handleFieldChange.bind(that);
+    that.onFormChange = that.onFormChange.bind(that);
+    that.onDeleteField = that.onDeleteField.bind(that);
+    that.onFieldChange = that.onFieldChange.bind(that);
     that.fieldAutoRun = that.fieldAutoRun.bind(that);
     that.setField = that.setField.bind(that);
     that.getField = that.getField.bind(that);
     that.unmountField = that.unmountField.bind(that);
 
     that.providerValue = {
-      onFieldChange: that.handleFieldChange,
-      deleteField: that.handleDeleteField,
-      formChange: that.handleFormChange,
-      unmountField: that.unmountField,
-      setField: that.setField,
-      getField: that.getField,
-      target: that,
+      form: that,
       emitter,
     };
   }
@@ -195,25 +183,25 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
    * @param {*} value filed change value
    * @param {{raw: boolean}} options
    */
-  handleFieldChange(name: string, value: any, options: {raw?: boolean} = {}) {
+  onFieldChange(name: string, value: any, options: {raw?: boolean} = {}) {
     let that = this;
     const {raw = false} = options;
     if (!name || that.state.data[name] === value) return;
     raw ? that._setFieldRawValue(name, value) : that._setFieldValue(name, value);
 
-    that.handleFormChange(name);
+    that.onFormChange(name);
   }
 
-  handleDeleteField(name: string, options: {isChange?: boolean; raw?: boolean} = {}) {
+  onDeleteField(name: string, options: {isChange?: boolean} = {}) {
     const {isChange = true} = options;
     if (name) {
       delete this.state.data[name];
       delete this.state.originData[name];
-      isChange && this.handleFormChange(name);
+      isChange && this.onFormChange(name);
     }
   }
 
-  handleFormChange(name?: string) {
+  onFormChange(name?: string) {
     let that = this;
     clearTimeout(that.timeoutChange);
     let ps = name && that.getField(name)?.props;

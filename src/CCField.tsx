@@ -72,8 +72,9 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
 
   private changeFlag: boolean = false;
   private changeForm: boolean = false;
-  private observeUS: Array<() => void> | null = null;
+  private isObserveUion = false;
   private unmount: boolean = false;
+  private observeReactions: Array<() => void> = []; // 监听对象
   public fieldType = CCFieldEnum.Field;
 
   constructor(props: CCFieldProps, context: any) {
@@ -85,7 +86,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     that.observeDisabled = that.observeDisabled.bind(that);
     that.observeRules = that.observeRules.bind(that);
     that.state = that.initState();
-    console.log('>>>>>>', props.form);
+    // console.log('>>>>>>', props.form);
   }
 
   initState() {
@@ -94,23 +95,23 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
       context = that.context as CCFormContextValue;
     const {initialValue, getValue, defaultValue, visible, disabled} = props;
 
-    const form = that.getFormName(props);
+    const formName = that.getFormName(props);
     let formData: CCFormData = {},
       value = Types.isUndefined(initialValue) ? defaultValue : initialValue;
 
-    if (!Types.isBlank(form) && context) {
+    if (!Types.isBlank(formName) && context) {
       if (context.initialValue) {
         formData = context.initialValue;
-        value = Tools.get(context.initialValue, form, value);
+        value = Tools.get(context.initialValue, formName, value);
       }
 
-      if (context.data && form in context.data && !Types.isUndefined(context.data[form])) {
-        value = context.data[form];
+      if (context.data && formName in context.data && !Types.isUndefined(context.data[formName])) {
+        value = context.data[formName];
       }
     }
     let {options, data} = this.getObserveOptions();
     let state = {
-      value: Types.isFunction(getValue) ? that.execGetValue(form, value, formData) : value,
+      value: Types.isFunction(getValue) ? that.execGetValue(formName, value, formData) : value,
       initialValue: value,
       visible: !Types.isEmpty(visible) ? !!this.isCallbackKey(visible, data, options) : true,
       disabled: !Types.isEmpty(disabled) ? !!this.isCallbackKey(disabled, data, options) : false,
@@ -120,7 +121,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
 
     that.changeFlag = false;
     that.changeForm = false;
-    that.observeUS = null;
+    that.isObserveUion = false;
     return state;
   }
 
@@ -144,14 +145,16 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     if (Types.isBlank(alias)) return [];
 
     alias = (Types.isArray(alias) ? alias : [alias]) as string[];
-    return alias.map((form) => (eachConfig ? (form ? `${eachConfig.form}.${form}` : eachConfig.form) : form));
+    return alias.map((formName) =>
+      eachConfig ? (formName ? `${eachConfig.form}.${formName}` : eachConfig.form) : formName,
+    );
   }
 
-  execGetValue(form: string, value: any, data: CCFormData) {
+  execGetValue(formName: string, value: any, data: CCFormData) {
     let {getValue, eachConfig, inline} = this.props;
 
     if (!inline) {
-      let pForm = eachConfig && eachConfig.form ? eachConfig.form : form.substring(0, form.lastIndexOf('.'));
+      let pForm = eachConfig && eachConfig.form ? eachConfig.form : formName.substring(0, formName.lastIndexOf('.'));
       let pData = !Types.isBlank(pForm) ? Tools.get(data, pForm) : data;
       value = pData ?? value;
     }
@@ -165,20 +168,14 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
 
   observeData() {
     let that = this;
-    autoRun(that.observeVisible);
-    autoRun(that.observeDisabled);
-    autoRun(that.observeRules);
-
+    that.unObserveData();
+    that.observeReactions.push(autoRun(that.observeVisible), autoRun(that.observeDisabled), autoRun(that.observeRules));
     that.observeUnion();
   }
 
   unObserveData() {
-    let that = this;
-    unobserve(that.observeVisible);
-    unobserve(that.observeDisabled);
-    unobserve(that.observeRules);
-
-    that.observeUS?.forEach((da) => unobserve(da));
+    this.observeReactions.forEach((func) => unobserve(func));
+    this.observeReactions = [];
   }
 
   getObserveOptions(): {data: CCFormData; options: {[key: string]: any}; originData: CCFormData} {
@@ -256,20 +253,19 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
    */
   private observeUnion() {
     const that = this;
-    that.observeUS = null;
+    that.isObserveUion = false;
     const context = that.context as CCFormContextValue;
     const union = that.getUnionList();
     if (that.unmount || Types.isEmptyArray(union)) return;
 
     let {unionValue} = that.props;
     let {options, data, originData} = that.getObserveOptions();
-    let getField = context?.getField;
-    let target = context?.target;
+    let form = context?.form;
 
     unionValue = Types.isFunction(unionValue) ? unionValue : () => void 0;
 
     let findUnion = function (name: string, ks: string[] = []) {
-      let pUnions = getField(name)?.getUnionList() || [];
+      let pUnions = form.getField(name)?.getUnionList() || [];
       pUnions.forEach((un: string | string[]) => {
         let fd = Array.isArray(un) ? un[0] : un;
         if (ks.indexOf(fd) === -1) {
@@ -280,26 +276,25 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
       return ks;
     };
 
-    that.observeUS = union.map((un: string | [string, Function]) => {
+    union.forEach((un: string | [string, Function]) => {
       let [name, func] = Array.isArray(un) ? un : [un, unionValue];
       let unionAll = findUnion(name, [name]);
-      let getUnValue = () => {
+      let reaction = autoRun(() => {
         let value = that.isCallbackKey(func, data[name], {
           ...options,
           val: that.value,
           data: originData,
         });
-
-        if (!Types.isEmpty(that.observeUS) && target?.changeState !== CCFormStateStatusEnum.SET) {
+        if (that.isObserveUion && form?.changeState !== CCFormStateStatusEnum.SET) {
           name in data && that.onChange(value);
         } else {
           // 递归监听一下上级.上级.等等
           unionAll.forEach((pun) => data[pun]);
         }
-      };
-      autoRun(getUnValue);
-      return getUnValue;
+      });
+      that.observeReactions.push(reaction);
     });
+    that.isObserveUion = true;
   }
 
   getUnionList() {
@@ -528,7 +523,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     const context = this.context as CCFormContextValue;
     const {key} = this.getListener();
     key && context?.emitter?.addListener(key, that.listenerValueChange);
-    context?.setField(that);
+    context?.form.setField(that);
   }
 
   componentWillUnmount() {
@@ -537,7 +532,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     const context = this.context as CCFormContextValue;
     const {key} = this.getListener();
     key && context?.emitter?.removeListener(key, that.listenerValueChange);
-    context?.unmountField(that);
+    context?.form.unmountField(that);
   }
 
   shouldComponentUpdate(nextProps: CCFieldProps, nextState: CCFieldState) {
@@ -558,7 +553,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
   getSnapshotBeforeUpdate(prevProps: CCFieldProps, prevState: CCFieldState) {
     if (prevProps.form !== this.props.form) {
       const context = this.context as CCFormContextValue;
-      context?.unmountField(this);
+      context?.form.unmountField(this);
     }
     return null;
   }
@@ -567,9 +562,9 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     const that = this;
     const context = this.context as CCFormContextValue;
     const {value, required} = that.state;
-    const form = that.getFormName(that.props);
+    const formName = that.getFormName(that.props);
     if (value !== prevState.value) {
-      context?.onFieldChange(form, value, {raw: !that.changeForm});
+      context?.form.onFieldChange(formName, value, {raw: !that.changeForm});
       that.changeFlag && that.props.onChange?.(value);
     }
 
@@ -578,11 +573,11 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     }
 
     if (prevProps.form !== that.props.form) {
-      context?.setField(that);
+      context?.form.setField(that);
     }
 
-    if (form !== that.getFormName(prevProps)) {
-      context?.onFieldChange(form, value, {raw: true});
+    if (formName !== that.getFormName(prevProps)) {
+      context?.form.onFieldChange(formName, value, {raw: true});
     }
 
     that.changeFlag = false;

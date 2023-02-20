@@ -8,18 +8,20 @@
 import React from 'react';
 import {CCFormListContext} from './CCFormList';
 import {CCForm} from './CCForm';
-import type {CCFieldProps} from './CCField';
 import type {CCFormListConfig} from './CCFormList';
+import type {CCFormContextValue} from './CCForm';
+
+export interface CCOutletProps extends CCFormContextValue {
+  eachConfig: CCFormListConfig;
+}
 
 export function CCOutlet() {
-  return function <T>(Target: React.ComponentType<CCFieldProps>) {
-    return React.forwardRef<T, CCFieldProps>((props, ref) => (
+  return function <T, P extends CCOutletProps>(Target: React.ComponentType<P>) {
+    return React.forwardRef<T, P>((props, ref) => (
       <CCFormListContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>
-            {(fieldContext) => (
-              <Target {...props} ref={ref} {...fieldContext} eachConfig={eachContext as CCFormListConfig} />
-            )}
+            {(fieldContext) => <Target {...props} ref={ref} {...fieldContext} eachConfig={eachContext!} />}
           </CCForm.Context.Consumer>
         )}
       </CCFormListContext.Consumer>
