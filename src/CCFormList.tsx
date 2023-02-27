@@ -6,7 +6,7 @@
 import React from 'react';
 import type {CCFormContextValue} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
-import {Tools, Types} from '@wxik/core';
+import {Tools, Types} from './helper';
 
 interface CCFormListProps {
   form: string;
@@ -73,7 +73,7 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
 
     let data = Array(initRows);
     const values = initialValue as any[];
-    if (Types.isArray(initialValue) && values.length) {
+    if (Array.isArray(initialValue) && values.length) {
       initRows = values.length;
       data = values;
     }
@@ -97,7 +97,7 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
 
   setData(data: any[]) {
     const {initRows} = this.props;
-    if (Types.isEmpty(data) || !Types.isArray(data)) {
+    if (Types.isEmpty(data) || !Array.isArray(data)) {
       data = [];
     } else if (data.length === 0) {
       data = Array(initRows);

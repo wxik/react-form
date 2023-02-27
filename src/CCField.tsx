@@ -5,9 +5,8 @@
  */
 import React from 'react';
 import {CCForm, CCFieldEnum, CCFormStateStatusEnum} from './CCForm';
-import {Tools, Types} from '@wxik/core';
+import {Tools, Types, Observer} from './helper';
 import {CCFormListContext} from './CCFormList';
-import {autoRun, unobserve} from '@wxik/observer';
 import type {CCFormListConfig} from './CCFormList';
 import type {CCFormContextValue, CCFormData} from './CCForm';
 
@@ -144,7 +143,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     let {alias, eachConfig} = props || this.props;
     if (Types.isBlank(alias)) return [];
 
-    alias = (Types.isArray(alias) ? alias : [alias]) as string[];
+    alias = (Array.isArray(alias) ? alias : [alias]) as string[];
     return alias.map((formName) =>
       eachConfig ? (formName ? `${eachConfig.form}.${formName}` : eachConfig.form) : formName,
     );
@@ -169,12 +168,16 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
   observeData() {
     let that = this;
     that.unObserveData();
-    that.observeReactions.push(autoRun(that.observeVisible), autoRun(that.observeDisabled), autoRun(that.observeRules));
+    that.observeReactions.push(
+      Observer.autoRun(that.observeVisible),
+      Observer.autoRun(that.observeDisabled),
+      Observer.autoRun(that.observeRules),
+    );
     that.observeUnion();
   }
 
   unObserveData() {
-    this.observeReactions.forEach((func) => unobserve(func));
+    this.observeReactions.forEach((func) => Observer.unobserve(func));
     this.observeReactions = [];
   }
 
@@ -279,7 +282,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     union.forEach((un: string | [string, Function]) => {
       let [name, func] = Array.isArray(un) ? un : [un, unionValue];
       let unionAll = findUnion(name, [name]);
-      let reaction = autoRun(() => {
+      let reaction = Observer.autoRun(() => {
         let value = that.isCallbackKey(func, data[name], {
           ...options,
           val: that.value,
@@ -306,7 +309,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     union = Types.isFunction(union) ? union(options) : union;
 
     if (Types.isBlank(union)) return null;
-    union = Types.isArray(union) ? union : union.split(',');
+    union = Array.isArray(union) ? union : union.split(',');
     return union;
   }
 
@@ -491,7 +494,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
       return Types.isBlank(value);
     } else if (Types.isObject(value)) {
       return isEmptyObject(value);
-    } else if (Types.isArray(value)) {
+    } else if (Array.isArray(value)) {
       return Types.isEmptyArray(value) || (Types.isObject(value[0]) && isEmptyObject(value[0]));
     } else {
       return Types.isEmpty(value);

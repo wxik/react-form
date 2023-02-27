@@ -3,8 +3,7 @@
  * @sine 2020-04-11 16:03
  */
 import React, {ReactNode} from 'react';
-import {Tools, Types} from '@wxik/core';
-import {observable, raw} from '@wxik/observer';
+import {Tools, Types, Observer} from './helper';
 import type {CCFieldProps} from './CCField';
 import type {CCFormListWrapper} from './CCFormList';
 import type {CCFieldWrapper} from './CCField';
@@ -62,10 +61,10 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
   static getDerivedStateFromProps(nextProps: CCFormProps, prevState: CCFormState) {
     const {data, initialValue} = nextProps;
     if (data && data !== prevState.originData) {
-      return {data: observable(data), originData: data};
+      return {data: Observer.observable(data), originData: data};
     }
     if (initialValue && initialValue !== prevState.initialValue) {
-      return {data: observable({}), originData: {}, initialValue};
+      return {data: Observer.observable({}), originData: {}, initialValue};
     }
     return null;
   }
@@ -84,7 +83,7 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
     super(props);
     let that = this;
     const {emitter} = props;
-    that.state = {data: observable({}), originData: {}};
+    that.state = {data: Observer.observable({}), originData: {}};
     that.handleChange = that.handleChange.bind(that);
     that.onFormChange = that.onFormChange.bind(that);
     that.onDeleteField = that.onDeleteField.bind(that);
@@ -222,7 +221,7 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
 
   private _setFieldRawValue(name: string, value: CCFormData) {
     if (name) {
-      raw(this.state.data)[name] = value;
+      Observer.raw(this.state.data)[name] = value;
       this.state.originData[name] = value;
     }
   }
@@ -399,7 +398,7 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
         !field.ignore && f.visible && config.push(field);
       }
     }
-    const subData: CCFormData = Tools.extractData(data, config);
+    const subData: CCFormData = Tools.extractData(data, config as any);
 
     // 外层直接添加到data的数据
     for (const key in data) {

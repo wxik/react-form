@@ -1,6 +1,6 @@
 {
   "name": "@wxik/react-form",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "description": "react form",
@@ -10,26 +10,21 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "dts": "rollup -c rollup.config.dts.mjs",
     "dev": "cd example && yarn dev"
   },
   "dependencies": {
-    "@wxik/observer": "^0.1"
+    "@nx-js/observer-util": "^4.3.0-alpha.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.12",
+    "@babel/core": "^7.21.0",
     "@rollup/plugin-typescript": "^11.0.0",
+    "@rollup/plugin-terser": "^0.4.0",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
-    "@wxik/core": "^0.5.5",
     "prettier": "^2.8.4",
-    "rollup": "^3.17.1",
-    "rollup-plugin-terser": "^7.0.2",
+    "rollup": "^3.17.3",
     "tslib": "^2.5.0",
     "typescript": "^4.9.5"
-  },
-  "peerDependencies": {
-    "@wxik/core": "^0.5"
   },
   "files": [
     "dist",
