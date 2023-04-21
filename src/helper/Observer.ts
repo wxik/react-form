@@ -4,7 +4,7 @@
  * @since 2023-02-27 11:50
  */
 
-import {observe, unobserve, observable, raw} from '@nx-js/observer-util';
+import {observable, observe, raw, unobserve} from '@nx-js/observer-util';
 
 export function autoRun<Reaction extends Function>(func: Reaction, delay = 0) {
   let dt: any = null;
@@ -20,4 +20,4 @@ export function autoRun<Reaction extends Function>(func: Reaction, delay = 0) {
   return observe(func, {scheduler});
 }
 
-export {unobserve, observable, raw};
+export {observable, raw, unobserve};

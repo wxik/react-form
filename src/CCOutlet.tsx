@@ -6,10 +6,11 @@
  * @since 2020-05-21 11:47
  */
 import React from 'react';
-import {CCFormListContext} from './CCFormList';
+
+import type {CCFormContextValue} from './CCForm';
 import {CCForm} from './CCForm';
 import type {CCFormListConfig} from './CCFormList';
-import type {CCFormContextValue} from './CCForm';
+import {CCFormListContext} from './CCFormList';
 
 export interface CCOutletProps extends CCFormContextValue {
   eachConfig: CCFormListConfig;

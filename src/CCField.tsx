@@ -4,11 +4,12 @@
  * @sine 2020-04-11 11:43
  */
 import React from 'react';
-import {CCForm, CCFieldEnum, CCFormStateStatusEnum} from './CCForm';
-import {Tools, Types, Observer} from './helper';
-import {CCFormListContext} from './CCFormList';
-import type {CCFormListConfig} from './CCFormList';
+
 import type {CCFormContextValue, CCFormData} from './CCForm';
+import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
+import type {CCFormListConfig} from './CCFormList';
+import {CCFormListContext} from './CCFormList';
+import {Observer, Tools, Types} from './helper';
 
 export interface CCFieldProps {
   form: string | number; // field name

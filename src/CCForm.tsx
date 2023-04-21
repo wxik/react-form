@@ -2,11 +2,13 @@
  * @author Quia
  * @sine 2020-04-11 16:03
  */
-import React, {ReactNode} from 'react';
-import {Tools, Types, Observer} from './helper';
+import type {ReactNode} from 'react';
+import React from 'react';
+
 import type {CCFieldProps} from './CCField';
-import type {CCFormListWrapper} from './CCFormList';
 import type {CCFieldWrapper} from './CCField';
+import type {CCFormListWrapper} from './CCFormList';
+import {Observer, Tools, Types} from './helper';
 
 export type CCFormData = Record<string, any>;
 
