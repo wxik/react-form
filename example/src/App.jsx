@@ -3,12 +3,13 @@
  * @author wxik
  * @sine 2020-04-16 10:14
  */
-import React from 'react';
-import IBotInput from '@ibot/ibot/lib/input';
-import {CCField, CCForm, CCFormList} from '@wxik/react-form';
-import {Types} from '@wxik/core';
 import '@ibot/ibot/lib/root/index.css';
 import '@ibot/ibot/lib/input/index.css';
+
+import IBotInput from '@ibot/ibot/lib/input';
+import {Types} from '@wxik/core';
+import {CCField, CCForm, CCFormList} from '@wxik/react-form';
+import React from 'react';
 
 const TextField = CCField()((props) => {
   const {value, onChange, title, error, disabled, required} = props;
@@ -189,7 +190,7 @@ class App extends React.Component {
                     {({add, remove, key, index}) => (
                       <div style={styles.form} key={key} data-key={key}>
                         <TextField title={'SL 吃吃 - ' + index} form={index} />
-                        <button style={{padding: 10}} onClick={add}>
+                        <button style={{padding: 10}} onClick={() => add()}>
                           ++++++
                         </button>
                         <button style={{padding: 10}} onClick={remove}>
@@ -204,7 +205,7 @@ class App extends React.Component {
                 {({add, remove, key, index}) => (
                   <div style={styles.form} key={key} data-key={key}>
                     <TextField title={'吃吃 - ' + index} form={index} />
-                    <button style={{padding: 10}} onClick={add}>
+                    <button style={{padding: 10}} onClick={() => add()}>
                       ++++++
                     </button>
                     <button style={{padding: 10}} onClick={remove}>
@@ -219,7 +220,7 @@ class App extends React.Component {
                     {this.formList.map((config) => (
                       <TextField key={config.form} {...config} />
                     ))}
-                    <button style={{padding: 10}} onClick={add}>
+                    <button style={{padding: 10}} onClick={() => add()}>
                       ++++{index}
                     </button>
                     <button style={{padding: 10}} onClick={remove}>

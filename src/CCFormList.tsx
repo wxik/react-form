@@ -114,7 +114,7 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     return this.state.data;
   }
 
-  addItem(item: Record<any, any> = {}) {
+  addItem(item?: Record<any, any>) {
     let that = this;
     let {data, keys} = that.state;
     keys = Array.from(keys);
