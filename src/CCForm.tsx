@@ -374,11 +374,15 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
     let errors = new Map();
     for (let f of this.fields) {
       let field = f.config;
-      if (field.form && (f.error = !f.validate())) {
-        errors.set(field.form, {
-          key: field.form,
-          ref: f,
-        });
+      if (field.form) {
+        const {error, errors: messages} = f.validateErrors();
+        if (error) {
+          errors.set(field.form, {
+            key: field.form,
+            ref: f,
+            messages,
+          });
+        }
       }
     }
     return Array.from(errors.values());

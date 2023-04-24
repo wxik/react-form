@@ -12,7 +12,8 @@ import {CCField, CCForm, CCFormList} from '@wxik/react-form';
 import React from 'react';
 
 const TextField = CCField()((props) => {
-  const {value, onChange, title, error, disabled, required} = props;
+  const {value, onChange, title, error, errors, disabled, required} = props;
+  console.log('error', error, errors);
   return (
     <div style={{display: 'flex', flexDirection: 'column', padding: 10, width: 300}}>
       <span style={{paddingBottom: 4}}>
@@ -24,6 +25,15 @@ const TextField = CCField()((props) => {
         isInvalid={error}
         disabled={disabled}
       />
+      {errors && (
+        <div style={{paddingTop: 4}}>
+          {errors.map((it, ix) => (
+            <div key={ix} style={{paddingTop: 4, color: 'red'}}>
+              {it}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 });
@@ -35,7 +45,14 @@ class App extends React.Component {
     this.state = {
       initialValue: {
         abcde: null,
-        sl: [{c: ['123', '32']}],
+        sl: [{c: ['123', '32']}, {c: ['1', '2']}],
+        job: Array(1)
+          .fill({
+            bcdef: Math.random(),
+            id: 123,
+            name: 'c',
+          })
+          .map((it, ix) => ({...it, name: 'c' + ix, a: ix})),
       },
     };
     this.config = [
@@ -46,9 +63,11 @@ class App extends React.Component {
         initialValue: 'T - Name',
         onChange: (v) => console.log(v),
         rules: [
-          {required: true},
+          {required: true, message: '请输入名称'},
+          {pattern: /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/, message: '请输入数值 - 正则'},
           (data) => {
-            return /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/.test(data.name);
+            const valid = /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/.test(data.name);
+            return valid ? true : '请输入数值 - 方法处理';
           },
         ],
       },
@@ -185,20 +204,28 @@ class App extends React.Component {
                 </div>
               ))}
               <CCFormList form={'sl'} initRows={1}>
-                {() => (
-                  <CCFormList form="c" initRows={1}>
-                    {({add, remove, key, index}) => (
-                      <div style={styles.form} key={key} data-key={key}>
-                        <TextField title={'SL 吃吃 - ' + index} form={index} />
-                        <button style={{padding: 10}} onClick={() => add()}>
-                          ++++++
-                        </button>
-                        <button style={{padding: 10}} onClick={remove}>
-                          ------
-                        </button>
-                      </div>
-                    )}
-                  </CCFormList>
+                {({add, remove, key}) => (
+                  <div style={{border: '1px solid red', margin: '10px'}} key={key}>
+                    <CCFormList form="c" initRows={1}>
+                      {({add, remove, key, index}) => (
+                        <div style={styles.form} key={key} data-key={key}>
+                          <TextField title={'SL 吃吃 - ' + index} form={index} />
+                          <button style={{padding: 10}} onClick={() => add()}>
+                            ++++++
+                          </button>
+                          <button style={{padding: 10}} onClick={remove}>
+                            ------
+                          </button>
+                        </div>
+                      )}
+                    </CCFormList>
+                    <button style={{padding: 10}} onClick={() => add()}>
+                      ++++++
+                    </button>
+                    <button style={{padding: 10}} onClick={remove}>
+                      ------
+                    </button>
+                  </div>
                 )}
               </CCFormList>
               <CCFormList form={'sb'} initRows={1}>

@@ -18,7 +18,7 @@ export interface CCFieldProps {
   label?: string; //
   inline?: boolean; // 是否内联对象
   ignore?: boolean; // 是否忽略此字段
-  unique?: string; //唯一标识, 默认 = id
+  unique: string; //唯一标识, 默认 = id
   field?: string | ((data: any, formData: CCFormData) => any); // 提交取值处理数据
 
   value?: any;
@@ -26,7 +26,7 @@ export interface CCFieldProps {
   visible?: boolean | ((formData: CCFormData) => boolean);
   disabled?: boolean | ((formData: CCFormData) => boolean);
   unionValue?: (value: any, data: {val: any; data: Object; form?: string}) => any;
-  rules?: boolean | Array<RegExp | CCRequired> | CCRequired | RegExp | ((formData: CCFormData) => boolean); // 验证
+  rules?: boolean | Array<CCRules> | CCRules; // 验证
   error?: boolean;
   eachConfig?: CCFormListConfig; //循环内
   [key: string]: any;
@@ -36,15 +36,22 @@ interface CCFieldState {
   value: any; // 存储的值
   defaultValue?: any; // 默认值
   required: boolean; // 是否必填验证
+  requiredMsg?: string; // 必填验证的提示信息
   error: boolean; // 是否验证错误
+  errors?: string[]; // 验证错误的提示信息
   visible: boolean; // 是否显示
   disabled: boolean; // 是否禁用
+  _refreshMark: Object; // 刷新标志, 触发: shouldComponentUpdate 验证
   [key: string]: any;
 }
 
 export interface CCRequired {
-  required: boolean | ((formData: Object) => any);
+  required?: boolean | ((formData: Object) => any);
+  pattern?: RegExp;
+  message?: string;
 }
+
+export type CCRules = CCRequired | RegExp | ((formData: CCFormData) => boolean | string);
 
 export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> {
   declare context: React.ContextType<typeof CCForm.Context>;
@@ -52,6 +59,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
 
   static defaultProps = {
     inline: true,
+    unique: 'id',
   };
 
   static getDerivedStateFromProps(nextProps: CCFieldProps, prevState: CCFieldState) {
@@ -117,6 +125,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
       disabled: !Types.isEmpty(disabled) ? !!this.isCallbackKey(disabled, data, options) : false,
       error: false,
       required: props.rules === true,
+      _refreshMark: {},
     };
 
     that.changeFlag = false;
@@ -241,10 +250,12 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
 
     if (!Types.isEmpty(rules)) {
       if (Array.isArray(rules)) {
-        that.required =
-          rules.findIndex(
-            (da) => Types.isObject(da) && !!that.isCallbackKey((da as CCRequired).required, data, options),
-          ) !== -1;
+        const required = rules.find(
+          (da) => Types.isObject(da) && !!that.isCallbackKey((da as CCRequired).required, data, options),
+        ) as CCRequired;
+
+        that.required = !!required?.required;
+        that.requiredMsg = required?.message || '';
       } else {
         that.required = that.isCallbackKey(rules, data, options) === true;
       }
@@ -381,15 +392,11 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     }
   }
 
-  set value(value) {
-    this.handleValue(value);
-  }
-
   equalsValue(value: any, preValue: any): boolean {
-    let {label, unique = 'id'} = this.props;
+    const {label, unique} = this.props;
     if (value === preValue) return true;
 
-    let isEqualObject = (obj: {[key: string]: any}, prevObj: {[key: string]: any}) => {
+    const isEqualObject = (obj: {[key: string]: any}, prevObj: {[key: string]: any}) => {
       if (Types.isEmptyObject(obj) || Types.isEmptyObject(prevObj)) return false;
       let v1, v2;
       if (unique in obj || unique in prevObj) {
@@ -413,20 +420,16 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     }
   }
 
-  set disabled(disabled) {
+  set disabled(disabled: boolean) {
     disabled !== this.state.disabled && this.setState({disabled});
   }
 
-  public get disabled() {
-    return this.state.disabled;
-  }
-
-  public set required(required) {
+  public set required(required: boolean) {
     required !== this.state.required && this.setState({required});
   }
 
-  get required() {
-    return this.state.required;
+  public set requiredMsg(requiredMessage: string) {
+    requiredMessage !== this.state.requiredMsg && this.setState({requiredMsg: requiredMessage});
   }
 
   get visible() {
@@ -434,27 +437,48 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
   }
 
   set visible(visible) {
-    visible !== this.state.visible && this.setState({visible});
+    visible !== this.visible && this.setState({visible});
   }
 
-  set error(error: boolean) {
-    error !== this.state.error && this.setState({error});
+  validateErrors(): {error: boolean; errors?: string[]} {
+    const that = this;
+    const {errors, error} = that.state;
+
+    let errorMessages;
+    let currentError;
+    const valid = that.validate();
+    if (Types.isBoolean(valid)) {
+      currentError = !valid;
+      errorMessages = void 0;
+    } else {
+      currentError = !!valid.length;
+      errorMessages = valid;
+    }
+
+    if (currentError !== error) {
+      that.setState({error: currentError});
+    }
+    if (!this.equalsValue(errors, errorMessages)) {
+      console.log('render', errorMessages);
+      that.setState({errors: errorMessages, _refreshMark: {}});
+    }
+    return {error: currentError, errors: errorMessages};
   }
 
   /**
    * 验证字段
    * @returns {boolean}
    */
-  validate() {
+  validate(): string[] | boolean {
     const that = this;
     const context = that.context as CCFormContextValue;
-    let {ignore, rules, eachConfig} = that.props;
-    let {required, value} = that.state;
+    const {ignore, rules, eachConfig} = that.props;
+    const {required, requiredMsg, value} = that.state;
 
     if (ignore || !that.visible) return true;
 
-    let isEmpty = that.validateEmpty(value);
-    if (required && isEmpty) return false;
+    const isEmpty = that.validateEmpty(value);
+    if (required && isEmpty) return !Types.isBlank(requiredMsg) ? [requiredMsg] : false;
     if (isEmpty) return true;
 
     let options = {val: that.value};
@@ -462,19 +486,35 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
       Object.assign(options, eachConfig);
     }
 
+    const validRule = (rule?: CCRules) => {
+      if (rule && rule instanceof RegExp) {
+        return rule.test(value);
+      } else if (Types.isFunction(rule)) {
+        return (rule as Function)(context?.data, options);
+      } else if (Types.isObject(rule)) {
+        const {pattern, message} = rule;
+        if (pattern && !pattern.test(value)) {
+          return message || false;
+        }
+      }
+      return true;
+    };
+
     if (Array.isArray(rules)) {
-      return rules.find((da) => {
-        if (da instanceof RegExp) {
-          return da.test(value);
-        } else if (Types.isFunction(da)) {
-          // @ts-ignore
-          return da(context?.data, options);
+      const messages: string[] = [];
+      let error = true;
+      rules.forEach((rule) => {
+        const valid = validRule(rule);
+        if (Types.isString(valid)) {
+          messages.push(valid);
+        } else if (!valid) {
+          error = false;
         }
       });
-    } else if (rules && rules instanceof RegExp) {
-      return rules.test(value);
-    } else if (Types.isFunction(rules)) {
-      return (rules as Function)(context?.data, options);
+      return messages.length ? messages : error;
+    } else if (Types.isObject(rules)) {
+      const valid = validRule(rules);
+      return Types.isString(valid) ? [valid] : valid;
     }
     return true;
   }
@@ -519,7 +559,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     const that = this;
     const context = this.context as CCFormContextValue;
     const {getValue} = that.getListener();
-    that.value = getValue ? getValue(value, context?.data) : value;
+    that.handleValue(getValue ? getValue(value, context?.data) : value);
   }
 
   componentDidMount() {
@@ -549,6 +589,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
       nextState.error !== state.error ||
       nextState.visible !== state.visible ||
       nextState.disabled !== state.disabled ||
+      nextState._refreshMark !== state._refreshMark ||
       nextProps.form !== props.form ||
       that.getFormName(nextProps) !== that.getFormName(props)
     );
@@ -573,7 +614,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
     }
 
     if ((value !== prevState.value && that.changeFlag) || (required !== prevState.required && !required)) {
-      that.error = !that.validate();
+      that.validateErrors();
     }
 
     if (prevProps.form !== that.props.form) {
@@ -591,7 +632,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
   render() {
     const that = this;
     const context = this.context as CCFormContextValue;
-    const {value, required, error, disabled, visible} = that.state;
+    const {value, required, error, errors, disabled, visible} = that.state;
     const {forwardRef, __Component__: Target, title, ...rest} = that.props;
     if (!visible) return null;
     return (
@@ -603,6 +644,7 @@ export class CCFieldWrapper extends React.Component<CCFieldProps, CCFieldState> 
         required={required}
         disabled={disabled}
         error={error}
+        errors={errors}
         onChange={that.onChange}
         ref={forwardRef}
       />

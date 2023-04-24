@@ -74,7 +74,7 @@ export function isNull(type: any): type is null {
  * @param {*} value
  * @returns {boolean}
  */
-export function isEmpty(value: any): boolean {
+export function isEmpty(value: any): value is null | undefined {
   return isUndefined(value) || isNull(value);
 }
 
@@ -83,7 +83,7 @@ export function isEmpty(value: any): boolean {
  * @param {any} [value]
  * @returns {boolean}
  */
-export function isBlank(value?: any): boolean {
+export function isBlank(value?: any): value is null | undefined {
   return isEmpty(value) || !String(value).trim().length;
 }
 
