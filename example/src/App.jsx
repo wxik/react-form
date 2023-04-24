@@ -13,7 +13,6 @@ import React from 'react';
 
 const TextField = CCField()((props) => {
   const {value, onChange, title, error, errors, disabled, required} = props;
-  console.log('error', error, errors);
   return (
     <div style={{display: 'flex', flexDirection: 'column', padding: 10, width: 300}}>
       <span style={{paddingBottom: 4}}>
