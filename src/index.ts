@@ -4,9 +4,10 @@
  * @sine 2020-04-14 15:41
  */
 
-export type {CCFieldProps, CCRequired} from './CCField';
-export {CCField} from './CCField';
-export type {CCEmitter, CCFormData} from './CCForm';
+export type {CCRequiredType, CCRulesType, ICCField, ICCFieldListener, IFieldItem} from './CCField';
+export {CCField, CCFieldWrapper as CCFormField} from './CCField';
+export type {CCFormData, ICCEmitter} from './CCForm';
 export {CCForm} from './CCForm';
-export {CCFormList} from './CCFormList';
+export type {ICCList} from './CCList';
+export {CCListWrapper as CCFormList, CCList} from './CCList';
 export {CCOutlet} from './CCOutlet';

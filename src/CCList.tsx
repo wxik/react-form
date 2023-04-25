@@ -5,36 +5,38 @@
  */
 import React from 'react';
 
-import type {CCFormContextValue} from './CCForm';
+import type {ICCFormContextValue} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
 import {Tools, Types} from './helper';
 
-interface CCFormListProps {
+export interface ICCList {
   form: string;
   initRows?: number;
   initialValue?: Array<any>;
-  eachConfig?: CCFormListConfig;
-  children: (props: CCFormListConfig) => React.ReactNode;
+  eachConfig?: CCListOperation;
+  children: (props: CCListOperation) => React.ReactNode;
 }
 
-interface CCFormListState {
+export interface IListItem extends Omit<ICCList, 'eachConfig'> {}
+
+interface ICCListState {
   keys: string[]; // 存储的值
   data: any[];
 }
 
-export interface CCFormListConfig {
+export interface CCListOperation {
   form: string;
   index: number;
   key: string;
   length: number;
   data: any[];
   remove: () => void;
-  add: (item?: Record<any, any>) => void;
+  add: (item?: any) => void;
 }
 
-export const CCFormListContext = React.createContext<CCFormListConfig | null>(null);
+export const CCFormListContext = React.createContext<CCListOperation | null>(null);
 
-export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormListState> {
+export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   declare context: React.ContextType<typeof CCForm.Context>;
   static contextType = CCForm.Context;
 
@@ -46,7 +48,7 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
   private uuid: number = 0;
   public fieldType = CCFieldEnum.List;
 
-  constructor(props: CCFormListProps, context: any) {
+  constructor(props: ICCList, context: any) {
     super(props, context);
     let that = this;
     that.genID = that.genID.bind(that);
@@ -58,7 +60,7 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
   initState() {
     let that = this,
       props = that.props,
-      context = that.context as CCFormContextValue;
+      context = that.context as ICCFormContextValue;
     that._initID();
     let {initRows, initialValue} = props;
 
@@ -91,7 +93,7 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     return `CC${++this.uuid}`;
   }
 
-  getFormName(props: CCFormListProps) {
+  getFormName(props: ICCList) {
     const {form, eachConfig} = props;
     return eachConfig ? (form ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
   }
@@ -114,7 +116,7 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     return this.state.data;
   }
 
-  addItem(item?: Record<any, any>) {
+  addItem(item?: any) {
     let that = this;
     let {data, keys} = that.state;
     keys = Array.from(keys);
@@ -192,11 +194,11 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     this.context?.form.unmountField(this);
   }
 
-  shouldComponentUpdate(nextProps: CCFormListProps, nextState: CCFormListState) {
+  shouldComponentUpdate(nextProps: ICCList, nextState: ICCListState) {
     return nextState.keys !== this.state.keys;
   }
 
-  componentDidUpdate(prevProps: Readonly<CCFormListProps>, prevState: Readonly<CCFormListState>, snapshot?: any) {
+  componentDidUpdate(prevProps: Readonly<ICCList>, prevState: Readonly<ICCListState>, snapshot?: any) {
     if (prevState.keys.length !== this.state.keys.length) {
       this.context?.form.observeField();
     }
@@ -211,7 +213,7 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
     if (!children) return null;
     return Array.isArray(keys)
       ? keys.map((key, index) => {
-          const pro: CCFormListConfig = {
+          const pro: CCListOperation = {
             form: Types.isBlank(formName) ? String(index) : `${formName}.${index}`,
             index,
             key,
@@ -230,17 +232,17 @@ export class CCFormListWrapper extends React.Component<CCFormListProps, CCFormLi
   }
 }
 
-export const CCFormList = React.forwardRef<CCFormListWrapper, CCFormListProps>((props, ref) => (
+export const CCList = React.forwardRef<CCListWrapper, IListItem>((props, ref) => (
   <CCFormListContext.Consumer>
     {(eachData) => {
       let {form, initialValue, children} = props;
-      const listData = eachData as CCFormListConfig;
+      const listData = eachData as CCListOperation;
       if (listData) {
         const item = listData.data[listData.index];
         initialValue = form ? (Types.isObject(item) && form in item ? item[form] : initialValue) : item;
       }
       return (
-        <CCFormListWrapper {...props} ref={ref} initialValue={initialValue} eachConfig={listData} children={children} />
+        <CCListWrapper {...props} ref={ref} initialValue={initialValue} eachConfig={listData} children={children} />
       );
     }}
   </CCFormListContext.Consumer>

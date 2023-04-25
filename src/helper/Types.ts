@@ -101,6 +101,6 @@ export function isEmptyObject(value: object): boolean {
  * @param {Array<*>} value
  * @returns {boolean}
  */
-export function isEmptyArray(value: Array<any>): boolean {
+export function isEmptyArray(value: Array<any> | null): value is null | [] {
   return isEmpty(value) || !Array.isArray(value) || !value.length;
 }

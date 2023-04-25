@@ -7,22 +7,22 @@
  */
 import React from 'react';
 
-import type {CCFormContextValue} from './CCForm';
+import type {ICCFormContextValue} from './CCForm';
 import {CCForm} from './CCForm';
-import type {CCFormListConfig} from './CCFormList';
-import {CCFormListContext} from './CCFormList';
+import type {CCListOperation} from './CCList';
+import {CCFormListContext} from './CCList';
 
-export interface CCOutletProps extends CCFormContextValue {
-  eachConfig: CCFormListConfig;
+export interface ICCOutlet extends ICCFormContextValue {
+  eachConfig?: CCListOperation;
 }
 
-export function CCOutlet() {
-  return function <T, P extends CCOutletProps>(Target: React.ComponentType<P>) {
-    return React.forwardRef<T, P>((props, ref) => (
+export function CCOutlet<T = {}, P = any>() {
+  return function (Target: React.ComponentType<T & ICCOutlet>) {
+    return React.forwardRef<P, T>((props, ref) => (
       <CCFormListContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>
-            {(fieldContext) => <Target {...props} ref={ref} {...fieldContext} eachConfig={eachContext!} />}
+            {(fieldContext) => <Target {...props} ref={ref} {...fieldContext!} eachConfig={eachContext || void 0} />}
           </CCForm.Context.Consumer>
         )}
       </CCFormListContext.Consumer>

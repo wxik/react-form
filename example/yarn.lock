@@ -413,11 +413,6 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@nx-js/observer-util@^4.3.0-alpha.2":
-  version "4.3.0-alpha.2"
-  resolved "https://registry.npmmirror.com/@nx-js/observer-util/-/observer-util-4.3.0-alpha.2.tgz#0eaf0029860e19f26ac9721b1f53eb6fc91ebdda"
-  integrity sha512-15oX1btB2VAKHXEDJWLr4+DlmFhPTP2OHXIwjIgWhBhsZg8XjuyO1obqp/vOEHcia7HARJ2cNRyYZTDpOIsgZQ==
-
 "@types/prop-types@*":
   version "15.7.5"
   resolved "https://registry.npmmirror.com/@types/prop-types/-/prop-types-15.7.5.tgz#5f19d2b85a98e9558036f6a3cacc8819420f05cf"
@@ -439,10 +434,10 @@
     "@types/scheduler" "*"
     csstype "^3.0.2"
 
-"@types/react@^18.0.37":
-  version "18.0.37"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.0.37.tgz#7a784e2a8b8f83abb04dc6b9ed9c9b4c0aee9be7"
-  integrity sha512-4yaZZtkRN3ZIQD3KSEwkfcik8s0SWV+82dlJot1AbGYHCzJkWP3ENBY6wYeDRmKZ6HkrgoGAmR2HqdwYGp6OEw==
+"@types/react@^18.0.38":
+  version "18.0.38"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.0.38.tgz#02a23bef8848b360a0d1dceef4432c15c21c600c"
+  integrity sha512-ExsidLLSzYj4cvaQjGnQCk4HFfVT9+EZ9XZsQ8Hsrcn8QNgXtpZ3m9vSIC2MWtx7jHictK6wYhQgGh6ic58oOw==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -467,10 +462,6 @@
   version "0.5.5"
   resolved "https://registry.npmmirror.com/@wxik/core/-/core-0.5.5.tgz#8d77698fa236872329796666ed15b0a7cae3a236"
   integrity sha512-2mL9yKMiY+yfS++0xGY/PFw5bDkqoGjobrkuiL+YBOourOw2GVKq2q1+7QVEIMShbYn9cunw4Fcpabp7et9yGA==
-
-"@wxik/react-form@link:..":
-  version "0.0.0"
-  uid ""
 
 ansi-styles@^3.2.1:
   version "3.2.1"

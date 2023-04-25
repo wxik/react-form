@@ -5,39 +5,39 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 
-import type {CCFieldProps} from './CCField';
+import type {ICCField} from './CCField';
 import type {CCFieldWrapper} from './CCField';
-import type {CCFormListWrapper} from './CCFormList';
+import type {CCListWrapper} from './CCList';
 import {Observer, Tools, Types} from './helper';
 
 export type CCFormData = Record<string, any>;
 
-interface CCFormProps {
+interface ICCForm {
   data?: CCFormData;
   initialValue?: Object;
-  onChange?: (data: CCFormData, fields: Array<CCFieldProps>) => void;
-  emitter?: CCEmitter; // 字段改变发射器
+  onChange?: (data: CCFormData, fields: Array<ICCField>) => void;
+  emitter?: ICCEmitter; // 字段改变发射器
   config?: Array<Object>; //表单配置,暂时不用
   children: ReactNode;
 }
 
-interface CCFormState {
+interface ICCFormState {
   data: CCFormData;
   originData: CCFormData;
   initialValue?: CCFormData;
 }
 
-export interface CCEmitter {
+export interface ICCEmitter {
   addListener: (key: string, handle: (...value: any[]) => void) => void;
   removeListener: (key: string, handle: (...value: any[]) => void) => void;
   emit: (key: string, ...value: any[]) => void;
 }
 
-export interface CCFormContextValue {
+export interface ICCFormContextValue {
   data: CCFormData;
   originData: CCFormData;
   initialValue?: CCFormData;
-  emitter: CCEmitter;
+  emitter?: ICCEmitter;
   form: CCForm;
 }
 
@@ -51,16 +51,16 @@ export enum CCFormStateStatusEnum {
   SET,
 }
 
-function isField(field: CCFieldWrapper | CCFormListWrapper): field is CCFieldWrapper {
+function isField(field: CCFieldWrapper | CCListWrapper): field is CCFieldWrapper {
   return field.fieldType === CCFieldEnum.Field;
 }
 
-const CCFormContext = React.createContext<CCFormContextValue | null>(null);
+const CCFormContext = React.createContext<ICCFormContextValue | null>(null);
 
-export class CCForm extends React.Component<CCFormProps, CCFormState> {
+export class CCForm extends React.Component<ICCForm, ICCFormState> {
   static Context = CCFormContext;
 
-  static getDerivedStateFromProps(nextProps: CCFormProps, prevState: CCFormState) {
+  static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {
     const {data, initialValue} = nextProps;
     if (data && data !== prevState.originData) {
       return {data: Observer.observable(data), originData: data};
@@ -75,13 +75,13 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
   changeState = CCFormStateStatusEnum.DEFAULT;
   private fields = new Set<CCFieldWrapper>();
   private updateFields = new Set<CCFieldWrapper>();
-  private listFields = new Set<CCFormListWrapper>();
-  private providerValue: CCFormContextValue | {} = {};
+  private listFields = new Set<CCListWrapper>();
+  private providerValue: ICCFormContextValue | {} = {};
   private timeoutChange: any = void 0;
-  private tempFields: Array<CCFieldProps> = [];
+  private tempFields: Array<ICCField> = [];
   private autoRunTime: any = void 0;
 
-  constructor(props: CCFormProps) {
+  constructor(props: ICCForm) {
     super(props);
     let that = this;
     const {emitter} = props;
@@ -107,11 +107,11 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
     this.unObserveField();
   }
 
-  shouldComponentUpdate(nextProps: CCFormProps, nextState: CCFormState) {
+  shouldComponentUpdate(nextProps: ICCForm, nextState: ICCFormState) {
     return nextState.data !== this.state.data || nextProps.children !== this.props.children;
   }
 
-  getSnapshotBeforeUpdate(prevProps: CCFormProps, prevState: CCFormState) {
+  getSnapshotBeforeUpdate(prevProps: ICCForm, prevState: ICCFormState) {
     if (prevState.data !== this.state.data) {
       this.unObserveField();
       this.revertField();
@@ -120,7 +120,7 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
     return null;
   }
 
-  componentDidUpdate(prevProps: CCFormProps, prevState: CCFormState) {
+  componentDidUpdate(prevProps: ICCForm, prevState: ICCFormState) {
     this.changeState = CCFormStateStatusEnum.DEFAULT;
     if (prevState.data !== this.state.data) {
       this.observeField();
@@ -169,9 +169,9 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
 
   /**
    * form data on field change to callback
-   * @param {Array<CCFieldProps>} [fields]
+   * @param {Array<ICCField>} [fields]
    */
-  handleChange(fields: Array<CCFieldProps>) {
+  handleChange(fields: Array<ICCField>) {
     let that = this;
     // setTimeout(() => that.props.onChange?.(that.state.originData));
     that.props.onChange?.(that.state.originData, fields);
@@ -230,9 +230,9 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
 
   /**
    * 设置字段代理
-   * @param {CCFieldWrapper | CCFormListWrapper} field
+   * @param {CCFieldWrapper | CCListWrapper} field
    */
-  setField(field: CCFieldWrapper | CCFormListWrapper) {
+  setField(field: CCFieldWrapper | CCListWrapper) {
     const {form} = field.config;
 
     if (isField(field)) {
@@ -265,7 +265,7 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
    * 字段被销毁
    * @param field
    */
-  unmountField(field: CCFieldWrapper | CCFormListWrapper) {
+  unmountField(field: CCFieldWrapper | CCListWrapper) {
     if (isField(field)) {
       field.unObserveData();
       this.fields.delete(field);
@@ -442,7 +442,7 @@ export class CCForm extends React.Component<CCFormProps, CCFormState> {
 
   render() {
     const {data, originData, initialValue} = this.state;
-    const providerValue = this.providerValue as CCFormContextValue;
+    const providerValue = this.providerValue as ICCFormContextValue;
     providerValue.data = data;
     providerValue.originData = originData;
     providerValue.initialValue = initialValue;
