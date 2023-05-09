@@ -71,14 +71,14 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     return null;
   }
 
-  private originData: CCFormData = {};
+  private originData: CCFormData | undefined;
   changeState = CCFormStateStatusEnum.DEFAULT;
   private fields = new Set<CCFieldWrapper>();
   private updateFields = new Set<CCFieldWrapper>();
   private listFields = new Set<CCListWrapper>();
   private providerValue: ICCFormContextValue | {} = {};
   private timeoutChange: any = void 0;
-  private tempFields: Array<ICCField> = [];
+  private tempFields: Array<ICCField> | undefined;
   private autoRunTime: any = void 0;
 
   constructor(props: ICCForm) {
@@ -209,7 +209,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     that.tempFields = that.tempFields || [];
     ps && that.tempFields.push(ps);
     that.timeoutChange = setTimeout(() => {
-      that.handleChange(that.tempFields);
+      that.handleChange(that.tempFields!);
       that.tempFields = [];
     });
   }

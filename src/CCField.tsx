@@ -572,7 +572,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     let {label} = this.props;
 
     let isEmptyObject = (obj: {[key: string]: any}): boolean => {
-      return Types.isEmptyObject(obj) || !!(label && Types.isBlank(obj[label]) && Types.isBlank(obj.name));
+      return Types.isEmptyObject(obj) || !!(label && Types.isBlank(obj[label]));
     };
     if (Types.isEmpty(value)) {
       return true;

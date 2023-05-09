@@ -26,7 +26,6 @@ interface IField {
 
 const Field = CCField<IField>()((props) => {
   const {value, onChange, title, error, errors, disabled, required, children} = props;
-  console.log('value', value);
   return (
     <div style={{display: 'flex', flexDirection: 'column', padding: '10px 0', width: 300}}>
       <span style={{paddingBottom: 4}}>
@@ -165,6 +164,7 @@ class App extends React.Component<any> {
             o_id: da.id,
             o_name: da.name,
           },
+        label: 'o_name',
       },
       {
         form: 'sex2',
