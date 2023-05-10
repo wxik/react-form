@@ -11,6 +11,7 @@ import {Tools, Types} from './helper';
 
 export interface ICCList {
   form: string;
+  formList?: ListInstance;
   initRows?: number;
   initialValue?: Array<any>;
   eachConfig?: CCListOperation;
@@ -22,6 +23,12 @@ export interface IListItem extends Omit<ICCList, 'eachConfig'> {}
 interface ICCListState {
   keys: string[]; // 存储的值
   data: any[];
+}
+
+export interface ListInstance {
+  addItem: (value?: any) => void;
+  removeItem: (index: number) => void;
+  setData: (data: any[]) => void;
 }
 
 export interface CCListOperation {
@@ -50,11 +57,15 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
 
   constructor(props: ICCList, context: any) {
     super(props, context);
-    let that = this;
+    const that = this;
+    const {formList} = props;
     that.genID = that.genID.bind(that);
     that.addItem = that.addItem.bind(that);
     that.removeItem = that.removeItem.bind(that);
     that.state = that.initState();
+
+    // @ts-ignore
+    if (formList && formList.__REF__) formList.__REF__.current = that;
   }
 
   initState() {

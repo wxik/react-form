@@ -5,14 +5,14 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 
-import type {ICCField} from './CCField';
-import type {CCFieldWrapper} from './CCField';
+import type {CCFieldWrapper, ICCField} from './CCField';
 import type {CCListWrapper} from './CCList';
-import {Observer, Tools, Types} from './helper';
+import {FormHelper, Observer, Tools, Types} from './helper';
 
 export type CCFormData = Record<string, any>;
 
 interface ICCForm {
+  form?: FormInstance;
   data?: CCFormData;
   initialValue?: Object;
   onChange?: (data: CCFormData, fields: Array<ICCField>) => void;
@@ -41,6 +41,15 @@ export interface ICCFormContextValue {
   form: CCForm;
 }
 
+export interface FormInstance {
+  subData: (options?: {merge?: boolean}) => CCFormData;
+  validate: () => boolean;
+  setOriginData: (data: CCFormData | any[]) => void;
+  setFieldData: (data: CCFormData | any[]) => void;
+  addData: (data: CCFormData) => void;
+  setData: (data: CCFormData) => void;
+}
+
 export enum CCFieldEnum {
   Field = 1,
   List,
@@ -59,6 +68,11 @@ const CCFormContext = React.createContext<ICCFormContextValue | null>(null);
 
 export class CCForm extends React.Component<ICCForm, ICCFormState> {
   static Context = CCFormContext;
+
+  static useForm = FormHelper.useForm;
+  static useList = FormHelper.useList;
+  static createForm = FormHelper.createForm;
+  static createList = FormHelper.createList;
 
   static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {
     const {data, initialValue} = nextProps;
@@ -84,7 +98,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   constructor(props: ICCForm) {
     super(props);
     let that = this;
-    const {emitter} = props;
+    const {emitter, form} = props;
     that.state = {data: Observer.observable({}), originData: {}};
     that.handleChange = that.handleChange.bind(that);
     that.onFormChange = that.onFormChange.bind(that);
@@ -99,6 +113,8 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
       form: that,
       emitter,
     };
+    // @ts-ignore
+    if (form && form.__REF__) form.__REF__.current = that;
   }
 
   componentDidMount() {}

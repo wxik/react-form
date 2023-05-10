@@ -30,6 +30,7 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 - `function subData({merge?: boolean}): CCFormData` 获取表单可提交数据
 - `function validate(): boolean` 验证表单
 - `function setOriginData(data: CCFormData | any[])` 初始化表单数据, 不触发`onChange`
+- `function setFieldData(data: CCFormData | any[])` 初始化表单数据, 触发`onChange`
 - `function addData(data: CCFormData)` 添加字段数据(字段可不存在)并触发`onChange`
 - `function setData(data: CCFormData | any[], options: {isChange?: boolean; isGet?: boolean})` 设置表单数据, 默认不触发`onChange`不调用`getValue`
 

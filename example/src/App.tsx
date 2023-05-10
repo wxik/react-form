@@ -15,7 +15,7 @@ import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
 // @ts-ignore
 import ISelect from '@ibot/ibot/lib/select';
 import {Types} from '@wxik/core';
-import type {CCFormData, CCFormList, ICCField} from '@wxik/react-form';
+import type {CCFormData, ICCField} from '@wxik/react-form';
 import {CCField, CCForm, CCList} from '@wxik/react-form';
 import type {ReactElement} from 'react';
 import React from 'react';
@@ -72,9 +72,9 @@ const TextField = CCField()((props) => {
 });
 
 class App extends React.Component<any> {
-  formRef;
-  listRef;
-  listRef2;
+  form = CCForm.createForm();
+  list = CCForm.createList();
+  list2 = CCForm.createList();
   config: Array<ICCField>;
   formList: Array<ICCField>;
 
@@ -93,11 +93,9 @@ class App extends React.Component<any> {
         .map((it, ix) => ({...it, name: 'c' + ix, a: ix})),
     },
   };
+
   constructor(props: any) {
     super(props);
-    this.formRef = React.createRef<CCForm>();
-    this.listRef = React.createRef<CCFormList>();
-    this.listRef2 = React.createRef<CCFormList>();
     this.config = [
       {
         form: `name`,
@@ -176,20 +174,16 @@ class App extends React.Component<any> {
   }
 
   count() {
-    const form = this.formRef.current!;
-
-    if (form.validate()) {
-      console.log('验证>>', form.subData({merge: true}));
+    if (this.form.validate()) {
+      console.log('验证>>', this.form.subData({merge: true}));
     } else {
-      console.log('<>', form.subData());
+      console.log('<>', this.form.subData());
     }
     // this.setState({data});
   }
 
   inject() {
-    const form = this.formRef.current!;
-
-    form.setOriginData({
+    this.form.setOriginData({
       // name: 'Inject Name: ' + Math.random(),
       alias: 'Inject Alias ' + Math.random(),
       abcde: '测试时间: ' + Math.random(),
@@ -208,11 +202,11 @@ class App extends React.Component<any> {
   }
 
   addList() {
-    this.listRef.current?.addItem({});
+    this.list.addItem({});
   }
 
   addList2() {
-    this.listRef2.current?.addItem({});
+    this.list2.addItem({});
   }
 
   render() {
@@ -227,10 +221,11 @@ class App extends React.Component<any> {
           justifyContent: 'center',
           overflow: 'auto',
           padding: 20,
+          flexDirection: 'column',
         }}>
         <div style={{flex: 1, display: 'flex'}}>
           <div>
-            <CCForm ref={this.formRef} initialValue={initialValue}>
+            <CCForm form={this.form} initialValue={initialValue}>
               <div style={styles.form}>
                 {this.config.map((config, index) => (
                   <TextField key={config.form} {...config} />
@@ -270,7 +265,7 @@ class App extends React.Component<any> {
                 <button onClick={() => this.addList2()} style={styles.btn}>
                   Add
                 </button>
-                <CCList form={'sl'} initRows={1} ref={this.listRef2}>
+                <CCList form={'sl'} initRows={1} formList={this.list2}>
                   {({add, remove, key}) => (
                     <div style={styles.sop} key={key}>
                       <CCList form="c" initRows={1}>
@@ -300,7 +295,7 @@ class App extends React.Component<any> {
                 <button onClick={() => this.addList()} style={styles.btn}>
                   Add
                 </button>
-                <CCList form={'job'} ref={this.listRef} initRows={1}>
+                <CCList form={'job'} formList={this.list} initRows={1}>
                   {({add, remove, index}) => (
                     <div style={styles.form}>
                       {this.formList.map((config) => (
@@ -326,12 +321,34 @@ class App extends React.Component<any> {
               </button>
             </div>
           </div>
-          <div></div>
         </div>
+        <hr style={{width: '100%'}} />
+        <HooksForm />
       </div>
     );
   }
 }
+
+const HooksForm = () => {
+  const [form] = CCForm.useForm();
+
+  const handleSubmit = () => {
+    console.log('Hooks Form:', form.subData());
+  };
+
+  return (
+    <CCForm form={form}>
+      <div>
+        <Field form={'des2'} title={'Hooks'} defaultValue={'hooks'}>
+          <IBotInput />
+        </Field>
+        <button style={{padding: 10}} onClick={handleSubmit}>
+          Submit
+        </button>
+      </div>
+    </CCForm>
+  );
+};
 
 const styles: Record<string, any> = {
   form: {
