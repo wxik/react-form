@@ -6,7 +6,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 import type {CCFieldWrapper, ICCField} from './CCField';
-import type {CCListWrapper} from './CCList';
+import type {CCListWrapper, ListInstance} from './CCList';
 import {FormHelper, Observer, Tools, Types} from './helper';
 
 export type CCFormData = Record<string, any>;
@@ -69,10 +69,10 @@ const CCFormContext = React.createContext<ICCFormContextValue | null>(null);
 export class CCForm extends React.Component<ICCForm, ICCFormState> {
   static Context = CCFormContext;
 
-  static useForm = FormHelper.useForm;
-  static useList = FormHelper.useList;
-  static createForm = FormHelper.createForm;
-  static createList = FormHelper.createList;
+  static useForm: () => [FormInstance] = FormHelper.useForm;
+  static useList: () => [ListInstance] = FormHelper.useList;
+  static createForm: () => FormInstance = FormHelper.createForm;
+  static createList: () => ListInstance = FormHelper.createList;
 
   static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {
     const {data, initialValue} = nextProps;

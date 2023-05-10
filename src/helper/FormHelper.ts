@@ -51,7 +51,7 @@ const listHelder = (ref: RefObject<CCListWrapper>): ListInstance => {
   };
 };
 
-export const createForm = () => {
+export const createForm = (): FormInstance => {
   return formHandler(createRef<CCForm>());
 };
 
@@ -60,7 +60,7 @@ export const useForm = (): [FormInstance] => {
   return [useMemo<FormInstance>(() => formHandler(ref), [])];
 };
 
-export const createList = () => {
+export const createList = (): ListInstance => {
   return listHelder(createRef<CCListWrapper>());
 };
 
