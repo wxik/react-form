@@ -11,7 +11,7 @@ import {FormHelper, Observer, Tools, Types} from './helper';
 
 export type CCFormData = Record<string, any>;
 
-interface ICCForm {
+export interface ICCForm {
   form?: FormInstance;
   data?: CCFormData;
   initialValue?: Object;
