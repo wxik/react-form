@@ -17,8 +17,8 @@ interface ICCForm {
   initialValue?: Object;
   onChange?: (data: CCFormData, fields: Array<ICCField>) => void;
   emitter?: ICCEmitter; // 字段改变发射器
-  config?: Array<Object>; //表单配置,暂时不用
   children: ReactNode;
+  disabled?: boolean;
 }
 
 interface ICCFormState {
@@ -39,6 +39,7 @@ export interface ICCFormContextValue {
   initialValue?: CCFormData;
   emitter?: ICCEmitter;
   form: CCForm;
+  disabled: boolean;
 }
 
 export interface FormInstance {
@@ -124,7 +125,11 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   }
 
   shouldComponentUpdate(nextProps: ICCForm, nextState: ICCFormState) {
-    return nextState.data !== this.state.data || nextProps.children !== this.props.children;
+    return (
+      nextState.data !== this.state.data ||
+      nextProps.children !== this.props.children ||
+      nextProps.disabled !== this.props.disabled
+    );
   }
 
   getSnapshotBeforeUpdate(prevProps: ICCForm, prevState: ICCFormState) {
@@ -457,11 +462,13 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   }
 
   render() {
+    const {disabled = false} = this.props;
     const {data, originData, initialValue} = this.state;
     const providerValue = this.providerValue as ICCFormContextValue;
     providerValue.data = data;
     providerValue.originData = originData;
     providerValue.initialValue = initialValue;
+    providerValue.disabled = disabled;
     return <CCFormContext.Provider value={providerValue} children={this.props.children} />;
   }
 }

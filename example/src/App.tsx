@@ -16,7 +16,7 @@ import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
 import ISelect from '@ibot/ibot/lib/select';
 import {Types} from '@wxik/core';
 import type {CCFormData, ICCField} from '@wxik/react-form';
-import {CCField, CCForm, CCList} from '@wxik/react-form';
+import {CCField, CCForm, CCList, CCOutlet} from '@wxik/react-form';
 import type {ReactElement} from 'react';
 import React from 'react';
 
@@ -26,6 +26,7 @@ interface IField {
 
 const Field = CCField<IField>()((props) => {
   const {value, onChange, title, error, errors, disabled, required, children} = props;
+  // console.log('value', value);
   return (
     <div style={{display: 'flex', flexDirection: 'column', padding: '10px 0', width: 300}}>
       <span style={{paddingBottom: 4}}>
@@ -225,7 +226,7 @@ class App extends React.Component<any> {
         }}>
         <div style={{flex: 1, display: 'flex'}}>
           <div>
-            <CCForm form={this.form} initialValue={initialValue}>
+            <CCForm form={this.form} initialValue={initialValue} disabled={false}>
               <div style={styles.form}>
                 {this.config.map((config, index) => (
                   <TextField key={config.form} {...config} />
@@ -301,25 +302,31 @@ class App extends React.Component<any> {
                       {this.formList.map((config) => (
                         <TextField key={config.form} {...config} />
                       ))}
-                      <button style={{padding: 10}} onClick={() => add()}>
-                        ++++{index}
-                      </button>
-                      <button style={{padding: 10}} onClick={remove}>
-                        ----
-                      </button>
+                      <CCOutlet.View forProps={(props) => ({disabled: props.disabled})}>
+                        <button style={{padding: 10}} onClick={() => add()}>
+                          ++++{index}
+                        </button>
+                      </CCOutlet.View>
+                      <CCOutlet.View forProps={(props) => ({disabled: props.disabled})}>
+                        <button style={{padding: 10}} onClick={remove}>
+                          ----
+                        </button>
+                      </CCOutlet.View>
                     </div>
                   )}
                 </CCList>
               </div>
+              <div style={styles.button}>
+                <button style={{padding: 10}} onClick={() => this.count()}>
+                  Submit
+                </button>
+                <CCOutlet.View forProps={(props) => ({disabled: props.disabled})}>
+                  <button style={{padding: 10}} onClick={() => this.inject()}>
+                    Inject
+                  </button>
+                </CCOutlet.View>
+              </div>
             </CCForm>
-            <div style={styles.button}>
-              <button style={{padding: 10}} onClick={() => this.count()}>
-                Submit
-              </button>
-              <button style={{padding: 10}} onClick={() => this.inject()}>
-                Inject
-              </button>
-            </div>
           </div>
         </div>
         <hr style={{width: '100%'}} />

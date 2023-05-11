@@ -5,6 +5,7 @@
  * @author Quia
  * @since 2020-05-21 11:47
  */
+import type {ReactElement} from 'react';
 import React from 'react';
 
 import type {ICCFormContextValue} from './CCForm';
@@ -14,6 +15,11 @@ import {CCFormListContext} from './CCList';
 
 export interface ICCOutlet extends ICCFormContextValue {
   eachConfig?: CCListOperation;
+}
+
+export interface IOutlet {
+  children: ReactElement;
+  forProps?: (props: ICCOutlet) => Record<string, any>;
 }
 
 export function CCOutlet<T = {}, P = any>() {
@@ -29,3 +35,8 @@ export function CCOutlet<T = {}, P = any>() {
     ));
   };
 }
+
+CCOutlet.View = CCOutlet<IOutlet>()((props) => {
+  const {children, forProps, ...rest} = props;
+  return React.cloneElement(children, forProps ? forProps(rest) : rest);
+});

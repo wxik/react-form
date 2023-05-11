@@ -52,13 +52,15 @@ export interface ICCField {
   defaultValue?: any;
   forwardRef?: Ref<any>;
   normalize?: (value: any, prevValue: any, prevData: CCFormData) => any; // 触发 onChange 时进行值转换后存入 Form
+  valuePropName?: string; // value 进入子组件后的别名
+  forValue?: (value: any, formData: CCFormData) => any; // 转换 value 给组件
   listener?: ICCFieldListener;
 }
 
 /**
  * 给最后的组件 props 使用
  */
-export interface IFieldItem extends Omit<ICCField, 'forwardRef'> {
+export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName' | 'forValue'> {
   title?: string;
   value: any;
   data: CCFormData;
@@ -666,16 +668,21 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     const context = this.context as ICCFormContextValue;
     const {value, required, error, errors, disabled, visible} = that.state;
     // @ts-ignore
-    const {forwardRef, __Component__: Target, title, ...rest} = that.props;
+    const {forwardRef, __Component__: Target, title, valuePropName, forValue, ...rest} = that.props;
     if (!visible) return null;
+
+    const nowValue = forValue ? forValue(value, context.data) : value;
+    // @ts-ignore
+    if (valuePropName) rest[valuePropName] = nowValue;
+
     return (
       <Target
         {...rest}
         title={that.title}
         data={context.data}
-        value={value}
+        value={nowValue}
         required={required}
-        disabled={disabled}
+        disabled={context.disabled || disabled}
         error={error}
         errors={errors}
         onChange={that.onChange}
