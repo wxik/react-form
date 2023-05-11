@@ -242,8 +242,8 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     }
   }
 
-  private _setFieldRawValue(name: string, value: CCFormData) {
-    if (name) {
+  private _setFieldRawValue(name: string | number | undefined, value: CCFormData) {
+    if (!Types.isBlank(name)) {
       Observer.raw(this.state.data)[name] = value;
       this.state.originData[name] = value;
     }
@@ -303,8 +303,8 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     this.originData = data;
     for (const f of this.listFields) {
       const {form} = f.config;
-      if (form) {
-        const value = Tools.get(data, form);
+      if (!Types.isBlank(form)) {
+        const value = Tools.get(data, String(form));
         value && f.setData(value);
       } else if (Array.isArray(data)) {
         f.setData(data);
@@ -441,7 +441,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
         const {form} = f.config;
         const listData = f.getData();
         let deleteIndex = f.deleteIndex;
-        const subListData = Tools.get(subData, form);
+        const subListData = Tools.get(subData, String(form!));
         if (form && subListData && listData && Types.isObject(listData[0])) {
           listData.forEach((da, index) => {
             if (!deleteIndex.includes(index)) {

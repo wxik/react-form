@@ -10,7 +10,7 @@ import {CCFieldEnum, CCForm} from './CCForm';
 import {Tools, Types} from './helper';
 
 export interface ICCList {
-  form: string;
+  form?: string | number;
   formList?: ListInstance;
   initRows?: number;
   initialValue?: Array<any>;
@@ -79,7 +79,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
 
     if (context && context.initialValue) {
       if (!Types.isBlank(formName)) {
-        initialValue = Tools.get(context.initialValue, formName, initialValue);
+        initialValue = Tools.get(context.initialValue, String(formName), initialValue);
       } else if (Array.isArray(context.initialValue)) {
         initialValue = context.initialValue;
       }
@@ -186,7 +186,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
         } else if (/^[0-9]+$/.test(ois) && Number(ois) >= size) {
           form.onDeleteField(fi, {isChange: false});
         }
-      } else if (fi.indexOf(formName) === 0 && inForms.findIndex((da) => fi.indexOf(da) !== -1) === -1) {
+      } else if (fi.indexOf(String(formName)) === 0 && inForms.findIndex((da) => fi.indexOf(da) !== -1) === -1) {
         form.onDeleteField(fi, {isChange: false});
       }
     });
