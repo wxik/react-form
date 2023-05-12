@@ -45,14 +45,14 @@ export interface ICCField {
   visible?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
-  unionValue?: (value: any, data: {val: any; data: Object; form?: string}) => any;
+  unionValue?: (value: any, data: {val: any; data: CCFormData; form?: string}) => any;
   getValue?: (value: any) => any;
   rules?: boolean | Array<CCRulesType> | CCRulesType; // 验证
   eachConfig?: CCListOperation; //循环内
   initialValue?: any;
   defaultValue?: any;
   forwardRef?: Ref<any>;
-  normalize?: (value: any, prevValue: any, prevData: CCFormData) => any; // 触发 onChange 时进行值转换后存入 Form
+  normalize?: (value: any, data: {val: any; data: CCFormData; args: any[]}) => any; // 触发 onChange 时进行值转换后存入 Form
   valuePropName?: string; // value 进入子组件后的别名
   forValue?: (value: any, formData: CCFormData) => any; // 转换 value 给组件
   listener?: ICCFieldListener;
@@ -404,11 +404,11 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     };
   }
 
-  onChange(value: any) {
+  onChange(value: any, ...args: any[]) {
     const {normalize, valuePropName = 'value'} = this.props;
     const context = this.context as ICCFormContextValue;
     value = getValueFromEvent(valuePropName, value);
-    this.handleChange(normalize ? normalize(value, this.state.value, context.data) : value);
+    this.handleChange(normalize ? normalize(value, {val: this.state.value, data: context.data, args}) : value);
   }
 
   handleChange(value: any, callback?: () => void) {

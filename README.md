@@ -68,7 +68,7 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 | rules         | 验证规则                                                         | boolean \| Array<CCRulesType> \| CCRulesType                       | -       |
 | initialValue  | 初始值                                                          | any                                                                | -       |
 | defaultValue  | 默认值                                                          | any                                                                | -       |
-| normalize     | 触发 onChange 时进行值转换后存入表单                                      | (value, prevValue, prevData) => any                                | -       |
+| normalize     | 触发 onChange 时进行值转换后存入表单                                      | (value, data: {val: any; data: CCFormData; args: any[]}) => any    | -       |
 | valuePropName | value 进入子组件后的别名                                              | string                                                             | -       |
 | forValue      | 转换 value 给组件                                                 | (value: any, formData: CCFormData) => any                          | -       |
 | listener      | 对应表单的发布与订阅<br/> 在值改变时触发<br/> 同时监听字段改变触发值改变                   | ICCFieldListener                                                   | -       |
