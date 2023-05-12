@@ -6,13 +6,15 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 import type {CCFieldWrapper, ICCField} from './CCField';
-import type {CCListWrapper, ListInstance} from './CCList';
+import type {CCListInstance, CCListWrapper} from './CCList';
 import {FormHelper, Observer, Tools, Types} from './helper';
 
 export type CCFormData = Record<string, any>;
 
+export type CCFormName = string | number | undefined;
+
 export interface ICCForm {
-  form?: FormInstance;
+  form?: CCFormInstance;
   data?: CCFormData;
   initialValue?: Object;
   onChange?: (data: CCFormData, fields: Array<ICCField>) => void;
@@ -42,7 +44,7 @@ export interface ICCFormContextValue {
   disabled: boolean;
 }
 
-export interface FormInstance {
+export interface CCFormInstance {
   subData: (options?: {merge?: boolean}) => CCFormData;
   validate: () => boolean;
   setOriginData: (data: CCFormData | any[]) => void;
@@ -70,10 +72,10 @@ const CCFormContext = React.createContext<ICCFormContextValue | null>(null);
 export class CCForm extends React.Component<ICCForm, ICCFormState> {
   static Context = CCFormContext;
 
-  static useForm: () => [FormInstance] = FormHelper.useForm;
-  static useList: () => [ListInstance] = FormHelper.useList;
-  static createForm: () => FormInstance = FormHelper.createForm;
-  static createList: () => ListInstance = FormHelper.createList;
+  static useForm: () => [CCFormInstance] = FormHelper.useForm;
+  static useList: () => [CCListInstance] = FormHelper.useList;
+  static createForm: () => CCFormInstance = FormHelper.createForm;
+  static createList: () => CCListInstance = FormHelper.createList;
 
   static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {
     const {data, initialValue} = nextProps;
@@ -162,7 +164,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     for (const field of that.fields) {
       const state = field.initState();
       const form = field.getFormName();
-      if (!(form in that.state.data)) {
+      if (!Types.isBlank(form) && !(form in that.state.data)) {
         that._setFieldRawValue(form, state.value);
       }
       field.setState(state);
@@ -205,10 +207,10 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
    * @param {*} value filed change value
    * @param {{raw: boolean}} options
    */
-  onFieldChange(name: string, value: any, options: {raw?: boolean} = {}) {
+  onFieldChange(name: CCFormName, value: any, options: {raw?: boolean} = {}) {
     let that = this;
     const {raw = false} = options;
-    if (!name || that.state.data[name] === value) return;
+    if (Types.isBlank(name) || that.state.data[name] === value) return;
     raw ? that._setFieldRawValue(name, value) : that._setFieldValue(name, value);
 
     that.onFormChange(name);
@@ -223,10 +225,10 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     }
   }
 
-  onFormChange(name?: string) {
+  onFormChange(name?: CCFormName) {
     let that = this;
     clearTimeout(that.timeoutChange);
-    let ps = name && that.getField(name)?.props;
+    let ps = !Types.isBlank(name) && that.getField(name)?.props;
     that.tempFields = that.tempFields || [];
     ps && that.tempFields.push(ps);
     that.timeoutChange = setTimeout(() => {
@@ -235,8 +237,8 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     });
   }
 
-  private _setFieldValue(name: string, value: CCFormData) {
-    if (name) {
+  private _setFieldValue(name: CCFormName, value: CCFormData) {
+    if (!Types.isBlank(name)) {
       this.state.data[name] = value;
       this.state.originData[name] = value;
     }
@@ -273,7 +275,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
    * @param {string} name
    * @returns {*}
    */
-  getField(name: string): CCFieldWrapper | null {
+  getField(name: CCFormName): CCFieldWrapper | null {
     if (Types.isBlank(name)) return null;
     for (const f of this.fields) {
       const {form} = f.config;

@@ -6,11 +6,11 @@
 import type {RefObject} from 'react';
 import {createRef, useMemo, useRef} from 'react';
 
-import type {CCForm, CCFormData, FormInstance} from '../CCForm';
+import type {CCForm, CCFormData, CCFormInstance} from '../CCForm';
 import type {CCListWrapper} from '../CCList';
-import type {ListInstance} from '../CCList';
+import type {CCListInstance} from '../CCList';
 
-const formHandler = (ref: RefObject<CCForm>): FormInstance => {
+const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
   return {
     subData: (options: {merge?: boolean} = {}) => {
       return ref.current?.subData(options)!;
@@ -35,7 +35,7 @@ const formHandler = (ref: RefObject<CCForm>): FormInstance => {
   };
 };
 
-const listHelder = (ref: RefObject<CCListWrapper>): ListInstance => {
+const listHelder = (ref: RefObject<CCListWrapper>): CCListInstance => {
   return {
     addItem: (value?: any) => {
       return ref.current?.addItem(value);
@@ -51,20 +51,20 @@ const listHelder = (ref: RefObject<CCListWrapper>): ListInstance => {
   };
 };
 
-export const createForm = (): FormInstance => {
+export const createForm = (): CCFormInstance => {
   return formHandler(createRef<CCForm>());
 };
 
-export const useForm = (): [FormInstance] => {
+export const useForm = (): [CCFormInstance] => {
   const ref = useRef<CCForm>(null);
-  return [useMemo<FormInstance>(() => formHandler(ref), [])];
+  return [useMemo<CCFormInstance>(() => formHandler(ref), [])];
 };
 
-export const createList = (): ListInstance => {
+export const createList = (): CCListInstance => {
   return listHelder(createRef<CCListWrapper>());
 };
 
-export const useList = (): [ListInstance] => {
+export const useList = (): [CCListInstance] => {
   const ref = useRef<CCListWrapper>(null);
-  return [useMemo<ListInstance>(() => listHelder(ref), [])];
+  return [useMemo<CCListInstance>(() => listHelder(ref), [])];
 };

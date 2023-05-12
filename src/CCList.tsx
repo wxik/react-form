@@ -5,13 +5,13 @@
  */
 import React from 'react';
 
-import type {ICCFormContextValue} from './CCForm';
+import type {CCFormName, ICCFormContextValue} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
 import {Tools, Types} from './helper';
 
 export interface ICCList {
-  form?: string | number;
-  formList?: ListInstance;
+  form?: CCFormName;
+  formList?: CCListInstance;
   initRows?: number;
   initialValue?: Array<any>;
   eachConfig?: CCListOperation;
@@ -25,7 +25,7 @@ interface ICCListState {
   data: any[];
 }
 
-export interface ListInstance {
+export interface CCListInstance {
   addItem: (value?: any) => void;
   removeItem: (index: number) => void;
   setData: (data: any[]) => void;
@@ -79,7 +79,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
 
     if (context && context.initialValue) {
       if (!Types.isBlank(formName)) {
-        initialValue = Tools.get(context.initialValue, String(formName), initialValue);
+        initialValue = Tools.get(context.initialValue, formName, initialValue);
       } else if (Array.isArray(context.initialValue)) {
         initialValue = context.initialValue;
       }
@@ -104,7 +104,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
     return `CC${++this.uuid}`;
   }
 
-  getFormName(props: ICCList) {
+  getFormName(props: ICCList): CCFormName {
     const {form, eachConfig} = props;
     return eachConfig ? (form ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
   }

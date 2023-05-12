@@ -64,7 +64,7 @@ export function getItemValue(item: Record<string, any>, key: string, defaultValu
  * @param {*} [defaultValue]
  * @returns {*}
  */
-export function get(item: Record<string, any>, key: string, defaultValue?: any) {
+export function get(item: Record<string, any>, key: string | number, defaultValue?: any) {
   if (Types.isEmpty(item) || Types.isBlank(key)) return defaultValue;
 
   if (Types.isObject(item) || Array.isArray(item)) {
@@ -73,7 +73,7 @@ export function get(item: Record<string, any>, key: string, defaultValue?: any) 
     if (key in item) {
       value = item[key];
     } else {
-      let bit = getAKeysToObjc(key, ks).split('.');
+      let bit = getAKeysToObjc(String(key), ks).split('.');
       for (let i = 0, j = bit.length; i < j; i++) {
         let vk = bit[i];
         if (Types.isObject(value) || Array.isArray(value)) {

@@ -6,7 +6,7 @@
 import type {Ref} from 'react';
 import React from 'react';
 
-import type {CCFormData, ICCFormContextValue} from './CCForm';
+import type {CCFormData, CCFormName, ICCFormContextValue} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
 import type {CCListOperation} from './CCList';
 import {CCFormListContext} from './CCList';
@@ -30,7 +30,7 @@ type CCFieldOptions = CCFieldObserveOptions['options'] & {
 };
 
 export interface ICCField {
-  form: string | number; // field name
+  form?: CCFormName; // field name
   alias?: string | Array<string>; // alias field name
   title?: string | ((form?: string) => string); // field title
   label?: string; //
@@ -183,9 +183,9 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
    * @param {ICCField} [props]
    * @returns {string}
    */
-  getFormName(props?: ICCField): string {
+  getFormName(props?: ICCField): CCFormName {
     let {form, eachConfig} = props || this.props;
-    return eachConfig ? (typeof form !== 'number' ? `${eachConfig.form}.${form}` : eachConfig.form) : (form as string);
+    return eachConfig ? (typeof form !== 'number' ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
   }
 
   /**
@@ -203,11 +203,12 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     );
   }
 
-  execGetValue(formName: string, value: any, data: CCFormData) {
+  execGetValue(formName: CCFormName, value: any, data: CCFormData) {
     let {getValue, eachConfig, inline} = this.props;
 
-    if (!inline) {
-      let pForm = eachConfig && eachConfig.form ? eachConfig.form : formName.substring(0, formName.lastIndexOf('.'));
+    if (!inline && !Types.isBlank(formName)) {
+      const name = String(formName);
+      let pForm = eachConfig && eachConfig.form ? eachConfig.form : name.substring(0, name.lastIndexOf('.'));
       let pData = !Types.isBlank(pForm) ? Tools.get(data, pForm) : data;
       value = pData ?? value;
     }

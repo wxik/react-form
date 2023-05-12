@@ -5,9 +5,9 @@
  */
 
 export type {CCRequiredType, CCRulesType, ICCField, ICCFieldListener, IFieldItem} from './CCField';
-export {CCField, CCFieldWrapper as CCFormField} from './CCField';
-export type {CCFormData, ICCEmitter, ICCForm} from './CCForm';
+export {CCField} from './CCField';
+export type {CCFormData, CCFormInstance, ICCEmitter, ICCForm} from './CCForm';
 export {CCForm} from './CCForm';
-export type {ICCList} from './CCList';
-export {CCListWrapper as CCFormList, CCList} from './CCList';
+export type {CCListInstance, ICCList} from './CCList';
+export {CCList} from './CCList';
 export {CCOutlet} from './CCOutlet';
