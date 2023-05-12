@@ -26,7 +26,7 @@ interface IField {
 
 const Field = CCField<IField>()((props) => {
   const {value, onChange, title, error, errors, disabled, required, children} = props;
-  // console.log('value', value);
+  console.log('value', value);
   return (
     <div style={{display: 'flex', flexDirection: 'column', padding: '10px 0', width: 300}}>
       <span style={{paddingBottom: 4}}>
@@ -233,6 +233,20 @@ class App extends React.Component<any> {
                 ))}
               </div>
               <TextField form={'abcde'} title={'测试看看'} initialValue={'a'} />
+              <Field
+                form={'select2'}
+                title={'对象'}
+                forValue={(data) => data?.value}
+                normalize={(value) => ({value, key: value})}>
+                <ISelect
+                  placeholder="请选择"
+                  optionList={[
+                    {label: 'Java', value: 'java'},
+                    {label: 'React', value: 'react'},
+                    {label: 'Vue', value: 'vue'},
+                  ]}
+                />
+              </Field>
               <div style={styles.form}>
                 <Field form={'radio'} title={'是否选择科目'} normalize={(data) => data?.value}>
                   <IRadioGroup

@@ -4,6 +4,7 @@
  * @since 2023-02-27 11:12
  */
 
+import {isObservable} from './Observer';
 import * as Types from './Types';
 
 function getAKeysToObjc(key: string, obj: Record<string, any>) {
@@ -186,7 +187,7 @@ export function parseFieldData(obj: Record<string, any>, field: string, value: a
       obj[name in ks ? ks[name] : name] = nDef;
     }
   } else if (!Array.isArray(obj) || !Types.isEmpty(value)) {
-    obj[field in ks ? ks[field] : field] = value;
+    obj[field in ks ? ks[field] : field] = isObservable(value) ? Object.assign({}, value) : value;
   }
   return obj;
 }

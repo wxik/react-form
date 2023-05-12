@@ -36,7 +36,7 @@ export interface ICCField {
   title?: string | ((form?: string) => string); // field title
   label?: string; //
   unique?: string; //唯一标识, 默认 = id
-  inline?: boolean; // 是否内联对象(默认: true), {a: 1, b: {b1: 1}} => {a: 1, b1: 1}
+  inline?: boolean; // 是否内联对象(默认: true), false => {a: 1, b: {b1: 1}} => {a: 1, b1: 1}
   ignore?: boolean; // 是否忽略此字段
   field?: string | ((data: any, formData: CCFormData) => any); // 提交取值处理数据
   value?: any;
