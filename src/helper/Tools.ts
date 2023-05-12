@@ -190,3 +190,10 @@ export function parseFieldData(obj: Record<string, any>, field: string, value: a
   }
   return obj;
 }
+
+export function getValueFromEvent(valuePropName: string, event: any) {
+  if (event && event.target && typeof event.target === 'object' && valuePropName in event.target) {
+    return (event.target as HTMLInputElement)[valuePropName as keyof HTMLInputElement];
+  }
+  return event;
+}

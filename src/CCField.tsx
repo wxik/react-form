@@ -11,6 +11,7 @@ import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
 import type {CCListOperation} from './CCList';
 import {CCFormListContext} from './CCList';
 import {Observer, Tools, Types} from './helper';
+import {getValueFromEvent} from './helper/Tools';
 
 export interface ICCFieldListener {
   key: string;
@@ -404,8 +405,9 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   }
 
   onChange(value: any) {
-    const {normalize} = this.props;
+    const {normalize, valuePropName = 'value'} = this.props;
     const context = this.context as ICCFormContextValue;
+    value = getValueFromEvent(valuePropName, value);
     this.handleChange(normalize ? normalize(value, this.state.value, context.data) : value);
   }
 
