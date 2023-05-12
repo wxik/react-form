@@ -8,6 +8,6 @@ export type {CCRequiredType, CCRulesType, ICCField, ICCFieldListener, IFieldItem
 export {CCField} from './CCField';
 export type {CCFormData, CCFormInstance, ICCEmitter, ICCForm} from './CCForm';
 export {CCForm} from './CCForm';
-export type {CCListInstance, ICCList} from './CCList';
+export type {CCListInstance, CCListOperation, ICCList} from './CCList';
 export {CCList} from './CCList';
 export {CCOutlet} from './CCOutlet';
