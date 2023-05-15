@@ -47,11 +47,36 @@ export interface ICCFormContextValue {
 }
 
 export interface CCFormInstance {
+  /**
+   * 获取表单submitData
+   * @returns {{merge ?: boolean}}
+   */
   subData: (options?: {merge?: boolean}) => CCFormData;
+  /**
+   * 验证表单
+   * @returns {boolean}
+   */
   validate: () => boolean;
+  /**
+   * 初始化表单数据, 不触发 onChange
+   * @param {CCFormData | any[]} data
+   */
   setOriginData: (data: CCFormData | any[]) => void;
+  /**
+   *  初始化表单数据, 触发 onChange, 不触发联动
+   * @param {Array|Object} data
+   */
   setFieldData: (data: CCFormData | any[]) => void;
+  /**
+   * 添加字段数据(字段可不存在)并触发 onChange
+   * @param {CCFormData} data
+   */
   addData: (data: CCFormData) => void;
+  /**
+   * 设置表单数据, 默认不调用 getValue
+   * @param {: FormData | any[]} data
+   * @param {{isGet: boolean, isChange: boolean}} options
+   */
   setData: (data: CCFormData) => void;
 }
 

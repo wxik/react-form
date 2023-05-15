@@ -38,6 +38,7 @@ export interface ICCField {
   unique?: string; //唯一标识, 默认 = id
   inline?: boolean; // 是否内联对象(默认: true), false => {a: 1, b: {b1: 1}} => {a: 1, b1: 1}
   ignore?: boolean; // 是否忽略此字段
+  autoListName?: boolean; // 自动拼接集合传递的 formName
   field?: string | ((data: any, formData: CCFormData) => any); // 提交取值处理数据
   value?: any;
 
@@ -105,6 +106,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   static defaultProps = {
     inline: true,
     unique: DEFAULT_UNIQUE,
+    autoListName: true,
   };
 
   static getDerivedStateFromProps(nextProps: ICCField, prevState: CCFieldState) {
@@ -186,8 +188,12 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
    * @returns {string}
    */
   getFormName(props?: ICCField): CCFormName {
-    let {form, eachConfig} = props || this.props;
-    return eachConfig ? (typeof form !== 'number' && form ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
+    let {form, eachConfig, autoListName} = props || this.props;
+    return eachConfig && autoListName
+      ? typeof form !== 'number' && form
+        ? `${eachConfig.form}.${form}`
+        : eachConfig.form
+      : form;
   }
 
   /**
