@@ -16,7 +16,7 @@ import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
 import ISelect from '@ibot/ibot/lib/select';
 import {Types} from '@wxik/core';
 import type {CCFormData, ICCField} from '@wxik/react-form';
-import {CCField, CCForm, CCList, CCOutlet} from '@wxik/react-form';
+import {CCForm} from '@wxik/react-form';
 import type {ReactElement} from 'react';
 import React from 'react';
 
@@ -24,7 +24,7 @@ interface IField {
   children: ReactElement;
 }
 
-const Field = CCField<IField>()((props) => {
+const Field = CCForm.Field<IField>()((props) => {
   const {value, onChange, title, error, errors, disabled, required, children} = props;
   console.log('value', value);
   return (
@@ -280,10 +280,10 @@ class App extends React.Component<any> {
                 <button onClick={() => this.addList2()} style={styles.btn}>
                   Add
                 </button>
-                <CCList form={'sl'} initRows={1} formList={this.list2}>
+                <CCForm.List form={'sl'} initRows={1} formList={this.list2}>
                   {({add, remove, key}) => (
                     <div style={styles.sop} key={key}>
-                      <CCList form="c" initRows={1}>
+                      <CCForm.List form="c" initRows={1}>
                         {({add, remove, key, index}) => (
                           <div style={styles.form} key={key} data-key={key}>
                             <TextField title={'SL 吃吃 - ' + index} form={index} />
@@ -295,7 +295,7 @@ class App extends React.Component<any> {
                             </button>
                           </div>
                         )}
-                      </CCList>
+                      </CCForm.List>
                       <button style={{padding: 10}} onClick={() => add()}>
                         ++++++
                       </button>
@@ -304,41 +304,41 @@ class App extends React.Component<any> {
                       </button>
                     </div>
                   )}
-                </CCList>
+                </CCForm.List>
               </div>
               <div style={styles.sop}>
                 <button onClick={() => this.addList()} style={styles.btn}>
                   Add
                 </button>
-                <CCList form={'job'} formList={this.list} initRows={1}>
+                <CCForm.List form={'job'} formList={this.list} initRows={1}>
                   {({add, remove, index}) => (
                     <div style={styles.form}>
                       {this.formList.map((config) => (
                         <TextField key={config.form} {...config} />
                       ))}
-                      <CCOutlet.View forProps={(props) => ({disabled: props.disabled})}>
+                      <CCForm.OutletView forProps={(props) => ({disabled: props.disabled})}>
                         <button style={{padding: 10}} onClick={() => add()}>
                           ++++{index}
                         </button>
-                      </CCOutlet.View>
-                      <CCOutlet.View forProps={(props) => ({disabled: props.disabled})}>
+                      </CCForm.OutletView>
+                      <CCForm.OutletView forProps={(props) => ({disabled: props.disabled})}>
                         <button style={{padding: 10}} onClick={remove}>
                           ----
                         </button>
-                      </CCOutlet.View>
+                      </CCForm.OutletView>
                     </div>
                   )}
-                </CCList>
+                </CCForm.List>
               </div>
               <div style={styles.button}>
                 <button style={{padding: 10}} onClick={() => this.count()}>
                   Submit
                 </button>
-                <CCOutlet.View forProps={(props) => ({disabled: props.disabled})}>
+                <CCForm.OutletView forProps={(props) => ({disabled: props.disabled})}>
                   <button style={{padding: 10}} onClick={() => this.inject()}>
                     Inject
                   </button>
-                </CCOutlet.View>
+                </CCForm.OutletView>
               </div>
             </CCForm>
           </div>

@@ -2,11 +2,13 @@
  * @author Quia
  * @sine 2020-04-11 16:03
  */
-import type {ReactNode} from 'react';
+import type {FC, ReactNode} from 'react';
 import React from 'react';
 
-import type {CCFieldWrapper, ICCField} from './CCField';
-import type {CCListInstance, CCListWrapper} from './CCList';
+import type {CCFieldWrapper, ICCField, IFieldItem} from './CCField';
+import type {CCListInstance, CCListWrapper, IListItem} from './CCList';
+import type {ICCOutlet} from './CCOutlet';
+import type {IOutlet} from './CCOutlet';
 import {FormHelper, Observer, Tools, Types} from './helper';
 
 export type CCFormData = Record<string, any>;
@@ -76,6 +78,20 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   static useList: () => [CCListInstance] = FormHelper.useList;
   static createForm: () => CCFormInstance = FormHelper.createForm;
   static createList: () => CCListInstance = FormHelper.createList;
+
+  static List: React.ForwardRefExoticComponent<React.PropsWithoutRef<IListItem> & React.RefAttributes<CCListWrapper>>;
+
+  static Field: <T = {}>(options?: {
+    defaultValue?: any;
+  }) => (
+    Target: React.ComponentType<T & IFieldItem>,
+  ) => React.ForwardRefExoticComponent<React.PropsWithoutRef<T & ICCField> & React.RefAttributes<CCFieldWrapper>>;
+
+  static Outlet: <T = {}, P = any>() => (
+    Target: React.ComponentType<T & ICCOutlet>,
+  ) => React.ForwardRefExoticComponent<React.PropsWithoutRef<T> & React.RefAttributes<P>>;
+
+  static OutletView: FC<IOutlet>;
 
   static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {
     const {data, initialValue} = nextProps;
