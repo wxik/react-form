@@ -41,7 +41,7 @@ export interface ICCField {
   field?: string | ((data: any, formData: CCFormData) => any); // 提交取值处理数据
   value?: any;
 
-  onChange?: (value: any, ...args: any[]) => void;
+  onChange?: (value: any) => void;
   visible?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
@@ -70,7 +70,7 @@ export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName
   errors?: string[]; // 验证错误的提示信息
   disabled: boolean; // 是否禁用
   required: boolean; // 是否必填验证
-  onChange: (value: any) => void;
+  onChange: (value: any, ...args: any[]) => void;
 }
 
 interface CCFieldState {
