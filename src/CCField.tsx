@@ -42,7 +42,7 @@ export interface ICCField {
   value?: any;
 
   onChange?: (value: any) => void;
-  visibleToChild?: boolean; // 是否让子元素接受 visible 值
+  preserveNode?: boolean; // 是否保护子节点在隐藏是不销毁, 并接受 visible 值
   visible?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
@@ -109,7 +109,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     inline: true,
     unique: DEFAULT_UNIQUE,
     autoListName: true,
-    visibleToChild: false,
+    preserveNode: false,
   };
 
   static getDerivedStateFromProps(nextProps: ICCField, prevState: CCFieldState) {
@@ -684,8 +684,8 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     const context = this.context as ICCFormContextValue;
     const {value, required, error, errors, disabled, visible} = that.state;
     // @ts-ignore
-    const {forwardRef, __Component__: Target, visibleToChild, title, valuePropName, forValue, ...rest} = that.props;
-    if (!visible && !visibleToChild) return null;
+    const {forwardRef, __Component__: Target, preserveNode, title, valuePropName, forValue, ...rest} = that.props;
+    if (!visible && !preserveNode) return null;
 
     const nowValue = forValue ? forValue(value, context.data) : value;
     // @ts-ignore
