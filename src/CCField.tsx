@@ -187,7 +187,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
    */
   getFormName(props?: ICCField): CCFormName {
     let {form, eachConfig} = props || this.props;
-    return eachConfig ? (typeof form !== 'number' ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
+    return eachConfig ? (typeof form !== 'number' && form ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
   }
 
   /**

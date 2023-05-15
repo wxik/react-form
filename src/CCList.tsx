@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import type {CCFormName, ICCFormContextValue} from './CCForm';
+import type {CCFormData, CCFormName, ICCFormContextValue} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
 import {Tools, Types} from './helper';
 
@@ -37,6 +37,7 @@ export interface CCListOperation {
   key: string;
   length: number;
   data: any[];
+  formData: CCFormData;
   remove: () => void;
   add: (item?: any) => void;
 }
@@ -217,6 +218,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
 
   render() {
     const that = this;
+    const context = this.context as ICCFormContextValue;
     const formName = this.getFormName(this.props);
     const {children} = that.props;
     const {keys, data} = that.state;
@@ -230,6 +232,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
             key,
             length: keys.length,
             data,
+            formData: context.data,
             remove: that.removeItem.bind(that, index),
             add: that.addItem.bind(that),
           };
