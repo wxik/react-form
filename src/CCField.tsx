@@ -41,7 +41,7 @@ export interface ICCField {
   field?: string | ((data: any, formData: CCFormData) => any); // 提交取值处理数据
   value?: any;
 
-  onChange?: (value: any) => void;
+  onChange?: (value: any, ...args: any[]) => void;
   visible?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
@@ -56,6 +56,7 @@ export interface ICCField {
   valuePropName?: string; // value 进入子组件后的别名
   forValue?: (value: any, formData: CCFormData) => any; // 转换 value 给组件
   listener?: ICCFieldListener;
+  refreshMark?: any; // 刷新标志
 }
 
 /**
@@ -621,6 +622,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
       props = that.props,
       state = that.state;
     return (
+      nextProps.refreshMark !== props.refreshMark ||
       nextState.value !== state.value ||
       nextState.required !== state.required ||
       nextState.error !== state.error ||

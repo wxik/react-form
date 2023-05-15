@@ -72,6 +72,7 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 | valuePropName | value 进入子组件后的别名                                              | string                                                             | -       |
 | forValue      | 转换 value 给组件                                                 | (value: any, formData: CCFormData) => any                          | -       |
 | listener      | 对应表单的发布与订阅<br/> 在值改变时触发<br/> 同时监听字段改变触发值改变                   | ICCFieldListener                                                   | -       |
+| refreshMark   | 刷新标志                                                         | any                                                                | -       |
 
 ### CCList
 
