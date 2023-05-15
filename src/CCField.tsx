@@ -6,12 +6,11 @@
 import type {Ref} from 'react';
 import React from 'react';
 
-import type {CCFormData, CCFormName, ICCFormContextValue} from './CCForm';
+import type {CCFormData, CCFormInstance, CCFormName, ICCFormContextValue} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
 import type {CCListOperation} from './CCList';
 import {CCFormListContext} from './CCList';
-import {Observer, Tools, Types} from './helper';
-import {getValueFromEvent} from './helper/Tools';
+import {FormHelper, Observer, Tools, Types} from './helper';
 
 export interface ICCFieldListener {
   key: string;
@@ -43,6 +42,7 @@ export interface ICCField {
   value?: any;
 
   onChange?: (value: any) => void;
+  visibleToChild?: boolean; // 是否让子元素接受 visible 值
   visible?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
@@ -70,7 +70,9 @@ export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName
   error: boolean; // 是否验证错误
   errors?: string[]; // 验证错误的提示信息
   disabled: boolean; // 是否禁用
+  visible: boolean;
   required: boolean; // 是否必填验证
+  formInstance: CCFormInstance;
   onChange: (value: any, ...args: any[]) => void;
 }
 
@@ -107,6 +109,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     inline: true,
     unique: DEFAULT_UNIQUE,
     autoListName: true,
+    visibleToChild: false,
   };
 
   static getDerivedStateFromProps(nextProps: ICCField, prevState: CCFieldState) {
@@ -126,14 +129,15 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     return state;
   }
 
+  private formInstance!: CCFormInstance;
   private changeFlag: boolean = false;
   private changeForm: boolean = false;
-  private isObserveUion = false;
+  private isObserveUnion = false;
   private unmount: boolean = false;
   private observeReactions: Array<() => void> = []; // 监听对象
   public fieldType = CCFieldEnum.Field;
 
-  constructor(props: ICCField, context: any) {
+  constructor(props: ICCField, context: React.ContextType<typeof CCForm.Context>) {
     super(props, context);
     let that = this;
     that.listenerValueChange = that.listenerValueChange.bind(that);
@@ -141,6 +145,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     that.observeVisible = that.observeVisible.bind(that);
     that.observeDisabled = that.observeDisabled.bind(that);
     that.observeRules = that.observeRules.bind(that);
+    that.formInstance = FormHelper.formHandler({current: context?.form ?? null});
     that.state = that.initState();
     // console.log('>>>>>>', props.form);
   }
@@ -178,7 +183,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
 
     that.changeFlag = false;
     that.changeForm = false;
-    that.isObserveUion = false;
+    that.isObserveUnion = false;
     return state;
   }
 
@@ -322,7 +327,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
    */
   private observeUnion() {
     const that = this;
-    that.isObserveUion = false;
+    that.isObserveUnion = false;
     const context = that.context as ICCFormContextValue;
     const union = that.getUnionList();
     if (that.unmount || Types.isEmptyArray(union)) return;
@@ -354,7 +359,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
           val: that.value,
           data: originData,
         });
-        if (that.isObserveUion && form?.changeState !== CCFormStateStatusEnum.SET) {
+        if (that.isObserveUnion && form?.changeState !== CCFormStateStatusEnum.SET) {
           name in data && that.handleChange(value);
         } else {
           // 递归监听一下上级.上级.等等
@@ -363,7 +368,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
       });
       that.observeReactions.push(reaction);
     });
-    that.isObserveUion = true;
+    that.isObserveUnion = true;
   }
 
   getUnionList() {
@@ -414,7 +419,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   onChange(value: any, ...args: any[]) {
     const {normalize, valuePropName = 'value'} = this.props;
     const context = this.context as ICCFormContextValue;
-    value = getValueFromEvent(valuePropName, value);
+    value = Tools.getValueFromEvent(valuePropName, value);
     this.handleChange(normalize ? normalize(value, {val: this.state.value, data: context.data, args}) : value);
   }
 
@@ -679,8 +684,8 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     const context = this.context as ICCFormContextValue;
     const {value, required, error, errors, disabled, visible} = that.state;
     // @ts-ignore
-    const {forwardRef, __Component__: Target, title, valuePropName, forValue, ...rest} = that.props;
-    if (!visible) return null;
+    const {forwardRef, __Component__: Target, visibleToChild, title, valuePropName, forValue, ...rest} = that.props;
+    if (!visible && !visibleToChild) return null;
 
     const nowValue = forValue ? forValue(value, context.data) : value;
     // @ts-ignore
@@ -694,6 +699,8 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
         value={nowValue}
         required={required}
         disabled={context.disabled || disabled}
+        visible={visible}
+        formInstance={that.formInstance}
         error={error}
         errors={errors}
         onChange={that.onChange}

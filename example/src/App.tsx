@@ -16,7 +16,7 @@ import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
 import ISelect from '@ibot/ibot/lib/select';
 import {Types} from '@wxik/core';
 import type {CCFormData, ICCField} from '@wxik/react-form';
-import {CCForm} from '@wxik/react-form';
+import {CCField, CCForm} from '@wxik/react-form';
 import type {ReactElement} from 'react';
 import React from 'react';
 

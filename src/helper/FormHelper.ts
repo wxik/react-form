@@ -10,7 +10,7 @@ import type {CCForm, CCFormData, CCFormInstance} from '../CCForm';
 import type {CCListWrapper} from '../CCList';
 import type {CCListInstance} from '../CCList';
 
-const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
+export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
   return {
     subData: (options: {merge?: boolean} = {}) => {
       return ref.current?.subData(options)!;
