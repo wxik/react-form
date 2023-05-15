@@ -132,6 +132,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   private originData: CCFormData | undefined;
   changeState = CCFormStateStatusEnum.DEFAULT;
   private fields = new Set<CCFieldWrapper>();
+  private removeFields = new Set<CCFieldWrapper>();
   private updateFields = new Set<CCFieldWrapper>();
   private listFields = new Set<CCListWrapper>();
   private providerValue: ICCFormContextValue | {} = {};
@@ -333,6 +334,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     if (isField(field)) {
       field.unObserveData();
       this.fields.delete(field);
+      this.removeFields.add(field);
     } else {
       this.listFields.delete(field);
     }
@@ -461,6 +463,12 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     const config = [],
       ignoreKeys = [];
     const {data, initialValue} = this.state;
+    for (const f of this.removeFields) {
+      const field = f.config;
+      if (field.form) {
+        ignoreKeys.push(field.form);
+      }
+    }
     for (const f of this.fields) {
       const field = f.config;
       if (field.form) {

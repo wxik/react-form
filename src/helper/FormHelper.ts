@@ -46,6 +46,12 @@ const listHelder = (ref: RefObject<CCListWrapper>): CCListInstance => {
     setData: (data: any[]) => {
       return ref.current?.setData(data);
     },
+    getData: () => {
+      return ref.current?.getData();
+    },
+    getSize: () => {
+      return ref.current?.getData().length || 0;
+    },
     // @ts-ignore
     __REF__: ref,
   };

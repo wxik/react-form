@@ -29,6 +29,8 @@ export interface CCListInstance {
   addItem: (value?: any) => void;
   removeItem: (index: number) => void;
   setData: (data: any[]) => void;
+  getData: () => void;
+  getSize: () => number;
 }
 
 export interface CCListOperation {

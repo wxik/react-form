@@ -81,11 +81,13 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 - `function addItem(value?: any)` add new row
 - `function removeItem(index: number)` remove row
 - `function setData(data: any[])` set new data
+- `function getData()` get data
+- `function getSize()` data length
 
 | key          | explain | type   | default |
 |:-------------|:--------|:-------|:--------|
 | form         | 字段名     | string | -       |
-| initRows     | 初始化行数   | number | 0       |
+| initRows     | 初始化行数   | number | 1       |
 | initialValue | 初始值     | any[]  | -       |
 
 
