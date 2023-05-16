@@ -58,6 +58,7 @@ export interface ICCField {
   forValue?: (value: any, formData: CCFormData) => any; // 转换 value 给组件
   listener?: ICCFieldListener;
   refreshMark?: any; // 刷新标志
+  omitContext?: boolean; // 取消注入 Context 给下级
   parentField: ICCFieldContext; // 上级字段节点数据
 }
 
@@ -110,6 +111,7 @@ export interface ICCFieldContext {
 
 const DEFAULT_UNIQUE = 'id';
 const DEFAULT_INLINE = true;
+const DEFAULT_OMIT_CONTEXT = false;
 const DEFAULT_CONTEXT_VALUE = {
   visible: true,
 };
@@ -122,6 +124,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   static defaultProps = {
     inline: DEFAULT_INLINE,
     unique: DEFAULT_UNIQUE,
+    omitContext: DEFAULT_OMIT_CONTEXT,
     autoListName: true,
     preserveNode: false,
   };
@@ -750,7 +753,7 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
       <CCFormListContext.Consumer>
         {(eachData) => {
           const listData = eachData as CCListOperation;
-          let {initialValue, form, inline = DEFAULT_INLINE} = props;
+          let {initialValue, form, inline = DEFAULT_INLINE, omitContext = DEFAULT_OMIT_CONTEXT} = props;
           if (listData) {
             const item = listData.data[listData.index];
             initialValue = form
@@ -762,20 +765,22 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
               : item;
             // console.log('--->', form, initialValue, item, initialValue);
           }
-          return (
-            <CCFieldContext.Consumer>
-              {(parentField) => (
-                <CCFieldWrapper
-                  defaultValue={defaultValue}
-                  {...props}
-                  initialValue={initialValue}
-                  parentField={parentField}
-                  eachConfig={listData}
-                  ref={ref}
-                  __Component__={Target}
-                />
-              )}
-            </CCFieldContext.Consumer>
+
+          const renderField = (parentField?: ICCFieldContext) => (
+            <CCFieldWrapper
+              defaultValue={defaultValue}
+              {...props}
+              parentField={parentField || (DEFAULT_CONTEXT_VALUE as ICCFieldContext)}
+              initialValue={initialValue}
+              eachConfig={listData}
+              ref={ref}
+              __Component__={Target}
+            />
+          );
+          return omitContext ? (
+            renderField()
+          ) : (
+            <CCFieldContext.Consumer>{(parentField) => renderField(parentField)}</CCFieldContext.Consumer>
           );
         }}
       </CCFormListContext.Consumer>

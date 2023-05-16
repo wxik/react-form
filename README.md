@@ -75,6 +75,7 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 | refreshMark   | 刷新标志                                                         | any                                                                | -       |
 | autoListName  | 自动拼接集合传递的 formName                                           | boolean                                                            | true    |
 | preserveNode  | 是否保护子节点在隐藏是不销毁, 并接受 visible 值                                | boolean                                                            | false   |
+| omitContext   | 取消注入 Context 给下级                                             | boolean                                                            | false   |
 
 ### CCList
 
