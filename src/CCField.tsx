@@ -709,6 +709,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
       valuePropName,
       forValue,
       parentField,
+      omitContext,
       ...rest
     } = that.props;
     if (!visible && !preserveNode) return null;
@@ -720,25 +721,25 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     const providerValue = that.providerValue as ICCFieldContext;
     providerValue.visible = visible;
 
-    return (
-      <CCFieldContext.Provider value={providerValue}>
-        <Target
-          {...rest}
-          parentField={parentField}
-          title={that.title}
-          data={context.data}
-          value={nowValue}
-          required={required}
-          disabled={context.disabled || disabled}
-          visible={visible}
-          formInstance={that.formInstance}
-          error={error}
-          errors={errors}
-          onChange={that.onChange}
-          ref={forwardRef}
-        />
-      </CCFieldContext.Provider>
+    const element = (
+      <Target
+        {...rest}
+        parentField={parentField}
+        title={that.title}
+        data={context.data}
+        value={nowValue}
+        required={required}
+        disabled={context.disabled || disabled}
+        visible={visible}
+        formInstance={that.formInstance}
+        error={error}
+        errors={errors}
+        onChange={that.onChange}
+        ref={forwardRef}
+      />
     );
+
+    return omitContext ? element : <CCFieldContext.Provider value={providerValue}>{element}</CCFieldContext.Provider>;
   }
 }
 
@@ -753,7 +754,7 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
       <CCFormListContext.Consumer>
         {(eachData) => {
           const listData = eachData as CCListOperation;
-          let {initialValue, form, inline = DEFAULT_INLINE, omitContext = DEFAULT_OMIT_CONTEXT} = props;
+          let {initialValue, form, inline = DEFAULT_INLINE} = props;
           if (listData) {
             const item = listData.data[listData.index];
             initialValue = form
@@ -766,21 +767,20 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
             // console.log('--->', form, initialValue, item, initialValue);
           }
 
-          const renderField = (parentField?: ICCFieldContext) => (
-            <CCFieldWrapper
-              defaultValue={defaultValue}
-              {...props}
-              parentField={parentField || (DEFAULT_CONTEXT_VALUE as ICCFieldContext)}
-              initialValue={initialValue}
-              eachConfig={listData}
-              ref={ref}
-              __Component__={Target}
-            />
-          );
-          return omitContext ? (
-            renderField()
-          ) : (
-            <CCFieldContext.Consumer>{(parentField) => renderField(parentField)}</CCFieldContext.Consumer>
+          return (
+            <CCFieldContext.Consumer>
+              {(parentField) => (
+                <CCFieldWrapper
+                  defaultValue={defaultValue}
+                  {...props}
+                  parentField={parentField}
+                  initialValue={initialValue}
+                  eachConfig={listData}
+                  ref={ref}
+                  __Component__={Target}
+                />
+              )}
+            </CCFieldContext.Consumer>
           );
         }}
       </CCFormListContext.Consumer>
