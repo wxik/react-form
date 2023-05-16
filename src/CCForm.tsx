@@ -6,6 +6,7 @@ import type {FC, ReactNode} from 'react';
 import React from 'react';
 
 import type {CCFieldWrapper, ICCField, IFieldItem} from './CCField';
+import type {ICCFieldOmit} from './CCField';
 import type {CCListInstance, CCListWrapper, IListItem} from './CCList';
 import type {ICCOutlet} from './CCOutlet';
 import type {IOutlet} from './CCOutlet';
@@ -37,12 +38,12 @@ export interface ICCEmitter {
   emit: (key: string, ...value: any[]) => void;
 }
 
-export interface ICCFormContextValue {
+export interface ICCFormContext {
   data: CCFormData;
   originData: CCFormData;
   initialValue?: CCFormData;
   emitter?: ICCEmitter;
-  form: CCForm;
+  formInstance: CCForm;
   disabled: boolean;
 }
 
@@ -94,7 +95,7 @@ function isField(field: CCFieldWrapper | CCListWrapper): field is CCFieldWrapper
   return field.fieldType === CCFieldEnum.Field;
 }
 
-const CCFormContext = React.createContext<ICCFormContextValue | null>(null);
+const CCFormContext = React.createContext<ICCFormContext | null>(null);
 
 export class CCForm extends React.Component<ICCForm, ICCFormState> {
   static Context = CCFormContext;
@@ -110,7 +111,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     defaultValue?: any;
   }) => (
     Target: React.ComponentType<T & IFieldItem>,
-  ) => React.ForwardRefExoticComponent<React.PropsWithoutRef<T & ICCField> & React.RefAttributes<CCFieldWrapper>>;
+  ) => React.ForwardRefExoticComponent<React.PropsWithoutRef<T & ICCFieldOmit> & React.RefAttributes<CCFieldWrapper>>;
 
   static Outlet: <T = {}, P = any>() => (
     Target: React.ComponentType<T & ICCOutlet>,
@@ -135,7 +136,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   private removeFields = new Set<CCFieldWrapper>();
   private updateFields = new Set<CCFieldWrapper>();
   private listFields = new Set<CCListWrapper>();
-  private providerValue: ICCFormContextValue | {} = {};
+  private providerValue: ICCFormContext | {} = {};
   private timeoutChange: any = void 0;
   private tempFields: Array<ICCField> | undefined;
   private autoRunTime: any = void 0;
@@ -155,7 +156,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     that.unmountField = that.unmountField.bind(that);
 
     that.providerValue = {
-      form: that,
+      formInstance: that,
       emitter,
     };
     // @ts-ignore
@@ -459,21 +460,22 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
    * @returns {{merge ?: boolean}}
    */
   subData(options: {merge?: boolean} = {}) {
+    const that = this;
     const {merge = false} = options;
     const config = [],
       ignoreKeys = [];
-    const {data, initialValue} = this.state;
-    for (const f of this.removeFields) {
+    const {data, initialValue} = that.state;
+    for (const f of that.removeFields) {
       const field = f.config;
       if (field.form) {
         ignoreKeys.push(field.form);
       }
     }
-    for (const f of this.fields) {
+    for (const f of that.fields) {
       const field = f.config;
       if (field.form) {
         ignoreKeys.push(field.form);
-        !field.ignore && f.visible && config.push(field);
+        !field.ignore && field.parentVisible && field.visible && config.push(field);
       }
     }
     const subData: CCFormData = Tools.extractData(data, config as any);
@@ -486,9 +488,9 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     }
 
     // 合并数据
-    const originData = this.originData ?? initialValue;
+    const originData = that.originData ?? initialValue;
     if (merge && originData) {
-      for (const f of this.listFields) {
+      for (const f of that.listFields) {
         const {form} = f.config;
         const listData = f.getData();
         let deleteIndex = f.deleteIndex;
@@ -513,13 +515,14 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   }
 
   render() {
-    const {disabled = false} = this.props;
-    const {data, originData, initialValue} = this.state;
-    const providerValue = this.providerValue as ICCFormContextValue;
+    const that = this;
+    const {disabled = false} = that.props;
+    const {data, originData, initialValue} = that.state;
+    const providerValue = that.providerValue as ICCFormContext;
     providerValue.data = data;
     providerValue.originData = originData;
     providerValue.initialValue = initialValue;
     providerValue.disabled = disabled;
-    return <CCFormContext.Provider value={providerValue} children={this.props.children} />;
+    return <CCFormContext.Provider value={providerValue} children={that.props.children} />;
   }
 }

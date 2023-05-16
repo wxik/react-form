@@ -8,12 +8,12 @@
 import type {ReactElement} from 'react';
 import React from 'react';
 
-import type {ICCFormContextValue} from './CCForm';
+import type {ICCFormContext} from './CCForm';
 import {CCForm} from './CCForm';
 import type {CCListOperation} from './CCList';
 import {CCFormListContext} from './CCList';
 
-export interface ICCOutlet extends ICCFormContextValue {
+export interface ICCOutlet extends ICCFormContext {
   eachConfig?: CCListOperation;
 }
 

@@ -9,8 +9,8 @@ import {CCForm} from './CCForm';
 import {CCList} from './CCList';
 import {CCOutlet} from './CCOutlet';
 
-export type {CCRequiredType, CCRulesType, ICCField, ICCFieldListener, IFieldItem} from './CCField';
-export type {CCFormData, CCFormInstance, ICCEmitter, ICCForm} from './CCForm';
+export type {CCRequiredType, CCRulesType, ICCFieldOmit as ICCField, ICCFieldListener, IFieldItem} from './CCField';
+export type {CCFormData, CCFormInstance, ICCEmitter, ICCForm, ICCFormContext} from './CCForm';
 export type {CCListInstance, CCListOperation, ICCList} from './CCList';
 
 CCForm.List = CCList;

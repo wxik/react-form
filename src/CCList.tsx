@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import type {CCFormData, CCFormName, ICCFormContextValue} from './CCForm';
+import type {CCFormData, CCFormName, ICCFormContext} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
 import {Tools, Types} from './helper';
 
@@ -74,7 +74,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   initState() {
     let that = this,
       props = that.props,
-      context = that.context as ICCFormContextValue;
+      context = that.context as ICCFormContext;
     that._initID();
     let {initRows, initialValue} = props;
 
@@ -137,7 +137,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
     keys.push(that.genID());
     data.push(item);
     that.setState({keys, data});
-    that.context?.form.onFormChange();
+    that.context?.formInstance.onFormChange();
   }
 
   removeItem(index: number) {
@@ -158,11 +158,11 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
     const key = keys.length - 1;
     const pad = formName ? `${formName}.${key}` : String(key);
 
-    const {data, form} = this.context!;
+    const {data, formInstance} = this.context!;
 
     Object.keys(data).forEach((fi) => {
       if (fi.indexOf(pad) === 0) {
-        form.onDeleteField(fi);
+        formInstance.onDeleteField(fi);
       }
     });
   }
@@ -173,7 +173,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
    */
   removeOutData(size: number) {
     const formName = this.getFormName(this.props);
-    const {data, form} = this.context!;
+    const {data, formInstance} = this.context!;
     const inForms = formName
       ? Array(size)
           .fill(1)
@@ -185,12 +185,12 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
         let nfi = Number(fi);
         let ois = fi.substr(0, fi.indexOf('.'));
         if (String(nfi) === fi && nfi < size) {
-          form.onDeleteField(fi, {isChange: false});
+          formInstance.onDeleteField(fi, {isChange: false});
         } else if (/^[0-9]+$/.test(ois) && Number(ois) >= size) {
-          form.onDeleteField(fi, {isChange: false});
+          formInstance.onDeleteField(fi, {isChange: false});
         }
       } else if (fi.indexOf(String(formName)) === 0 && inForms.findIndex((da) => fi.indexOf(da) !== -1) === -1) {
-        form.onDeleteField(fi, {isChange: false});
+        formInstance.onDeleteField(fi, {isChange: false});
       }
     });
   }
@@ -201,11 +201,11 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   }
 
   componentDidMount() {
-    this.context?.form.setField(this);
+    this.context?.formInstance.setField(this);
   }
 
   componentWillUnmount() {
-    this.context?.form.unmountField(this);
+    this.context?.formInstance.unmountField(this);
   }
 
   shouldComponentUpdate(nextProps: ICCList, nextState: ICCListState) {
@@ -214,13 +214,13 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
 
   componentDidUpdate(prevProps: Readonly<ICCList>, prevState: Readonly<ICCListState>, snapshot?: any) {
     if (prevState.keys.length !== this.state.keys.length) {
-      this.context?.form.observeField();
+      this.context?.formInstance.observeField();
     }
   }
 
   render() {
     const that = this;
-    const context = this.context as ICCFormContextValue;
+    const context = this.context as ICCFormContext;
     const formName = this.getFormName(this.props);
     const {children} = that.props;
     const {keys, data} = that.state;
