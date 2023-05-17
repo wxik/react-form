@@ -441,7 +441,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     let errors = new Map();
     for (let f of this.fields) {
       let field = f.config;
-      if (field.form) {
+      if (field.form && field.visible && field.parentVisible) {
         const {error, errors: messages} = f.validateErrors();
         if (error) {
           errors.set(field.form, {
