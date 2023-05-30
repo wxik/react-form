@@ -109,7 +109,7 @@ export function extractData(
 ) {
   let newData = Object.create(null);
   (config || []).forEach(({form, field, inline = true}) => {
-    let data: any = $data[form];
+    let data: any = normalObservable($data[form]);
 
     if (Types.isFunction(field)) {
       // field 如果是方法
@@ -121,7 +121,7 @@ export function extractData(
     // 处理重复字段名称: (a.b@1, a.b@2) => a.b
     form = form.replace(/@\w*/g, '');
     // 内挂 object
-    if (!!inline) {
+    if (inline) {
       // product.list.name = {lcName, lcEnName} => {product: list: {name: {lcName, lcEnName}}}
       // product.0.name = {lcName, lcEnName} => {product: [{name: {lcName, lcEnName}}]}
       parseFieldData(newData, form, data);
@@ -187,9 +187,17 @@ export function parseFieldData(obj: Record<string, any>, field: string, value: a
       obj[name in ks ? ks[name] : name] = nDef;
     }
   } else if (!Array.isArray(obj) || !Types.isEmpty(value)) {
-    obj[field in ks ? ks[field] : field] = isObservable(value) ? Object.assign({}, value) : value;
+    obj[field in ks ? ks[field] : field] = value;
   }
   return obj;
+}
+
+/**
+ * 转换 Proxy 对象为普通对象
+ * @param {any} value
+ */
+export function normalObservable(value: any) {
+  return isObservable(value) ? (Array.isArray(value) ? Array.from(value) : Object.assign({}, value)) : value;
 }
 
 export function getValueFromEvent(valuePropName: string, event: any) {

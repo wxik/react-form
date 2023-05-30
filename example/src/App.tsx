@@ -4,10 +4,14 @@
  * @sine 2020-04-16 10:14
  */
 import '@ibot/ibot/lib/root/index.css';
+import '@ibot/ibot/lib/icon/index.css';
 import '@ibot/ibot/lib/input/index.css';
 import '@ibot/ibot/lib/select/index.css';
 import '@ibot/ibot/lib/radio/index.css';
+import '@ibot/ibot/lib/check/index.css';
 
+// @ts-ignore
+import {CheckGroup as ICheckGroup} from '@ibot/ibot/lib/check';
 // @ts-ignore
 import IBotInput from '@ibot/ibot/lib/input';
 // @ts-ignore
@@ -22,17 +26,21 @@ import React from 'react';
 
 interface IField {
   children: ReactElement;
+  fieldNames?: {
+    value?: string;
+  };
 }
 
 const Field = CCForm.Field<IField>()((props) => {
-  const {value, onChange, title, error, errors, disabled, required, children} = props;
-  console.log('value', value);
+  const {value, onChange, title, error, errors, disabled, required, children, form, fieldNames = {}} = props;
+  const {value: valueKey = 'value'} = fieldNames;
+  console.log('value', form, value);
   return (
     <div style={{display: 'flex', flexDirection: 'column', padding: '10px 0', width: 300}}>
       <span style={{paddingBottom: 4}}>
         {title} {required ? ' *' : ''}
       </span>
-      {React.cloneElement(children, {onChange, value, disabled, isInvalid: error})}
+      {React.cloneElement(children, {onChange, [valueKey]: value, disabled, isInvalid: error})}
       {errors && (
         <div style={{paddingTop: 4}}>
           {errors.map((it, ix) => (
@@ -217,8 +225,6 @@ class App extends React.Component<any> {
         style={{
           display: 'flex',
           width: '100%',
-          height: '100vh',
-          // alignItems: 'center',
           justifyContent: 'center',
           overflow: 'auto',
           padding: 20,
@@ -233,6 +239,21 @@ class App extends React.Component<any> {
                 ))}
               </div>
               <TextField form={'abcde'} title={'测试看看'} initialValue={'a'} />
+              <Field
+                form={'check_group'}
+                title={'多选'}
+                inline={false}
+                normalize={(value) => value.valueList}
+                fieldNames={{value: 'valueList'}}>
+                <ICheckGroup
+                  placeholder="请选择"
+                  optionList={[
+                    {label: 'Java', value: 'java'},
+                    {label: 'React', value: 'react'},
+                    {label: 'Vue', value: 'vue'},
+                  ]}
+                />
+              </Field>
               <Field
                 form={'select2'}
                 title={'对象'}

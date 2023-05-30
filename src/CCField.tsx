@@ -35,14 +35,30 @@ export interface ICCField {
   title?: string | ((form?: string) => string); // field title
   label?: string; //
   unique?: string; //唯一标识, 默认 = id
-  inline?: boolean; // 是否内联对象(默认: true), false => {a: 1, b: {b1: 1}} => {a: 1, b1: 1}
-  ignore?: boolean; // 是否忽略此字段
-  autoListName?: boolean; // 自动拼接集合传递的 formName
-  field?: string | ((data: any, formData: CCFormData) => any); // 提交取值处理数据
+  /**
+   * 是否内联对象 false => {a: 1, b: {b1: 1}} => {a: 1, b1: 1}
+   * @default true
+   */
+  inline?: boolean;
+  /**
+   *  是否忽略此字段
+   */
+  ignore?: boolean;
+  /**
+   * 自动拼接集合传递的 formName
+   */
+  autoListName?: boolean;
+  /**
+   * 提交取值处理数据
+   */
+  field?: string | ((data: any, formData: CCFormData) => any);
   value?: any;
 
   onChange?: (value: any) => void;
-  preserveNode?: boolean; // 是否保护子节点在隐藏是不销毁, 并接受 visible 值
+  /**
+   * 是否保护子节点在隐藏是不销毁, 并接受 visible 值
+   */
+  preserveNode?: boolean;
   visible?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
@@ -53,12 +69,28 @@ export interface ICCField {
   initialValue?: any;
   defaultValue?: any;
   forwardRef?: Ref<any>;
-  normalize?: (value: any, data: {val: any; data: CCFormData; args: any[]}) => any; // 触发 onChange 时进行值转换后存入 Form
-  valuePropName?: string; // value 进入子组件后的别名
-  forValue?: (value: any, formData: CCFormData) => any; // 转换 value 给组件
+  /**
+   * 触发 onChange 时进行值转换后存入 Form
+   * @param {any} value
+   * @param {{val: any, data: CCFormData: args: any[]}} data
+   */
+  normalize?: (value: any, data: {val: any; data: CCFormData; args: any[]}) => any;
+  /**
+   * value 进入子组件后的别名
+   */
+  valuePropName?: string;
+  /**
+   *  转换 value 给组件
+   * @param {any} value
+   * @param {CCFormData} formData
+   */
+  forValue?: (value: any, formData: CCFormData) => any;
   listener?: ICCFieldListener;
   refreshMark?: any; // 刷新标志
-  omitContext?: boolean; // 取消注入 Context 给下级
+  /**
+   * 取消注入 Context 给下级
+   */
+  omitContext?: boolean;
   parentField: ICCFieldContext; // 上级字段节点数据
 }
 
