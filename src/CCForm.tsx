@@ -1,3 +1,4 @@
+/* eslint-disable react/no-direct-mutation-state */
 /**
  * @author Quia
  * @sine 2020-04-11 16:03
@@ -147,9 +148,9 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     const {emitter, form} = props;
     that.state = {data: Observer.observable({}), originData: {}};
     that.handleChange = that.handleChange.bind(that);
-    that.onFormChange = that.onFormChange.bind(that);
-    that.onDeleteField = that.onDeleteField.bind(that);
-    that.onFieldChange = that.onFieldChange.bind(that);
+    that.formChange = that.formChange.bind(that);
+    that.deleteField = that.deleteField.bind(that);
+    that.fieldChange = that.fieldChange.bind(that);
     that.fieldAutoRun = that.fieldAutoRun.bind(that);
     that.setField = that.setField.bind(that);
     that.getField = that.getField.bind(that);
@@ -250,25 +251,25 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
    * @param {*} value filed change value
    * @param {{raw: boolean}} options
    */
-  onFieldChange(name: CCFormName, value: any, options: {raw?: boolean} = {}) {
+  fieldChange(name: CCFormName, value: any, options: {raw?: boolean} = {}) {
     let that = this;
     const {raw = false} = options;
     if (Types.isBlank(name) || that.state.data[name] === value) return;
     raw ? that._setFieldRawValue(name, value) : that._setFieldValue(name, value);
 
-    that.onFormChange(name);
+    that.formChange(name);
   }
 
-  onDeleteField(name: string, options: {isChange?: boolean} = {}) {
+  deleteField(name: string, options: {isChange?: boolean} = {}) {
     const {isChange = true} = options;
-    if (name) {
-      delete this.state.data[name];
+    if (!Types.isEmpty(name)) {
+      delete Observer.raw(this.state.data)[name];
       delete this.state.originData[name];
-      isChange && this.onFormChange(name);
+      isChange && this.formChange(name);
     }
   }
 
-  onFormChange(name?: CCFormName) {
+  formChange(name?: CCFormName) {
     let that = this;
     clearTimeout(that.timeoutChange);
     let ps = !Types.isBlank(name) && that.getField(name)?.props;

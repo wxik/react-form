@@ -26,8 +26,9 @@ interface ICCListState {
 }
 
 export interface CCListInstance {
-  addItem: (value?: any) => void;
-  removeItem: (index: number) => void;
+  add: (value?: any, insertIndex?: number) => void;
+  remove: (index: number | number[]) => void;
+  move: (from: number, to: number) => void;
   setData: (data: any[]) => void;
   getData: () => void;
   getSize: () => number;
@@ -42,6 +43,7 @@ export interface CCListOperation {
   formData: CCFormData;
   remove: () => void;
   add: (item?: any) => void;
+  move: (from: number, to: number) => void;
 }
 
 export const CCFormListContext = React.createContext<CCListOperation | null>(null);
@@ -130,41 +132,78 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
     return this.state.data;
   }
 
-  addItem(item?: any) {
+  addItem(item?: any, insertIndex?: number) {
     let that = this;
+    let uuid = that.genID();
     let {data, keys} = that.state;
     keys = Array.from(keys);
-    keys.push(that.genID());
-    data.push(item);
+    if (!Types.isEmpty(insertIndex) && insertIndex < data.length) {
+      keys.splice(insertIndex, 0, uuid);
+      data.splice(insertIndex, 0, item);
+      that.removeListData(insertIndex, 1);
+    } else {
+      keys.push(uuid);
+      data.push(item);
+    }
     that.setState({keys, data});
-    that.context?.formInstance.onFormChange();
+    that.context?.formInstance.formChange();
   }
 
-  removeItem(index: number) {
+  /**
+   * 删除行数据项, 会过滤无效的 index
+   * @param {number|number[]} index 行数据下标或者行数据集合
+   */
+  removeItem(index: number | number[]) {
     let that = this;
-    that.deleteIndex.push(index);
-    that.removeListEndData();
     let {data, keys} = that.state;
+    let size = keys.length;
+    let nowIndex = (Array.isArray(index) ? index : [index]).filter((it) => it < size);
+    if (nowIndex.length) {
+      that.deleteIndex.push(...nowIndex);
+      that.removeListData(size - nowIndex.length, nowIndex.length);
 
-    keys = Array.from(keys);
-    keys.splice(index, 1);
-    data.splice(index, 1);
-    that.setState({keys, data});
+      keys = Array.from(keys);
+      nowIndex.forEach((removeIndex, ix) => {
+        keys.splice(removeIndex - ix, 1);
+        data.splice(removeIndex - ix, 1);
+      });
+      that.setState({keys, data});
+    }
   }
 
-  private removeListEndData() {
+  moveItem(from: number, to: number) {
+    let that = this;
+    let {data, keys} = that.state;
+    if (from !== to && from >= 0 && from < keys.length && to >= 0 && to < keys.length) {
+      keys = Array.from(keys);
+      let fromKey = keys[from];
+      let fromData = data[from];
+
+      keys.splice(from, 1);
+      keys.splice(to, 0, fromKey);
+      data.splice(from, 1);
+      data.splice(to, 0, fromData);
+
+      that.setState({keys, data});
+      that.context?.formInstance.formChange();
+    }
+  }
+
+  private removeListData(start: number, deleteCount: number = 0) {
     const formName = this.getFormName(this.props);
-    const {keys} = this.state;
-    const key = keys.length - 1;
-    const pad = formName ? `${formName}.${key}` : String(key);
-
     const {data, formInstance} = this.context!;
-
-    Object.keys(data).forEach((fi) => {
-      if (fi.indexOf(pad) === 0) {
-        formInstance.onDeleteField(fi);
-      }
-    });
+    const count = start + deleteCount;
+    const pads = [];
+    for (let key = start; key < count; key++) {
+      pads.push(formName ? `${formName}.${key}` : String(key));
+    }
+    for (let fi in data) {
+      pads.forEach((pad) => {
+        if (fi.indexOf(pad) === 0) {
+          formInstance.deleteField(fi);
+        }
+      });
+    }
   }
 
   /**
@@ -185,12 +224,12 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
         let nfi = Number(fi);
         let ois = fi.substr(0, fi.indexOf('.'));
         if (String(nfi) === fi && nfi < size) {
-          formInstance.onDeleteField(fi, {isChange: false});
+          formInstance.deleteField(fi, {isChange: false});
         } else if (/^[0-9]+$/.test(ois) && Number(ois) >= size) {
-          formInstance.onDeleteField(fi, {isChange: false});
+          formInstance.deleteField(fi, {isChange: false});
         }
       } else if (fi.indexOf(String(formName)) === 0 && inForms.findIndex((da) => fi.indexOf(da) !== -1) === -1) {
-        formInstance.onDeleteField(fi, {isChange: false});
+        formInstance.deleteField(fi, {isChange: false});
       }
     });
   }
@@ -237,6 +276,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
             formData: context.data,
             remove: that.removeItem.bind(that, index),
             add: that.addItem.bind(that),
+            move: that.moveItem.bind(that),
           };
           return (
             <CCFormListContext.Provider value={pro} key={key}>

@@ -20,7 +20,7 @@ import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
 import ISelect from '@ibot/ibot/lib/select';
 import {Types} from '@wxik/core';
 import type {CCFormData, ICCField} from '@wxik/react-form';
-import {CCField, CCForm} from '@wxik/react-form';
+import {CCField, CCForm, CCOutlet} from '@wxik/react-form';
 import type {ReactElement} from 'react';
 import React from 'react';
 
@@ -34,17 +34,17 @@ interface IField {
 const Field = CCForm.Field<IField>()((props) => {
   const {value, onChange, title, error, errors, disabled, required, children, form, fieldNames = {}} = props;
   const {value: valueKey = 'value'} = fieldNames;
-  console.log('value', form, value);
+  // console.log('value', form, value);
   return (
-    <div style={{display: 'flex', flexDirection: 'column', padding: '10px 0', width: 300}}>
-      <span style={{paddingBottom: 4}}>
+    <div className={'flex flex-col py-2.5 w-52'}>
+      <span className={'pb-1'}>
         {title} {required ? ' *' : ''}
       </span>
       {React.cloneElement(children, {onChange, [valueKey]: value, disabled, isInvalid: error})}
       {errors && (
-        <div style={{paddingTop: 4}}>
+        <div className={'pt-1'}>
           {errors.map((it, ix) => (
-            <div key={ix} style={{paddingTop: 4, color: 'red'}}>
+            <div key={ix} className={'pt-1 text-red-500'}>
               {it}
             </div>
           ))}
@@ -57,8 +57,8 @@ const Field = CCForm.Field<IField>()((props) => {
 const TextField = CCField()((props) => {
   const {value, onChange, title, error, errors, disabled, required} = props;
   return (
-    <div style={{display: 'flex', flexDirection: 'column', padding: '10px 0', width: 300}}>
-      <span style={{paddingBottom: 4}}>
+    <div className={'flex flex-col py-2.5 w-52'}>
+      <span className={'pb-1'}>
         {title} {required ? ' *' : ''}
       </span>
       <IBotInput
@@ -68,9 +68,9 @@ const TextField = CCField()((props) => {
         disabled={disabled}
       />
       {errors && (
-        <div style={{paddingTop: 4}}>
+        <div className={'pt-1'}>
           {errors.map((it, ix) => (
-            <div key={ix} style={{paddingTop: 4, color: 'red'}}>
+            <div key={ix} className={'pt-1 text-red-500'}>
               {it}
             </div>
           ))}
@@ -82,14 +82,13 @@ const TextField = CCField()((props) => {
 
 class App extends React.Component<any> {
   form = CCForm.createForm();
-  list = CCForm.createList();
   list2 = CCForm.createList();
+  list1 = CCForm.createList();
   config: Array<ICCField>;
   formList: Array<ICCField>;
 
   state = {
     initialValue: {
-      abcde: null,
       select: 'java',
       radio: 'on',
       sl: [{c: ['123', '32']}],
@@ -122,7 +121,7 @@ class App extends React.Component<any> {
         ],
       },
     ];
-    Array(1)
+    Array(2)
       .fill(1)
       .forEach((da, dx) => {
         this.config.push({
@@ -136,13 +135,13 @@ class App extends React.Component<any> {
       {
         form: `a`,
         title: 'a',
-        initialValue: 'a1',
+        initialValue: 'a',
         rules: true,
       },
       {
         form: `b`,
         title: 'Name 2 - ',
-        initialValue: '2',
+        initialValue: 'name - b',
         // union: ({form}) => [`${form}.a`, [`${form}.sex`, (value, {form, data}) => Number(value) * 2]],
         union: ({form}) => `${form}.a`,
         unionValue: (value, {val, data, form}) => (value == 2 ? val : value),
@@ -195,7 +194,6 @@ class App extends React.Component<any> {
     this.form.setOriginData({
       // name: 'Inject Name: ' + Math.random(),
       alias: 'Inject Alias ' + Math.random(),
-      abcde: '测试时间: ' + Math.random(),
       sb: ['76656', '654'],
       sl: [{c: ['123', '----324---'], d: ['2', '3']}],
       job: Array(2).fill({
@@ -210,187 +208,176 @@ class App extends React.Component<any> {
     });
   }
 
-  addList() {
-    this.list.addItem({});
+  addList2() {
+    this.list2.add({sex2: 'test', sex: Math.random()}, 0);
   }
 
-  addList2() {
-    this.list2.addItem({});
+  moveList2(from: number, to: number) {
+    this.list2.move(from, to);
+  }
+
+  addList1() {
+    this.list1.add({});
+  }
+
+  removeList1() {
+    this.list1.remove([1, 2]);
   }
 
   render() {
-    const {initialValue} = this.state;
+    let that = this;
+    const {initialValue} = that.state;
     return (
-      <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          justifyContent: 'center',
-          overflow: 'auto',
-          padding: 20,
-          flexDirection: 'column',
-        }}>
-        <div style={{flex: 1, display: 'flex'}}>
-          <div>
-            <CCForm form={this.form} initialValue={initialValue} disabled={false}>
-              <div style={styles.form}>
-                {this.config.map((config, index) => (
-                  <TextField key={config.form} {...config} />
-                ))}
-              </div>
-              <TextField form={'abcde'} title={'测试看看'} initialValue={'a'} />
-              <Field
-                form={'check_group'}
-                title={'多选'}
-                inline={false}
-                normalize={(value) => value.valueList}
-                fieldNames={{value: 'valueList'}}>
-                <ICheckGroup
-                  placeholder="请选择"
-                  optionList={[
-                    {label: 'Java', value: 'java'},
-                    {label: 'React', value: 'react'},
-                    {label: 'Vue', value: 'vue'},
-                  ]}
-                />
-              </Field>
-              <Field
-                form={'select2'}
-                title={'对象'}
-                forValue={(data) => data?.value}
-                normalize={(value) => ({value, key: value})}>
-                <ISelect
-                  placeholder="请选择"
-                  optionList={[
-                    {label: 'Java', value: 'java'},
-                    {label: 'React', value: 'react'},
-                    {label: 'Vue', value: 'vue'},
-                  ]}
-                />
-              </Field>
-              <div style={styles.form}>
-                <Field form={'radio'} title={'是否选择科目'} normalize={(data) => data?.value}>
-                  <IRadioGroup
-                    optionList={[
-                      {label: '隐藏', value: 'off'},
-                      {label: '开启', value: 'on'},
-                    ]}
-                  />
-                </Field>
-                <Field form={'select'} title={'科目'} visible={(formData) => formData.radio === 'on'}>
-                  <ISelect
-                    placeholder="请选择"
-                    optionList={[
-                      {label: 'Java', value: 'java'},
-                      {label: 'React', value: 'react'},
-                      {label: 'Vue', value: 'vue'},
-                    ]}
-                  />
-                </Field>
-                <Field
-                  form={'des'}
-                  title={'科目描述'}
-                  union={'select'}
-                  initialValue={''}
-                  unionValue={(value) => (value === 'react' ? '你好 React' : '')}
-                  visible={(formData) => formData.select !== 'vue' && formData.radio === 'on'}>
-                  <IBotInput />
-                </Field>
-              </div>
-              <div style={styles.sop}>
-                <button onClick={() => this.addList2()} style={styles.btn}>
-                  Add
-                </button>
-                <CCForm.List form={'sl'} initRows={1} formList={this.list2}>
-                  {({add, remove, key}) => (
-                    <div style={styles.sop} key={key}>
-                      <CCForm.List form="c" initRows={1}>
-                        {({add, remove, key, index}) => (
-                          <div style={styles.form} key={key} data-key={key}>
-                            <TextField title={'SL 吃吃 - ' + index} form={index} />
-                            <button style={{padding: 10}} onClick={() => add()}>
-                              ++++++
+      <div className={'flex w-full justify-center overflow-auto p-5 flex-col'}>
+        <CCForm form={that.form} initialValue={initialValue} disabled={false}>
+          <div style={styles.form}>
+            {that.config.map((config, index) => (
+              <TextField key={config.form} {...config} />
+            ))}
+          </div>
+          <div className={'flex gap-4'}>
+            <Field
+              form={'check_group'}
+              title={'多选'}
+              normalize={(value) => value.valueList}
+              fieldNames={{value: 'valueList'}}>
+              <ICheckGroup
+                placeholder="请选择"
+                optionList={[
+                  {label: 'Java', value: 'java'},
+                  {label: 'React', value: 'react'},
+                  {label: 'Vue', value: 'vue'},
+                ]}
+              />
+            </Field>
+            <Field
+              form={'select2'}
+              title={'对象'}
+              forValue={(data) => data?.value}
+              normalize={(value) => ({value, key: value})}>
+              <ISelect
+                placeholder="请选择"
+                optionList={[
+                  {label: 'Java', value: 'java'},
+                  {label: 'React', value: 'react'},
+                  {label: 'Vue', value: 'vue'},
+                ]}
+              />
+            </Field>
+          </div>
+          <div style={styles.form}>
+            <Field form={'radio'} title={'是否选择科目'} normalize={(data) => data?.value}>
+              <IRadioGroup
+                optionList={[
+                  {label: '隐藏', value: 'off'},
+                  {label: '开启', value: 'on'},
+                ]}
+              />
+            </Field>
+            <Field form={'select'} title={'科目'} visible={(formData) => formData.radio === 'on'}>
+              <ISelect
+                placeholder="请选择"
+                optionList={[
+                  {label: 'Java', value: 'java'},
+                  {label: 'React', value: 'react'},
+                  {label: 'Vue', value: 'vue'},
+                ]}
+              />
+            </Field>
+            <Field
+              form={'des'}
+              title={'科目描述'}
+              union={'select'}
+              initialValue={''}
+              unionValue={(value) => (value === 'react' ? '你好 React' : '')}
+              visible={(formData) => formData.select !== 'vue' && formData.radio === 'on'}>
+              <IBotInput />
+            </Field>
+          </div>
+          <div style={styles.sop}>
+            <div className={'flex gap-2.5'}>
+              <button onClick={() => that.addList1()} style={styles.btn}>
+                添加一行
+              </button>
+              <button onClick={() => that.removeList1()} style={styles.btn}>
+                删除 2, 3 行
+              </button>
+            </div>
+            <CCForm.List form={'sl'} initRows={1} formList={that.list1}>
+              {({add, remove, key}) => (
+                <div key={key} className={'flex gap-3 items-center'}>
+                  <div className={'border-dotted border border-sky-500 my-2.5 p-2.5 rounded'}>
+                    <CCForm.List form="c" initRows={1}>
+                      {({add, remove, key, index}) => (
+                        <div style={styles.form} key={key}>
+                          <TextField title={'SL 吃吃 - ' + index} initialValue={String(index)} />
+                          <div className={'mt-[30px] gap-3 flex'}>
+                            <button style={styles.btn2} onClick={() => add()}>
+                              +
                             </button>
-                            <button style={{padding: 10}} onClick={remove}>
-                              ------
+                            <button style={styles.btn2} onClick={remove}>
+                              -
                             </button>
                           </div>
-                        )}
-                      </CCForm.List>
-                      <button style={{padding: 10}} onClick={() => add()}>
-                        ++++++
-                      </button>
-                      <button style={{padding: 10}} onClick={remove}>
-                        ------
-                      </button>
-                    </div>
-                  )}
-                </CCForm.List>
-              </div>
-              <div style={styles.sop}>
-                <button onClick={() => this.addList()} style={styles.btn}>
-                  Add
-                </button>
-                <CCForm.List form={'job'} formList={this.list} initRows={1}>
-                  {({add, remove, index}) => (
-                    <div style={styles.form}>
-                      {this.formList.map((config) => (
-                        <TextField key={config.form} {...config} />
-                      ))}
-                      <CCForm.OutletView forProps={(props) => ({disabled: props.disabled})}>
-                        <button style={{padding: 10}} onClick={() => add()}>
-                          ++++{index}
-                        </button>
-                      </CCForm.OutletView>
-                      <CCForm.OutletView forProps={(props) => ({disabled: props.disabled})}>
-                        <button style={{padding: 10}} onClick={remove}>
-                          ----
-                        </button>
-                      </CCForm.OutletView>
-                    </div>
-                  )}
-                </CCForm.List>
-              </div>
-              <div style={styles.button}>
-                <button style={{padding: 10}} onClick={() => this.count()}>
-                  Submit
-                </button>
-                <CCForm.OutletView forProps={(props) => ({disabled: props.disabled})}>
-                  <button style={{padding: 10}} onClick={() => this.inject()}>
-                    Inject
+                        </div>
+                      )}
+                    </CCForm.List>
+                  </div>
+                  <button style={styles.btn2} onClick={() => add()}>
+                    +
                   </button>
-                </CCForm.OutletView>
-              </div>
-            </CCForm>
+                  <button style={styles.btn2} onClick={remove}>
+                    -
+                  </button>
+                </div>
+              )}
+            </CCForm.List>
           </div>
-        </div>
-        <hr style={{width: '100%'}} />
-        <HooksForm />
+          <div style={styles.sop}>
+            <button onClick={() => that.addList2()} style={styles.btn}>
+              最前面插入一行
+            </button>
+            <CCForm.List form={'job'} formList={that.list2} initRows={1}>
+              {({add, remove, index}) => (
+                <div style={styles.form}>
+                  <div className={'mt-[30px] gap-3 flex'}>
+                    <button style={styles.btn2} onClick={() => that.moveList2(index, index - 1)}>
+                      ↑
+                    </button>
+                    <button style={styles.btn2} onClick={() => that.moveList2(index, index + 1)}>
+                      ↓
+                    </button>
+                  </div>
+                  {that.formList.map((config) => (
+                    <TextField key={config.form} {...config} />
+                  ))}
+                  <div className={'mt-[30px] gap-3 flex'}>
+                    <button style={styles.btn2} onClick={() => add({sex: Math.random()})}>
+                      +
+                    </button>
+                    <button style={styles.btn2} onClick={remove}>
+                      -
+                    </button>
+                  </div>
+                </div>
+              )}
+            </CCForm.List>
+          </div>
+          <div className={'gap-2.5 flex p-5'}>
+            <button onClick={() => that.count()} style={styles.btn}>
+              Submit
+            </button>
+            <CCOutlet.View forProps={(props) => ({disabled: props.disabled})}>
+              <button style={styles.btn} onClick={() => that.inject()}>
+                Inject
+              </button>
+            </CCOutlet.View>
+          </div>
+        </CCForm>
       </div>
     );
   }
 }
-
-const HooksForm = () => {
-  const [form] = CCForm.useForm();
-
-  const handleSubmit = () => {
-    console.log('Hooks Form:', form.subData());
-  };
-
-  return (
-    <CCForm form={form}>
-      <div>
-        <Field form={'des2'} title={'Hooks'} defaultValue={'hooks'}>
-          <IBotInput />
-        </Field>
-        <button style={{padding: 10}} onClick={handleSubmit}>
-          Submit
-        </button>
-      </div>
-    </CCForm>
-  );
-};
 
 const styles: Record<string, any> = {
   form: {
@@ -402,20 +389,30 @@ const styles: Record<string, any> = {
   },
 
   button: {
+    height: 40,
     flexDirection: 'row',
     justifyContent: 'center',
     textAlign: 'center',
-    padding: 20,
+    margin: 20,
   },
 
   btn: {
     width: '100%',
     padding: '8px 24px',
-    border: '1px solid gray',
+    border: '1px solid #d9d9d9',
+    borderRadius: 2,
+  },
+
+  btn2: {
+    height: 34,
+    width: 34,
+    border: '1px solid #d9d9d9',
+    borderRadius: 99,
   },
 
   sop: {
-    border: '1px solid red',
+    border: '1px solid rgb(253 224 71)',
+    borderRadius: 2,
     padding: '10px',
     margin: '16px 0',
   },

@@ -27,13 +27,6 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 
 ### CCForm
 
-- `function subData({merge?: boolean}): CCFormData` 获取表单可提交数据
-- `function validate(): boolean` 验证表单
-- `function setOriginData(data: CCFormData | any[])` 初始化表单数据, 不触发`onChange`
-- `function setFieldData(data: CCFormData | any[])` 初始化表单数据, 触发`onChange`
-- `function addData(data: CCFormData)` 添加字段数据(字段可不存在)并触发`onChange`
-- `function setData(data: CCFormData | any[], options: {isChange?: boolean; isGet?: boolean})` 设置表单数据, 默认不触发`onChange`不调用`getValue`
-
 | key          | explain  | type                   | default |
 |:-------------|----------|:-----------------------|:--------|
 | data         | 表单采用共享数据 | CCFormData             | -       |
@@ -79,12 +72,6 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 
 ### CCList
 
-- `function addItem(value?: any)` add new row
-- `function removeItem(index: number)` remove row
-- `function setData(data: any[])` set new data
-- `function getData()` get data
-- `function getSize()` data length
-
 | key          | explain | type   | default |
 |:-------------|:--------|:-------|:--------|
 | form         | 字段名     | string | -       |
@@ -99,6 +86,26 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 | key      | explain | type         | default |
 |:---------|:--------|:-------------|:--------|
 | children | 子节点     | ReactElement | -       |
+
+
+### CCForm.useForm()、CCForm.createForm()
+
+- `function subData({merge?: boolean}): CCFormData` 获取表单可提交数据
+- `function validate(): boolean` 验证表单
+- `function setOriginData(data: CCFormData | any[])` 初始化表单数据, 不触发`onChange`
+- `function setFieldData(data: CCFormData | any[])` 初始化表单数据, 触发`onChange`
+- `function addData(data: CCFormData)` 添加字段数据(字段可不存在)并触发`onChange`
+- `function setData(data: CCFormData | any[], options: {isChange?: boolean; isGet?: boolean})` 设置表单数据, 默认不触发`onChange`不调用`getValue`
+
+
+### CCForm.useList()、 CCForm.createList()
+
+- `function add(value?: any, insertIndex?: number)` add new row
+- `function remove(index: number | number[])` remove row
+- `function move(from: number, to: number)` move row
+- `function setData(data: any[])` set new data
+- `function getData()` get data
+- `function getSize()` data length
 
 
 ## Example

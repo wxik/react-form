@@ -413,7 +413,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
           data: originData,
         });
         if (that.isObserveUnion && formInstance?.changeState !== CCFormStateStatusEnum.SET) {
-          name in data && that.handleChange(value);
+          !that.unmount && name in data && that.handleChange(value);
         } else {
           // 递归监听一下上级.上级.等等
           unionAll.forEach((pun) => data[pun]);
@@ -708,7 +708,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     const {value, required} = that.state;
     const formName = that.getFormName(that.props);
     if (value !== prevState.value) {
-      context.formInstance.onFieldChange(formName, value, {raw: !that.changeForm});
+      context.formInstance.fieldChange(formName, value, {raw: !that.changeForm});
       that.changeFlag && that.props.onChange?.(value);
     }
 
@@ -721,7 +721,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     }
 
     if (formName !== that.getFormName(prevProps)) {
-      context.formInstance.onFieldChange(formName, value, {raw: true});
+      context.formInstance.fieldChange(formName, value, {raw: true});
     }
 
     that.changeFlag = false;

@@ -37,11 +37,14 @@ export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
 
 const listHelder = (ref: RefObject<CCListWrapper>): CCListInstance => {
   return {
-    addItem: (value?: any) => {
-      return ref.current?.addItem(value);
+    add: (value?: any, insertIndex?: number) => {
+      return ref.current?.addItem(value, insertIndex);
     },
-    removeItem: (index: number) => {
+    remove: (index: number | number[]) => {
       return ref.current?.removeItem(index);
+    },
+    move: (from: number, to: number) => {
+      return ref.current?.moveItem(from, to);
     },
     setData: (data: any[]) => {
       return ref.current?.setData(data);
