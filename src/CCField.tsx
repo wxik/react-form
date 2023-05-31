@@ -721,6 +721,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     }
 
     if (formName !== that.getFormName(prevProps)) {
+      that.observeData();
       context.formInstance.fieldChange(formName, value, {raw: true});
     }
 

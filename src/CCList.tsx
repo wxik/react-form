@@ -253,7 +253,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
 
   componentDidUpdate(prevProps: Readonly<ICCList>, prevState: Readonly<ICCListState>, snapshot?: any) {
     if (prevState.keys.length !== this.state.keys.length) {
-      this.context?.formInstance.observeField();
+      // this.context?.formInstance.observeField(); // 改为 Field 自己处理
     }
   }
 
