@@ -569,7 +569,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   }
 
   set visible(visible: boolean) {
-    visible !== this.state.visible && this.setState({visible});
+    const that = this;
+    if (visible !== that.state.visible) {
+      if (!visible) that.setState({error: false, errors: void 0});
+      that.setState({visible});
+    }
   }
 
   validateErrors(): {error: boolean; errors?: string[]} {
