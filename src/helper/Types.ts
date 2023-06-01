@@ -52,6 +52,15 @@ export function isObject(type: any): type is Record<any, any> {
 }
 
 /**
+ * Check the type whether is array or not
+ * @param {*} type
+ * @returns {boolean}
+ */
+export function isArray(type: any): type is any[] {
+  return Array.isArray(type);
+}
+
+/**
  * Check the obj whether is undefined or not
  * @param {*} type
  * @returns {boolean}
@@ -102,5 +111,5 @@ export function isEmptyObject(value: object): boolean {
  * @returns {boolean}
  */
 export function isEmptyArray(value: Array<any> | null): value is null | [] {
-  return isEmpty(value) || !Array.isArray(value) || !value.length;
+  return isEmpty(value) || !isArray(value) || !value.length;
 }

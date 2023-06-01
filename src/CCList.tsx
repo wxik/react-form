@@ -3,7 +3,9 @@
  * @author Quia
  * @sine 2020-04-20 11:27
  */
-import React from 'react';
+
+import type {ContextType, ReactNode} from 'react';
+import {Component, createContext, forwardRef} from 'react';
 
 import type {CCFormData, CCFormName, ICCFormContext} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
@@ -15,7 +17,7 @@ export interface ICCList {
   initRows?: number;
   initialValue?: Array<any>;
   eachConfig?: CCListOperation;
-  children: (props: CCListOperation) => React.ReactNode;
+  children: (props: CCListOperation) => ReactNode;
 }
 
 export interface IListItem extends Omit<ICCList, 'eachConfig'> {}
@@ -46,10 +48,10 @@ export interface CCListOperation {
   move: (from: number, to: number) => void;
 }
 
-export const CCFormListContext = React.createContext<CCListOperation | null>(null);
+export const CCFormListContext = createContext<CCListOperation | null>(null);
 
-export class CCListWrapper extends React.Component<ICCList, ICCListState> {
-  declare context: React.ContextType<typeof CCForm.Context>;
+export class CCListWrapper extends Component<ICCList, ICCListState> {
+  declare context: ContextType<typeof CCForm.Context>;
   static contextType = CCForm.Context;
 
   static defaultProps = {
@@ -74,30 +76,30 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   }
 
   initState() {
-    let that = this,
+    const that = this,
       props = that.props,
       context = that.context as ICCFormContext;
     that._initID();
     let {initRows, initialValue} = props;
 
-    const formName = this.getFormName(props);
+    const formName = that.getFormName(props);
 
     if (context && context.initialValue) {
       if (!Types.isBlank(formName)) {
         initialValue = Tools.get(context.initialValue, formName, initialValue);
-      } else if (Array.isArray(context.initialValue)) {
+      } else if (Types.isArray(context.initialValue)) {
         initialValue = context.initialValue;
       }
     }
 
     let data = Array(initRows);
     const values = initialValue as any[];
-    if (Array.isArray(initialValue) && values.length) {
+    if (Types.isArray(initialValue) && values.length) {
       initRows = values.length;
       data = values;
     }
 
-    const keys = Array(initRows).fill(1).map(this.genID);
+    const keys = Array(initRows).fill(1).map(that.genID);
     return {keys, data};
   }
 
@@ -115,17 +117,18 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   }
 
   setData(data: any[]) {
-    const {initRows} = this.props;
-    if (Types.isEmpty(data) || !Array.isArray(data)) {
+    const that = this;
+    const {initRows} = that.props;
+    if (Types.isEmpty(data) || !Types.isArray(data)) {
       data = [];
     } else if (data.length === 0) {
       data = Array(initRows);
     }
     // 如果初始化 id 会导致之前的数据不刷新
     // this._initID();
-    this.removeOutData(data.length);
-    const keys = Array.from(data).fill(1).map(this.genID);
-    this.setState({keys, data});
+    that.removeOutData(data.length);
+    const keys = Array.from(data).fill(1).map(that.genID);
+    that.setState({keys, data});
   }
 
   getData() {
@@ -133,7 +136,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   }
 
   addItem(item?: any, insertIndex?: number) {
-    let that = this;
+    const that = this;
     let uuid = that.genID();
     let {data, keys} = that.state;
     keys = Array.from(keys);
@@ -154,10 +157,10 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
    * @param {number|number[]} index 行数据下标或者行数据集合
    */
   removeItem(index: number | number[]) {
-    let that = this;
+    const that = this;
     let {data, keys} = that.state;
     let size = keys.length;
-    let nowIndex = (Array.isArray(index) ? index : [index]).filter((it) => it < size);
+    let nowIndex = (Types.isArray(index) ? index : [index]).filter((it) => it < size);
     if (nowIndex.length) {
       that.deleteIndex.push(...nowIndex);
       that.removeListData(size - nowIndex.length, nowIndex.length);
@@ -172,7 +175,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   }
 
   moveItem(from: number, to: number) {
-    let that = this;
+    const that = this;
     let {data, keys} = that.state;
     if (from !== to && from >= 0 && from < keys.length && to >= 0 && to < keys.length) {
       keys = Array.from(keys);
@@ -190,8 +193,9 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   }
 
   private removeListData(start: number, deleteCount: number = 0) {
-    const formName = this.getFormName(this.props);
-    const {data, formInstance} = this.context!;
+    const that = this;
+    const formName = that.getFormName(that.props);
+    const {data, formInstance} = that.context!;
     const count = start + deleteCount;
     const pads = [];
     for (let key = start; key < count; key++) {
@@ -211,8 +215,9 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
    * @param {Number} size 存在行数量
    */
   removeOutData(size: number) {
-    const formName = this.getFormName(this.props);
-    const {data, formInstance} = this.context!;
+    const that = this;
+    const formName = that.getFormName(that.props);
+    const {data, formInstance} = that.context!;
     const inForms = formName
       ? Array(size)
           .fill(1)
@@ -252,20 +257,21 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   }
 
   componentDidUpdate(prevProps: Readonly<ICCList>, prevState: Readonly<ICCListState>, snapshot?: any) {
-    if (prevState.keys.length !== this.state.keys.length) {
-      // this.context?.formInstance.observeField(); // 改为 Field 自己处理
-    }
+    // 改为 Field 自己处理
+    /* if (prevState.keys.length !== this.state.keys.length) {
+      this.context?.formInstance.observeField();
+    }*/
   }
 
   render() {
     const that = this;
-    const context = this.context as ICCFormContext;
-    const formName = this.getFormName(this.props);
+    const context = that.context as ICCFormContext;
+    const formName = that.getFormName(that.props);
     const {children} = that.props;
     const {keys, data} = that.state;
 
     if (!children) return null;
-    return Array.isArray(keys)
+    return Types.isArray(keys)
       ? keys.map((key, index) => {
           const pro: CCListOperation = {
             form: Types.isBlank(formName) ? String(index) : `${formName}.${index}`,
@@ -288,7 +294,7 @@ export class CCListWrapper extends React.Component<ICCList, ICCListState> {
   }
 }
 
-export const CCList = React.forwardRef<CCListWrapper, IListItem>((props, ref) => (
+export const CCList = forwardRef<CCListWrapper, IListItem>((props, ref) => (
   <CCFormListContext.Consumer>
     {(eachData) => {
       let {form, initialValue, children} = props;

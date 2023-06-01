@@ -3,8 +3,8 @@
  * @author Quia
  * @sine 2020-04-11 16:03
  */
-import type {FC, ReactNode} from 'react';
-import React from 'react';
+import type {ComponentType, FC, ForwardRefExoticComponent, PropsWithoutRef, ReactNode, RefAttributes} from 'react';
+import {Component, createContext} from 'react';
 
 import type {CCFieldWrapper, ICCField, IFieldItem} from './CCField';
 import type {ICCFieldOmit} from './CCField';
@@ -96,9 +96,9 @@ function isField(field: CCFieldWrapper | CCListWrapper): field is CCFieldWrapper
   return field.fieldType === CCFieldEnum.Field;
 }
 
-const CCFormContext = React.createContext<ICCFormContext | null>(null);
+const CCFormContext = createContext<ICCFormContext | null>(null);
 
-export class CCForm extends React.Component<ICCForm, ICCFormState> {
+export class CCForm extends Component<ICCForm, ICCFormState> {
   static Context = CCFormContext;
 
   static useForm: () => [CCFormInstance] = FormHelper.useForm;
@@ -106,17 +106,17 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   static createForm: () => CCFormInstance = FormHelper.createForm;
   static createList: () => CCListInstance = FormHelper.createList;
 
-  static List: React.ForwardRefExoticComponent<React.PropsWithoutRef<IListItem> & React.RefAttributes<CCListWrapper>>;
+  static List: ForwardRefExoticComponent<PropsWithoutRef<IListItem> & RefAttributes<CCListWrapper>>;
 
   static Field: <T = {}>(options?: {
     defaultValue?: any;
   }) => (
-    Target: React.ComponentType<T & IFieldItem>,
-  ) => React.ForwardRefExoticComponent<React.PropsWithoutRef<T & ICCFieldOmit> & React.RefAttributes<CCFieldWrapper>>;
+    Target: ComponentType<T & IFieldItem>,
+  ) => ForwardRefExoticComponent<PropsWithoutRef<T & ICCFieldOmit> & RefAttributes<CCFieldWrapper>>;
 
   static Outlet: <T = {}, P = any>() => (
-    Target: React.ComponentType<T & ICCOutlet>,
-  ) => React.ForwardRefExoticComponent<React.PropsWithoutRef<T> & React.RefAttributes<P>>;
+    Target: ComponentType<T & ICCOutlet>,
+  ) => ForwardRefExoticComponent<PropsWithoutRef<T> & RefAttributes<P>>;
 
   static OutletView: FC<IOutlet>;
 
@@ -144,7 +144,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
 
   constructor(props: ICCForm) {
     super(props);
-    let that = this;
+    const that = this;
     const {emitter, form} = props;
     that.state = {data: Observer.observable({}), originData: {}};
     that.handleChange = that.handleChange.bind(that);
@@ -164,39 +164,39 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
     if (form && form.__REF__) form.__REF__.current = that;
   }
 
-  componentDidMount() {}
-
   componentWillUnmount() {
     this.unObserveField();
   }
 
   shouldComponentUpdate(nextProps: ICCForm, nextState: ICCFormState) {
+    const that = this;
     return (
-      nextState.data !== this.state.data ||
-      nextProps.children !== this.props.children ||
-      nextProps.disabled !== this.props.disabled
+      nextState.data !== that.state.data ||
+      nextProps.children !== that.props.children ||
+      nextProps.disabled !== that.props.disabled
     );
   }
 
   getSnapshotBeforeUpdate(prevProps: ICCForm, prevState: ICCFormState) {
-    if (prevState.data !== this.state.data) {
-      this.unObserveField();
-      this.revertField();
-      this.revertListField();
+    const that = this;
+    if (prevState.data !== that.state.data) {
+      that.unObserveField();
+      that.revertField();
+      that.revertListField();
     }
     return null;
   }
 
   componentDidUpdate(prevProps: ICCForm, prevState: ICCFormState) {
-    this.changeState = CCFormStateStatusEnum.DEFAULT;
-    if (prevState.data !== this.state.data) {
-      this.observeField();
+    const that = this;
+    that.changeState = CCFormStateStatusEnum.DEFAULT;
+    if (prevState.data !== that.state.data) {
+      that.observeField();
     }
   }
 
   revertListField() {
-    let that = this;
-    for (const fl of that.listFields) {
+    for (const fl of this.listFields) {
       const state = fl.initState();
       fl.removeOutData(state.data.length);
       fl.setState(state);
@@ -204,7 +204,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   }
 
   revertField() {
-    let that = this;
+    const that = this;
     for (const field of that.fields) {
       const state = field.initState();
       const form = field.getFormName();
@@ -239,7 +239,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
    * @param {Array<ICCField>} [fields]
    */
   handleChange(fields: Array<ICCField>) {
-    let that = this;
+    const that = this;
     // setTimeout(() => that.props.onChange?.(that.state.originData));
     that.props.onChange?.(that.state.originData, fields);
     that.changeState = CCFormStateStatusEnum.DEFAULT;
@@ -252,7 +252,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
    * @param {{raw: boolean}} options
    */
   fieldChange(name: CCFormName, value: any, options: {raw?: boolean} = {}) {
-    let that = this;
+    const that = this;
     const {raw = false} = options;
     if (Types.isBlank(name) || that.state.data[name] === value) return;
     raw ? that._setFieldRawValue(name, value) : that._setFieldValue(name, value);
@@ -261,16 +261,17 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
   }
 
   deleteField(name: string, options: {isChange?: boolean} = {}) {
+    const that = this;
     const {isChange = true} = options;
     if (!Types.isEmpty(name)) {
-      delete Observer.raw(this.state.data)[name];
-      delete this.state.originData[name];
-      isChange && this.formChange(name);
+      delete Observer.raw(that.state.data)[name];
+      delete that.state.originData[name];
+      isChange && that.formChange(name);
     }
   }
 
   formChange(name?: CCFormName) {
-    let that = this;
+    const that = this;
     clearTimeout(that.timeoutChange);
     let ps = !Types.isBlank(name) && that.getField(name)?.props;
     that.tempFields = that.tempFields || [];
@@ -300,17 +301,18 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
    * @param {CCFieldWrapper | CCListWrapper} field
    */
   setField(field: CCFieldWrapper | CCListWrapper) {
+    const that = this;
     const {form} = field.config;
 
     if (isField(field)) {
-      this.fields.add(field);
-      this._setFieldRawValue(form, field.value);
-      this.updateFields.add(field);
+      that.fields.add(field);
+      that._setFieldRawValue(form, field.value);
+      that.updateFields.add(field);
 
-      clearTimeout(this.autoRunTime);
-      this.autoRunTime = setTimeout(this.fieldAutoRun);
+      clearTimeout(that.autoRunTime);
+      that.autoRunTime = setTimeout(that.fieldAutoRun);
     } else {
-      this.listFields.add(field);
+      that.listFields.add(field);
     }
   }
 
@@ -333,12 +335,13 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
    * @param field
    */
   unmountField(field: CCFieldWrapper | CCListWrapper) {
+    const that = this;
     if (isField(field)) {
       field.unObserveData();
-      this.fields.delete(field);
-      this.removeFields.add(field);
+      that.fields.delete(field);
+      that.removeFields.add(field);
     } else {
-      this.listFields.delete(field);
+      that.listFields.delete(field);
     }
   }
 
@@ -347,17 +350,18 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
    * @param {CCFormData | any[]} data
    */
   setOriginData(data: CCFormData | any[]) {
-    this.originData = data;
-    for (const f of this.listFields) {
+    const that = this;
+    that.originData = data;
+    for (const f of that.listFields) {
       const {form} = f.config;
       if (!Types.isBlank(form)) {
         const value = Tools.get(data, String(form));
         value && f.setData(value);
-      } else if (Array.isArray(data)) {
+      } else if (Types.isArray(data)) {
         f.setData(data);
       }
     }
-    this.setData(data, {isGet: true, isChange: false});
+    that.setData(data, {isGet: true, isChange: false});
   }
 
   /**
@@ -386,7 +390,7 @@ export class CCForm extends React.Component<ICCForm, ICCFormState> {
         if (count <= 0) that.changeState = CCFormStateStatusEnum.DEFAULT;
       });
     };
-    for (const f of this.fields) {
+    for (const f of that.fields) {
       let {form, getValue, alias} = f.config;
       if (form) {
         let sym = Symbol();

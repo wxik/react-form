@@ -36,7 +36,7 @@ function getAKeysToObjc(key: string, obj: Record<string, any>) {
 export function getItemValue(item: Record<string, any>, key: string, defaultValue?: any) {
   if (Types.isEmpty(item) || Types.isBlank(key)) return defaultValue;
 
-  if (Types.isObject(item) || Array.isArray(item)) {
+  if (Types.isObject(item) || Types.isArray(item)) {
     let value = item,
       ks: Record<string, any> = {};
     if (key in item) {
@@ -68,7 +68,7 @@ export function getItemValue(item: Record<string, any>, key: string, defaultValu
 export function get(item: Record<string, any>, key: string | number, defaultValue?: any) {
   if (Types.isEmpty(item) || Types.isBlank(key)) return defaultValue;
 
-  if (Types.isObject(item) || Array.isArray(item)) {
+  if (Types.isObject(item) || Types.isArray(item)) {
     let value = item,
       ks: Record<string, any> = {};
     if (key in item) {
@@ -77,7 +77,7 @@ export function get(item: Record<string, any>, key: string | number, defaultValu
       let bit = getAKeysToObjc(String(key), ks).split('.');
       for (let i = 0, j = bit.length; i < j; i++) {
         let vk = bit[i];
-        if (Types.isObject(value) || Array.isArray(value)) {
+        if (Types.isObject(value) || Types.isArray(value)) {
           let ck = bit.slice(i).join('.');
           if (ck in value) {
             value = ck in ks ? value[ks[ck]] : value[ck];
@@ -113,9 +113,9 @@ export function extractData(
 
     if (Types.isFunction(field)) {
       // field 如果是方法
-      data = Array.isArray(data) ? data.map((da, index) => field(da, $data, index)) : field(data, $data);
+      data = Types.isArray(data) ? data.map((da, index) => field(da, $data, index)) : field(data, $data);
     } else if (!Types.isBlank(field)) {
-      data = Array.isArray(data) ? data.map((da) => getItemValue(da, field)) : getItemValue(data, field);
+      data = Types.isArray(data) ? data.map((da) => getItemValue(da, field)) : getItemValue(data, field);
     }
 
     // 处理重复字段名称: (a.b@1, a.b@2) => a.b
@@ -136,7 +136,7 @@ export function extractData(
         let origin = getItemValue(newData, start_field);
         data = Types.isObject(data) ? data : {[end_field]: data};
 
-        if (Array.isArray(origin)) {
+        if (Types.isArray(origin)) {
           data = origin.push(data);
         } else if (Types.isObject(origin)) {
           data = Object.assign(origin, data);
@@ -186,7 +186,7 @@ export function parseFieldData(obj: Record<string, any>, field: string, value: a
     if (def !== obj[name]) {
       obj[name in ks ? ks[name] : name] = nDef;
     }
-  } else if (!Array.isArray(obj) || !Types.isEmpty(value)) {
+  } else if (!Types.isArray(obj) || !Types.isEmpty(value)) {
     obj[field in ks ? ks[field] : field] = value;
   }
   return obj;
@@ -197,7 +197,7 @@ export function parseFieldData(obj: Record<string, any>, field: string, value: a
  * @param {any} value
  */
 export function normalObservable(value: any) {
-  return isObservable(value) ? (Array.isArray(value) ? Array.from(value) : Object.assign({}, value)) : value;
+  return isObservable(value) ? (Types.isArray(value) ? Array.from(value) : Object.assign({}, value)) : value;
 }
 
 export function getValueFromEvent(valuePropName: string, event: any) {

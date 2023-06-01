@@ -5,8 +5,8 @@
  * @author Quia
  * @since 2020-05-21 11:47
  */
-import type {ReactElement} from 'react';
-import React from 'react';
+import type {ComponentType, ReactElement} from 'react';
+import {cloneElement, forwardRef} from 'react';
 
 import type {ICCFormContext} from './CCForm';
 import {CCForm} from './CCForm';
@@ -23,8 +23,8 @@ export interface IOutlet {
 }
 
 export function CCOutlet<T = {}, P = any>() {
-  return function (Target: React.ComponentType<T & ICCOutlet>) {
-    return React.forwardRef<P, T>((props, ref) => (
+  return function (Target: ComponentType<T & ICCOutlet>) {
+    return forwardRef<P, T>((props, ref) => (
       <CCFormListContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>
@@ -38,5 +38,5 @@ export function CCOutlet<T = {}, P = any>() {
 
 CCOutlet.View = CCOutlet<IOutlet>()((props) => {
   const {children, forProps, ...rest} = props;
-  return React.cloneElement(children, forProps ? forProps(rest) : rest);
+  return cloneElement(children, forProps ? forProps(rest) : rest);
 });

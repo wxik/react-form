@@ -3,8 +3,8 @@
  * @author Quia
  * @sine 2020-04-11 11:43
  */
-import type {Ref} from 'react';
-import React from 'react';
+import type {ComponentType, ContextType, Ref} from 'react';
+import {Component, createContext, forwardRef} from 'react';
 
 import type {CCFormData, CCFormInstance, CCFormName, ICCFormContext} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
@@ -148,9 +148,9 @@ const DEFAULT_CONTEXT_VALUE = {
   visible: true,
 };
 
-export const CCFieldContext = React.createContext<ICCFieldContext>(DEFAULT_CONTEXT_VALUE as ICCFieldContext);
-export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
-  declare context: React.ContextType<typeof CCForm.Context>;
+export const CCFieldContext = createContext<ICCFieldContext>(DEFAULT_CONTEXT_VALUE as ICCFieldContext);
+export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
+  declare context: ContextType<typeof CCForm.Context>;
   static contextType = CCForm.Context;
 
   static defaultProps = {
@@ -187,9 +187,9 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   private providerValue: ICCFieldContext | {} = {};
   public fieldType = CCFieldEnum.Field;
 
-  constructor(props: ICCField, context: React.ContextType<typeof CCForm.Context>) {
+  constructor(props: ICCField, context: ContextType<typeof CCForm.Context>) {
     super(props, context);
-    let that = this;
+    const that = this;
     that.listenerValueChange = that.listenerValueChange.bind(that);
     that.onChange = that.onChange.bind(that);
     that.observeVisible = that.observeVisible.bind(that);
@@ -207,9 +207,9 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     const that = this,
       props = that.props,
       context = that.context as ICCFormContext;
-    const {initialValue, getValue, defaultValue, visible, disabled} = props;
+    let {initialValue, getValue, defaultValue, visible, disabled} = props;
 
-    const formName = that.getFormName(props);
+    let formName = that.getFormName(props);
     let formData: CCFormData = {},
       value = Types.isUndefined(initialValue) ? defaultValue : initialValue;
 
@@ -223,14 +223,16 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
         value = context.data[formName];
       }
     }
-    let {options, data} = this.getObserveOptions();
+    let {options, data} = that.getObserveOptions();
+    let {required, message: requiredMsg} = that.findRequired(data, options);
     let state = {
       value: Types.isFunction(getValue) ? that.execGetValue(formName, value, formData) : value,
       initialValue: value,
-      visible: !Types.isEmpty(visible) ? !!this.isCallbackKey(visible, data, options) : true,
-      disabled: !Types.isEmpty(disabled) ? !!this.isCallbackKey(disabled, data, options) : false,
+      visible: !Types.isEmpty(visible) ? !!that.isCallbackKey(visible, data, options) : true,
+      disabled: !Types.isEmpty(disabled) ? !!that.isCallbackKey(disabled, data, options) : false,
       error: false,
-      required: props.rules === true,
+      required,
+      requiredMsg,
       _refreshMark: {},
     };
 
@@ -263,10 +265,34 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     let {alias, eachConfig} = props || this.props;
     if (Types.isBlank(alias)) return [];
 
-    alias = (Array.isArray(alias) ? alias : [alias]) as string[];
+    alias = (Types.isArray(alias) ? alias : [alias]) as string[];
     return alias.map((formName) =>
       eachConfig ? (formName ? `${eachConfig.form}.${formName}` : eachConfig.form) : formName,
     );
+  }
+
+  /**
+   * 查找必填信息
+   * @param {CCFormData} data
+   * @param {CCFieldObserveOptions['options']} options
+   * @private
+   * @return {require: boolean, message?: string}
+   */
+  private findRequired(data: CCFormData, options: CCFieldObserveOptions['options']) {
+    const that = this;
+    let {rules} = that.props;
+    if (!Types.isEmpty(rules)) {
+      if (Types.isArray(rules)) {
+        const required = rules.find(
+          (da) => Types.isObject(da) && !!that.isCallbackKey((da as CCRequiredType).required, data, options),
+        ) as CCRequiredType;
+
+        return {required: !!required?.required, message: required?.message};
+      } else {
+        return {required: that.isCallbackKey(rules, data, options) === true};
+      }
+    }
+    return {required: rules === true};
   }
 
   execGetValue(formName: CCFormName, value: any, data: CCFormData) {
@@ -288,7 +314,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   }
 
   observeData() {
-    let that = this;
+    const that = this;
     that.unObserveData();
     that.observeReactions.push(
       Observer.autoRun(that.observeVisible),
@@ -305,11 +331,11 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
 
   getObserveOptions(): CCFieldObserveOptions {
     const that = this;
-    const {eachConfig} = that.props;
-    const context = that.context as ICCFormContext;
-    const data = context.data;
-    const originData = context.originData;
-    const options = {};
+    let {eachConfig} = that.props;
+    let context = that.context as ICCFormContext;
+    let data = context.data;
+    let originData = context.originData;
+    let options = {};
 
     if (eachConfig) {
       Object.assign(options, eachConfig);
@@ -322,7 +348,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
    * @private
    */
   private observeDisabled() {
-    let that = this;
+    const that = this;
     if (that.unmount) return;
     let {disabled} = that.props;
     let {options, data} = that.getObserveOptions();
@@ -338,7 +364,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
    * @private
    */
   private observeVisible() {
-    let that = this;
+    const that = this;
     if (that.unmount) return;
     let {visible} = that.props;
     let {options, data} = that.getObserveOptions();
@@ -354,24 +380,14 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
    * @private
    */
   private observeRules() {
-    let that = this;
+    const that = this;
     if (that.unmount) return;
-    let {rules} = that.props;
     let {options, data} = that.getObserveOptions();
     options.val = that.value;
 
-    if (!Types.isEmpty(rules)) {
-      if (Array.isArray(rules)) {
-        const required = rules.find(
-          (da) => Types.isObject(da) && !!that.isCallbackKey((da as CCRequiredType).required, data, options),
-        ) as CCRequiredType;
-
-        that.required = !!required?.required;
-        that.requiredMsg = required?.message || '';
-      } else {
-        that.required = that.isCallbackKey(rules, data, options) === true;
-      }
-    }
+    let {required, message} = that.findRequired(data, options);
+    that.required = required;
+    that.requiredMsg = message;
   }
 
   /**
@@ -394,7 +410,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     let findUnion = function (name: string, ks: string[] = []) {
       let pUnions = formInstance.getField(name)?.getUnionList() || [];
       pUnions.forEach((un: string | string[]) => {
-        let fd = Array.isArray(un) ? un[0] : un;
+        let fd = Types.isArray(un) ? un[0] : un;
         if (ks.indexOf(fd) === -1) {
           ks.push(fd);
           findUnion(fd, ks);
@@ -404,7 +420,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     };
 
     union.forEach((un: string | [string, Function]) => {
-      let [name, func] = Array.isArray(un) ? un : [un, unionValue];
+      let [name, func] = Types.isArray(un) ? un : [un, unionValue];
       let unionAll = findUnion(name, [name]);
       let reaction = Observer.autoRun(() => {
         let value = that.isCallbackKey(func, data[name], {
@@ -425,7 +441,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   }
 
   getUnionList() {
-    let that = this;
+    const that = this;
     let {union} = that.props;
     if (Types.isBlank(union)) return null;
 
@@ -433,7 +449,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     union = Types.isFunction(union) ? union(options) : union;
 
     if (Types.isBlank(union)) return null;
-    union = Array.isArray(union) ? union : union.split(',');
+    union = Types.isArray(union) ? union : union.split(',');
     return union;
   }
 
@@ -447,8 +463,9 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   }
 
   get title(): string {
-    let {options, data} = this.getObserveOptions();
-    return this.isCallbackKey(this.props.title, data, options);
+    const that = this;
+    let {options, data} = that.getObserveOptions();
+    return that.isCallbackKey(that.props.title, data, options);
   }
 
   get config() {
@@ -470,17 +487,18 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   }
 
   onChange(value: any, ...args: any[]) {
-    const {normalize, valuePropName = 'value'} = this.props;
-    const context = this.context as ICCFormContext;
+    const that = this;
+    const {normalize, valuePropName = 'value'} = that.props;
+    const context = that.context as ICCFormContext;
     value = Tools.getValueFromEvent(valuePropName, value);
-    this.handleChange(normalize ? normalize(value, {val: this.state.value, data: context.data, args}) : value);
+    that.handleChange(normalize ? normalize(value, {val: that.state.value, data: context.data, args}) : value);
   }
 
   handleChange(value: any, callback?: () => void) {
     const that = this;
     if (that.unmount || value === that.state.value) return;
 
-    const context = this.context as ICCFormContext;
+    const context = that.context as ICCFormContext;
     const {listener: {key, setValue} = {}} = that.props;
 
     that.changeFlag = true;
@@ -500,16 +518,18 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   }
 
   handleValue(value: any, callback?: () => void) {
-    const {value: prevValue} = this.state;
-    if (!this.unmount && !this.equalsValue(value, prevValue)) {
-      this.setState({value}, callback);
+    const that = this;
+    const {value: prevValue} = that.state;
+    if (!that.unmount && !that.equalsValue(value, prevValue)) {
+      that.setState({value}, callback);
     } else {
       callback && callback();
     }
   }
 
   equalsValue(value: any, preValue: any): boolean {
-    const {label, unique = DEFAULT_UNIQUE} = this.props;
+    const that = this;
+    const {label, unique = DEFAULT_UNIQUE} = that.props;
     if (value === preValue) return true;
 
     const isEqualObject = (obj: {[key: string]: any}, prevObj: {[key: string]: any}) => {
@@ -522,15 +542,15 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
         v1 = obj[label];
         v2 = prevObj[label];
       }
-      return this.equalsValue(v1, v2);
+      return that.equalsValue(v1, v2);
     };
     if (Types.isObject(value) || Types.isObject(preValue)) {
       return isEqualObject(value, preValue);
-    } else if (Array.isArray(value) || Array.isArray(preValue)) {
+    } else if (Types.isArray(value) || Types.isArray(preValue)) {
       if (Types.isEmptyArray(value) || Types.isEmptyArray(preValue)) return false;
       if (value.length !== preValue.length) return false;
 
-      return value.every((da: any, di: number) => this.equalsValue(da, preValue[di]));
+      return value.every((da: any, di: number) => that.equalsValue(da, preValue[di]));
     } else {
       return String(value) === String(preValue);
     }
@@ -544,7 +564,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     required !== this.state.required && this.setState({required});
   }
 
-  public set requiredMsg(requiredMessage: string) {
+  public set requiredMsg(requiredMessage: string | undefined) {
     requiredMessage !== this.state.requiredMsg && this.setState({requiredMsg: requiredMessage});
   }
 
@@ -570,7 +590,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     if (currentError !== error) {
       that.setState({error: currentError});
     }
-    if (!this.equalsValue(errors, errorMessages)) {
+    if (!that.equalsValue(errors, errorMessages)) {
       that.setState({errors: errorMessages, _refreshMark: {}});
     }
     return {error: currentError, errors: errorMessages};
@@ -586,7 +606,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     const {ignore, rules, eachConfig} = that.props;
     const {required, requiredMsg, value, visible} = that.state;
 
-    if (ignore || !visible) return true;
+    if ((ignore && !required) || !visible) return true;
 
     const isEmpty = that.validateEmpty(value);
     if (required && isEmpty) return !Types.isBlank(requiredMsg) ? [requiredMsg] : false;
@@ -611,7 +631,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
       return true;
     };
 
-    if (Array.isArray(rules)) {
+    if (Types.isArray(rules)) {
       const messages: string[] = [];
       let error = true;
       rules.forEach((rule) => {
@@ -646,7 +666,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
       return Types.isBlank(value);
     } else if (Types.isObject(value)) {
       return isEmptyObject(value);
-    } else if (Array.isArray(value)) {
+    } else if (Types.isArray(value)) {
       return Types.isEmptyArray(value) || (Types.isObject(value[0]) && isEmptyObject(value[0]));
     } else {
       return Types.isEmpty(value);
@@ -678,7 +698,7 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
   }
 
   shouldComponentUpdate(nextProps: ICCField, nextState: CCFieldState) {
-    let that = this,
+    const that = this,
       props = that.props,
       state = that.state;
     return (
@@ -757,7 +777,6 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
     const element = (
       <Target
         {...rest}
-        parentField={parentField}
         title={that.title}
         data={context.data}
         value={nowValue}
@@ -782,8 +801,8 @@ export class CCFieldWrapper extends React.Component<ICCField, CCFieldState> {
  */
 export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
   const {defaultValue} = options;
-  return function (Target: React.ComponentType<T & IFieldItem>) {
-    return React.forwardRef<CCFieldWrapper, T & ICCFieldOmit>((props, ref) => (
+  return function (Target: ComponentType<T & IFieldItem>) {
+    return forwardRef<CCFieldWrapper, T & ICCFieldOmit>((props, ref) => (
       <CCFormListContext.Consumer>
         {(eachData) => {
           const listData = eachData as CCListOperation;
