@@ -3,8 +3,8 @@
  * @author Quia
  * @sine 2020-04-11 11:43
  */
-import type {ComponentType, ContextType, Ref} from 'react';
-import {Component, createContext, forwardRef} from 'react';
+import type {ComponentType, ContextType, ReactElement, ReactNode, Ref} from 'react';
+import {Component, createContext} from 'react';
 
 import type {CCFormData, CCFormInstance, CCFormName, ICCFormContext} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
@@ -32,7 +32,7 @@ type CCFieldOptions = CCFieldObserveOptions['options'] & {
 export interface ICCField {
   form?: CCFormName; // field name
   alias?: string | Array<string>; // alias field name
-  title?: string | ((form?: string) => string); // field title
+  title?: ReactNode | ((form?: string) => ReactNode); // field title
   label?: string; //
   unique?: string; //唯一标识, 默认 = id
   /**
@@ -98,7 +98,7 @@ export interface ICCField {
  * 给最后的组件 props 使用
  */
 export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName' | 'forValue'> {
-  title?: string;
+  title?: ReactNode;
   value: any;
   data: CCFormData;
   error: boolean; // 是否验证错误
@@ -338,7 +338,9 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     let options = {};
 
     if (eachConfig) {
-      Object.assign(options, eachConfig);
+      options = eachConfig;
+      // 下列方式在大列表中性能极差
+      // Object.assign(options, eachConfig);
     }
     return {options, data, originData};
   }
@@ -462,13 +464,13 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     }
   }
 
-  get title(): string {
+  getTitle(): ReactElement {
     const that = this;
     let {options, data} = that.getObserveOptions();
     return that.isCallbackKey(that.props.title, data, options);
   }
 
-  get config() {
+  getConfig() {
     const that = this;
     const {inline, field, ignore, getValue, parentField} = that.props;
     const {disabled, visible} = that.state;
@@ -476,7 +478,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       inline,
       form: that.getFormName(that.props),
       alias: that.getFormAlias(that.props),
-      title: that.title,
+      title: that.getTitle(),
       field,
       visible,
       parentVisible: parentField.visible,
@@ -719,10 +721,18 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   }
 
   getSnapshotBeforeUpdate(prevProps: ICCField, prevState: CCFieldState) {
+    const that = this;
+    const context = this.context as ICCFormContext;
+    const formName = that.getFormName(that.props);
+    const prevFormName = that.getFormName(prevProps);
     if (prevProps.form !== this.props.form) {
-      const context = this.context as ICCFormContext;
       context.formInstance.unmountField(this);
     }
+
+    if (formName !== prevFormName && !Types.isBlank(formName)) {
+      context.formInstance.renameField(formName, that);
+    }
+
     return null;
   }
 
@@ -781,7 +791,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const element = (
       <Target
         {...rest}
-        title={that.title}
+        title={that.getTitle()}
         data={context.data}
         value={nowValue}
         required={required}
@@ -795,7 +805,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       />
     );
 
-    return omitContext ? element : <CCFieldContext.Provider value={providerValue}>{element}</CCFieldContext.Provider>;
+    return omitContext ? element : <CCFieldContext.Provider value={providerValue} children={element} />;
   }
 }
 
@@ -806,7 +816,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
   const {defaultValue} = options;
   return function (Target: ComponentType<T & IFieldItem>) {
-    return forwardRef<CCFieldWrapper, T & ICCFieldOmit>((props, ref) => (
+    return (props: T & ICCFieldOmit) => (
       <CCFormListContext.Consumer>
         {(eachData) => {
           const listData = eachData as CCListOperation;
@@ -820,7 +830,6 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
                 ? initialValue
                 : item
               : item;
-            // console.log('--->', form, initialValue, item, initialValue);
           }
 
           return (
@@ -832,7 +841,6 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
                   parentField={parentField}
                   initialValue={initialValue}
                   eachConfig={listData}
-                  ref={ref}
                   __Component__={Target}
                 />
               )}
@@ -840,6 +848,6 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
           );
         }}
       </CCFormListContext.Consumer>
-    ));
+    );
   };
 }

@@ -106,19 +106,15 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   static createForm: () => CCFormInstance = FormHelper.createForm;
   static createList: () => CCListInstance = FormHelper.createList;
 
-  static List: ForwardRefExoticComponent<PropsWithoutRef<IListItem> & RefAttributes<CCListWrapper>>;
-
-  static Field: <T = {}>(options?: {
-    defaultValue?: any;
-  }) => (
-    Target: ComponentType<T & IFieldItem>,
-  ) => ForwardRefExoticComponent<PropsWithoutRef<T & ICCFieldOmit> & RefAttributes<CCFieldWrapper>>;
-
   static Outlet: <T = {}, P = any>() => (
     Target: ComponentType<T & ICCOutlet>,
   ) => ForwardRefExoticComponent<PropsWithoutRef<T> & RefAttributes<P>>;
 
   static OutletView: FC<IOutlet>;
+  static List: FC<IListItem>;
+  static Field: <T = {}>(options?: {
+    defaultValue?: any;
+  }) => (Target: ComponentType<T & IFieldItem>) => (props: T & ICCFieldOmit) => JSX.Element;
 
   static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {
     const {data, initialValue} = nextProps;
@@ -134,6 +130,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   private originData: CCFormData | undefined;
   changeState = CCFormStateStatusEnum.DEFAULT;
   private fields = new Set<CCFieldWrapper>();
+  private fieldsMap = new Map<string | number, CCFieldWrapper>();
   private removeFields = new Set<CCFieldWrapper>();
   private updateFields = new Set<CCFieldWrapper>();
   private listFields = new Set<CCListWrapper>();
@@ -147,15 +144,6 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const that = this;
     const {emitter, form} = props;
     that.state = {data: Observer.observable({}), originData: {}};
-    that.handleChange = that.handleChange.bind(that);
-    that.formChange = that.formChange.bind(that);
-    that.deleteField = that.deleteField.bind(that);
-    that.fieldChange = that.fieldChange.bind(that);
-    that.fieldAutoRun = that.fieldAutoRun.bind(that);
-    that.setField = that.setField.bind(that);
-    that.getField = that.getField.bind(that);
-    that.unmountField = that.unmountField.bind(that);
-
     that.providerValue = {
       formInstance: that,
       emitter,
@@ -289,7 +277,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     }
   }
 
-  private _setFieldRawValue(name: string | number | undefined, value: CCFormData) {
+  private _setFieldRawValue(name: CCFormName, value: CCFormData) {
     if (!Types.isBlank(name)) {
       Observer.raw(this.state.data)[name] = value;
       this.state.originData[name] = value;
@@ -302,18 +290,22 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
    */
   setField(field: CCFieldWrapper | CCListWrapper) {
     const that = this;
-    const {form} = field.config;
-
     if (isField(field)) {
+      let form = field.getFormName();
+      if (!Types.isBlank(form)) that.fieldsMap.set(form, field);
       that.fields.add(field);
       that._setFieldRawValue(form, field.value);
       that.updateFields.add(field);
 
       clearTimeout(that.autoRunTime);
-      that.autoRunTime = setTimeout(that.fieldAutoRun);
+      that.autoRunTime = setTimeout(() => that.fieldAutoRun());
     } else {
       that.listFields.add(field);
     }
+  }
+
+  renameField(form: string | number, field: CCFieldWrapper) {
+    this.fieldsMap.set(form, field);
   }
 
   /**
@@ -321,13 +313,8 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
    * @param {string} name
    * @returns {*}
    */
-  getField(name: CCFormName): CCFieldWrapper | null {
-    if (Types.isBlank(name)) return null;
-    for (const f of this.fields) {
-      const {form} = f.config;
-      if (form === name) return f;
-    }
-    return null;
+  getField(name: CCFormName) {
+    return Types.isBlank(name) ? null : this.fieldsMap.get(name);
   }
 
   /**
@@ -337,9 +324,11 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   unmountField(field: CCFieldWrapper | CCListWrapper) {
     const that = this;
     if (isField(field)) {
+      let formName = field.getFormName();
       field.unObserveData();
       that.fields.delete(field);
       that.removeFields.add(field);
+      !Types.isBlank(formName) && that.fieldsMap.delete(formName);
     } else {
       that.listFields.delete(field);
     }
@@ -353,7 +342,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const that = this;
     that.originData = data;
     for (const f of that.listFields) {
-      const {form} = f.config;
+      const {form} = f.getConfig();
       if (!Types.isBlank(form)) {
         const value = Tools.get(data, String(form));
         value && f.setData(value);
@@ -391,7 +380,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       });
     };
     for (const f of that.fields) {
-      let {form, getValue, alias} = f.config;
+      let {form, getValue, alias} = f.getConfig();
       if (form) {
         let sym = Symbol();
         // let prevValue = f.value;
@@ -445,7 +434,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   validateErrors() {
     let errors = new Map();
     for (let f of this.fields) {
-      let field = f.config;
+      let field = f.getConfig();
       if (field.form && field.visible && field.parentVisible) {
         const {error, errors: messages} = f.validateErrors();
         if (error) {
@@ -471,13 +460,13 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       ignoreKeys = [];
     const {data, initialValue} = that.state;
     for (const f of that.removeFields) {
-      const field = f.config;
+      const field = f.getConfig();
       if (field.form) {
         ignoreKeys.push(field.form);
       }
     }
     for (const f of that.fields) {
-      const field = f.config;
+      const field = f.getConfig();
       if (field.form) {
         ignoreKeys.push(field.form);
         !field.ignore && field.parentVisible && field.visible && config.push(field);
@@ -496,7 +485,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const originData = that.originData ?? initialValue;
     if (merge && originData) {
       for (const f of that.listFields) {
-        const {form} = f.config;
+        const {form} = f.getConfig();
         const listData = f.getData();
         let deleteIndex = f.deleteIndex;
         const subListData = Tools.get(subData, String(form!));

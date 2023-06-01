@@ -6,8 +6,9 @@
     "dev": "vite --host 0.0.0.0"
   },
   "dependencies": {
-    "@ibot/ibot": "0.7.0-dev.16",
+    "@ibot/ibot": "0.7.0-dev.15",
     "@wxik/core": "^0.5.5",
+    "rc-select": "^14.5.1",
     "lodash": "^4.*",
     "react": "18.2.0",
     "react-dom": "18.2.0"

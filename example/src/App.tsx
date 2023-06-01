@@ -6,9 +6,9 @@
 import '@ibot/ibot/lib/root/index.css';
 import '@ibot/ibot/lib/icon/index.css';
 import '@ibot/ibot/lib/input/index.css';
-import '@ibot/ibot/lib/select/index.css';
 import '@ibot/ibot/lib/radio/index.css';
 import '@ibot/ibot/lib/check/index.css';
+import './assets/rc-select.pcss';
 
 // @ts-ignore
 import {CheckGroup as ICheckGroup} from '@ibot/ibot/lib/check';
@@ -16,11 +16,10 @@ import {CheckGroup as ICheckGroup} from '@ibot/ibot/lib/check';
 import IBotInput from '@ibot/ibot/lib/input';
 // @ts-ignore
 import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
-// @ts-ignore
-import ISelect from '@ibot/ibot/lib/select';
 import {Types} from '@wxik/core';
 import type {CCFormData, ICCField} from '@wxik/react-form';
 import {CCField, CCForm, CCOutlet} from '@wxik/react-form';
+import Select from 'rc-select';
 import type {ReactElement} from 'react';
 import React from 'react';
 
@@ -29,18 +28,25 @@ interface IField {
   fieldNames?: {
     value?: string;
   };
+  antd?: boolean;
 }
 
 const Field = CCForm.Field<IField>()((props) => {
-  const {value, onChange, title, error, errors, disabled, required, children, form, fieldNames = {}} = props;
+  const {value, onChange, title, error, errors, disabled, required, children, fieldNames = {}, antd = false} = props;
   const {value: valueKey = 'value'} = fieldNames;
   // console.log('value', form, value);
+  const childProps = {onChange, [valueKey]: value, disabled};
+  if (antd) {
+    childProps.error = error ? 'error' : void 0;
+  } else {
+    childProps.isInvalid = error;
+  }
   return (
     <div className={'flex flex-col py-2.5 w-52'}>
       <span className={'pb-1'}>
         {title} {required ? ' *' : ''}
       </span>
-      {React.cloneElement(children, {onChange, [valueKey]: value, disabled, isInvalid: error})}
+      {React.cloneElement(children, childProps)}
       {errors && (
         <div className={'pt-1'}>
           {errors.map((it, ix) => (
@@ -87,12 +93,14 @@ class App extends React.Component<any> {
   config: Array<ICCField>;
   formList: Array<ICCField>;
 
+  private uuid = 0;
+
   state = {
     initialValue: {
       select: 'java',
       radio: 'on',
       sl: [{c: ['123', '32']}],
-      job: Array(1)
+      job: Array(4)
         .fill({
           bcdef: Math.random(),
           id: 123,
@@ -179,6 +187,11 @@ class App extends React.Component<any> {
         visible: (data, {form}) => data[`${form}.a`] != 2,
       },
     ];
+    console.time('App');
+  }
+
+  componentDidMount() {
+    console.timeEnd('App');
   }
 
   count() {
@@ -196,7 +209,7 @@ class App extends React.Component<any> {
       alias: 'Inject Alias ' + Math.random(),
       sb: ['76656', '654'],
       sl: [{c: ['123', '----324---'], d: ['2', '3']}],
-      job: Array(2).fill({
+      job: Array(1).fill({
         bcdef: Math.random(),
         id: 123,
         name: 'c',
@@ -206,6 +219,10 @@ class App extends React.Component<any> {
         // }
       }),
     });
+  }
+
+  genUUID() {
+    return ++this.uuid;
   }
 
   addList2() {
@@ -253,14 +270,16 @@ class App extends React.Component<any> {
             <Field
               form={'select2'}
               title={'对象'}
+              unique={'value'}
+              antd
               forValue={(data) => data?.value}
               normalize={(value) => ({value, key: value})}>
-              <ISelect
+              <Select
                 placeholder="请选择"
-                optionList={[
-                  {label: 'Java', value: 'java'},
-                  {label: 'React', value: 'react'},
-                  {label: 'Vue', value: 'vue'},
+                options={[
+                  {label: '驱逐舰', value: '1'},
+                  {label: '大和舰', value: '2'},
+                  {label: '凯利拉克', value: '3'},
                 ]}
               />
             </Field>
@@ -274,10 +293,10 @@ class App extends React.Component<any> {
                 ]}
               />
             </Field>
-            <Field form={'select'} title={'科目'} visible={(formData) => formData.radio === 'on'}>
-              <ISelect
+            <Field form={'select'} title={'科目'} antd visible={(formData) => formData.radio === 'on'}>
+              <Select
                 placeholder="请选择"
-                optionList={[
+                options={[
                   {label: 'Java', value: 'java'},
                   {label: 'React', value: 'react'},
                   {label: 'Vue', value: 'vue'},
@@ -352,7 +371,7 @@ class App extends React.Component<any> {
                     <TextField key={config.form} {...config} />
                   ))}
                   <div className={'mt-[30px] gap-3 flex'}>
-                    <button style={styles.btn2} onClick={() => add({sex: Math.random()})}>
+                    <button style={styles.btn2} onClick={() => add({a: that.genUUID(), sex: '', b: ''}, index + 1)}>
                       +
                     </button>
                     <button style={styles.btn2} onClick={remove}>

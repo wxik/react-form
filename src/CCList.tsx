@@ -4,8 +4,8 @@
  * @sine 2020-04-20 11:27
  */
 
-import type {ContextType, ReactNode} from 'react';
-import {Component, createContext, forwardRef} from 'react';
+import type {ContextType, FC, ReactNode} from 'react';
+import {Component, createContext} from 'react';
 
 import type {CCFormData, CCFormName, ICCFormContext} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
@@ -44,7 +44,7 @@ export interface CCListOperation {
   data: any[];
   formData: CCFormData;
   remove: () => void;
-  add: (item?: any) => void;
+  add: (item?: any, insertIndex?: number) => void;
   move: (from: number, to: number) => void;
 }
 
@@ -239,9 +239,8 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
     });
   }
 
-  get config() {
-    const formName = this.getFormName(this.props);
-    return {form: formName};
+  getConfig() {
+    return {form: this.getFormName(this.props)};
   }
 
   componentDidMount() {
@@ -284,17 +283,13 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
             add: that.addItem.bind(that),
             move: that.moveItem.bind(that),
           };
-          return (
-            <CCFormListContext.Provider value={pro} key={key}>
-              {children(pro)}
-            </CCFormListContext.Provider>
-          );
+          return <CCFormListContext.Provider value={pro} key={key} children={children(pro)} />;
         })
       : null;
   }
 }
 
-export const CCList = forwardRef<CCListWrapper, IListItem>((props, ref) => (
+export const CCList: FC<IListItem> = (props) => (
   <CCFormListContext.Consumer>
     {(eachData) => {
       let {form, initialValue, children} = props;
@@ -303,9 +298,7 @@ export const CCList = forwardRef<CCListWrapper, IListItem>((props, ref) => (
         const item = listData.data[listData.index];
         initialValue = form ? (Types.isObject(item) && form in item ? item[form] : initialValue) : item;
       }
-      return (
-        <CCListWrapper {...props} ref={ref} initialValue={initialValue} eachConfig={listData} children={children} />
-      );
+      return <CCListWrapper {...props} initialValue={initialValue} eachConfig={listData} children={children} />;
     }}
   </CCFormListContext.Consumer>
-));
+);
