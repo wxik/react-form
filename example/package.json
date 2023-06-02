@@ -8,18 +8,17 @@
   "dependencies": {
     "@ibot/ibot": "0.7.0-dev.15",
     "@wxik/core": "^0.5.5",
-    "rc-select": "^14.5.1",
-    "lodash": "^4.*",
+    "classnames": "^2.3.2",
+    "rc-select": "^12.1.13",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.7",
+    "@types/react": "^18.2.8",
     "@types/react-dom": "^18.2.4",
     "@vitejs/plugin-react": "^4.0.0",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.24",
-    "prop-types": "^15.*",
     "tailwindcss": "^3.3.2",
     "vite": "^4.3.9"
   }

@@ -16,82 +16,20 @@ import {CheckGroup as ICheckGroup} from '@ibot/ibot/lib/check';
 import IBotInput from '@ibot/ibot/lib/input';
 // @ts-ignore
 import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
-import {Types} from '@wxik/core';
-import type {CCFormData, ICCField} from '@wxik/react-form';
-import {CCField, CCForm, CCOutlet} from '@wxik/react-form';
+import type {CCFormData} from '@wxik/react-form';
+import {CCForm, CCOutlet} from '@wxik/react-form';
 import Select from 'rc-select';
-import type {ReactElement} from 'react';
 import React from 'react';
 
-interface IField {
-  children: ReactElement;
-  fieldNames?: {
-    value?: string;
-  };
-  antd?: boolean;
-}
-
-const Field = CCForm.Field<IField>()((props) => {
-  const {value, onChange, title, error, errors, disabled, required, children, fieldNames = {}, antd = false} = props;
-  const {value: valueKey = 'value'} = fieldNames;
-  // console.log('value', form, value);
-  const childProps = {onChange, [valueKey]: value, disabled};
-  if (antd) {
-    childProps.error = error ? 'error' : void 0;
-  } else {
-    childProps.isInvalid = error;
-  }
-  return (
-    <div className={'flex flex-col py-2.5 w-52'}>
-      <span className={'pb-1'}>
-        {title} {required ? ' *' : ''}
-      </span>
-      {React.cloneElement(children, childProps)}
-      {errors && (
-        <div className={'pt-1'}>
-          {errors.map((it, ix) => (
-            <div key={ix} className={'pt-1 text-red-500'}>
-              {it}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-});
-
-const TextField = CCField()((props) => {
-  const {value, onChange, title, error, errors, disabled, required} = props;
-  return (
-    <div className={'flex flex-col py-2.5 w-52'}>
-      <span className={'pb-1'}>
-        {title} {required ? ' *' : ''}
-      </span>
-      <IBotInput
-        onChange={onChange}
-        value={String(Types.isObject(value) ? JSON.stringify(value) : Types.isEmpty(value) ? '' : value)}
-        isInvalid={error}
-        disabled={disabled}
-      />
-      {errors && (
-        <div className={'pt-1'}>
-          {errors.map((it, ix) => (
-            <div key={ix} className={'pt-1 text-red-500'}>
-              {it}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-});
+import type {IField} from './Field';
+import {Field} from './Field';
 
 class App extends React.Component<any> {
   form = CCForm.createForm();
   list2 = CCForm.createList();
   list1 = CCForm.createList();
-  config: Array<ICCField>;
-  formList: Array<ICCField>;
+  config: Array<IField>;
+  formList: Array<IField>;
 
   private uuid = 0;
 
@@ -100,10 +38,10 @@ class App extends React.Component<any> {
       select: 'java',
       radio: 'on',
       sl: [{c: ['123', '32']}],
-      job: Array(4)
+      job: Array(999)
         .fill({
           bcdef: Math.random(),
-          id: 123,
+          id: 1,
           name: 'c',
         })
         .map((it, ix) => ({...it, name: 'c' + ix, a: ix})),
@@ -169,16 +107,26 @@ class App extends React.Component<any> {
         inline: false,
         transform: (da) =>
           da && {
-            c_id: da.o_id,
-            c_name: da.o_name,
+            c_id: da.id,
+            c_name: da.value,
           },
-        // initialValue: {id: Math.random(), name: Math.random()},
         convertValue: (da) =>
           da && {
-            o_id: da.id,
-            o_name: da.name,
+            id: da.id,
+            value: da.name,
           },
+        forValue: (value) => value?.id,
+        normalize: (v: any, {args}) => args[0]?.data,
+        antd: true,
         label: 'o_name',
+        // fieldType: 'select',
+        fieldProps: {
+          options: [
+            {label: '对弈', value: 1, data: {id: 1, value: '对弈'}},
+            {label: '对弈 - 1', value: 2, data: {id: 2, value: '对弈 - 1'}},
+            {label: '对弈 - 2', value: 3, data: {id: 3, value: '对弈 - 2'}},
+          ],
+        },
       },
       {
         form: 'sex2',
@@ -188,10 +136,14 @@ class App extends React.Component<any> {
       },
     ];
     console.time('App');
+    console.profile('App');
   }
 
   componentDidMount() {
-    console.timeEnd('App');
+    setTimeout(() => {
+      console.profileEnd('App');
+      console.timeEnd('App');
+    });
   }
 
   count() {
@@ -249,7 +201,9 @@ class App extends React.Component<any> {
         <CCForm form={that.form} initialValue={initialValue} disabled={false}>
           <div style={styles.form}>
             {that.config.map((config, index) => (
-              <TextField key={config.form} {...config} />
+              <Field key={config.form} {...config}>
+                <IBotInput />
+              </Field>
             ))}
           </div>
           <div className={'flex gap-4'}>
@@ -275,6 +229,7 @@ class App extends React.Component<any> {
               forValue={(data) => data?.value}
               normalize={(value) => ({value, key: value})}>
               <Select
+                className={'w-44'}
                 placeholder="请选择"
                 options={[
                   {label: '驱逐舰', value: '1'},
@@ -295,6 +250,7 @@ class App extends React.Component<any> {
             </Field>
             <Field form={'select'} title={'科目'} antd visible={(formData) => formData.radio === 'on'}>
               <Select
+                className={'w-44'}
                 placeholder="请选择"
                 options={[
                   {label: 'Java', value: 'java'},
@@ -329,7 +285,9 @@ class App extends React.Component<any> {
                     <CCForm.List form="c" initRows={1}>
                       {({add, remove, key, index}) => (
                         <div style={styles.form} key={key}>
-                          <TextField title={'SL 吃吃 - ' + index} initialValue={String(index)} />
+                          <Field title={'SL 吃吃 - ' + index} initialValue={String(index)}>
+                            <IBotInput />
+                          </Field>
                           <div className={'mt-[30px] gap-3 flex'}>
                             <button style={styles.btn2} onClick={() => add()}>
                               +
@@ -368,7 +326,13 @@ class App extends React.Component<any> {
                     </button>
                   </div>
                   {that.formList.map((config) => (
-                    <TextField key={config.form} {...config} />
+                    <Field key={config.form} {...config}>
+                      {config.fieldType === 'select' ? (
+                        <Select className={'w-44'} {...config.fieldProps} />
+                      ) : (
+                        <IBotInput />
+                      )}
+                    </Field>
                   ))}
                   <div className={'mt-[30px] gap-3 flex'}>
                     <button style={styles.btn2} onClick={() => add({a: that.genUUID(), sex: '', b: ''}, index + 1)}>
