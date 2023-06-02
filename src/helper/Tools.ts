@@ -100,22 +100,22 @@ export function get(item: Record<string, any>, key: string | number, defaultValu
  * field 取值字段, 或者方法返回值
  * inline 是否内联Object, 默认true
  * @param {Object} $data {a: {a1: 2, a2: 3}, b: [{b1: 1, b2: 2}]}
- * @param {Array<{[string]: {form: string, field: string | Function, inline?: boolean}}>} config
+ * @param {Array<{[string]: {form: string, transform: string | Function, inline?: boolean}}>} config
  * @returns {Object}
  */
 export function extractData(
   $data: Record<string, any>,
-  config: {form: string; field: string | Function; inline?: boolean}[],
+  config: {form: string; transform: string | Function; inline?: boolean}[],
 ) {
   let newData = Object.create(null);
-  (config || []).forEach(({form, field, inline = true}) => {
+  (config || []).forEach(({form, transform, inline = true}) => {
     let data: any = normalObservable($data[form]);
 
-    if (Types.isFunction(field)) {
+    if (Types.isFunction(transform)) {
       // field 如果是方法
-      data = Types.isArray(data) ? data.map((da, index) => field(da, $data, index)) : field(data, $data);
-    } else if (!Types.isBlank(field)) {
-      data = Types.isArray(data) ? data.map((da) => getItemValue(da, field)) : getItemValue(data, field);
+      data = Types.isArray(data) ? data.map((da, index) => transform(da, $data, index)) : transform(data, $data);
+    } else if (!Types.isBlank(transform)) {
+      data = Types.isArray(data) ? data.map((da) => getItemValue(da, transform)) : getItemValue(data, transform);
     }
 
     // 处理重复字段名称: (a.b@1, a.b@2) => a.b

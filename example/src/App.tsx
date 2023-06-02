@@ -167,13 +167,13 @@ class App extends React.Component<any> {
         form: 'obj',
         title: 'Object',
         inline: false,
-        field: (da) =>
+        transform: (da) =>
           da && {
             c_id: da.o_id,
             c_name: da.o_name,
           },
         // initialValue: {id: Math.random(), name: Math.random()},
-        getValue: (da) =>
+        convertValue: (da) =>
           da && {
             o_id: da.id,
             o_name: da.name,

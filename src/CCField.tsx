@@ -6,7 +6,7 @@
 import type {ComponentType, ContextType, ReactElement, ReactNode, Ref} from 'react';
 import {Component, createContext} from 'react';
 
-import type {CCFormData, CCFormInstance, CCFormName, ICCFormContext} from './CCForm';
+import type {CCFormData, CCFormInstance, CCNamePath, ICCFormContext} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
 import type {CCListOperation} from './CCList';
 import {CCFormListContext} from './CCList';
@@ -14,8 +14,8 @@ import {FormHelper, Observer, Tools, Types} from './helper';
 
 export interface ICCFieldListener {
   key: string;
-  getValue: (value: any, data: CCFormData) => any;
-  setValue: (value: any, data: CCFormData) => any;
+  convertValue: (value: any, data: CCFormData) => any;
+  transform: (value: any, data: CCFormData) => any;
 }
 
 interface CCFieldObserveOptions {
@@ -30,7 +30,7 @@ type CCFieldOptions = CCFieldObserveOptions['options'] & {
 };
 
 export interface ICCField {
-  form?: CCFormName; // field name
+  form?: CCNamePath; // field name
   alias?: string | Array<string>; // alias field name
   title?: ReactNode | ((form?: string) => ReactNode); // field title
   label?: string; //
@@ -51,7 +51,7 @@ export interface ICCField {
   /**
    * 提交取值处理数据
    */
-  field?: string | ((data: any, formData: CCFormData) => any);
+  transform?: string | ((data: any, formData: CCFormData) => any);
   value?: any;
 
   onChange?: (value: any) => void;
@@ -63,7 +63,7 @@ export interface ICCField {
   disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
   unionValue?: (value: any, data: {val: any; data: CCFormData; form?: string}) => any;
-  getValue?: (value: any) => any;
+  convertValue?: (value: any) => any;
   rules?: boolean | Array<CCRulesType> | CCRulesType; // 验证
   eachConfig?: CCListOperation; //循环内
   initialValue?: any;
@@ -207,7 +207,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this,
       props = that.props,
       context = that.context as ICCFormContext;
-    let {initialValue, getValue, defaultValue, visible, disabled} = props;
+    let {initialValue, convertValue, defaultValue, visible, disabled} = props;
 
     let formName = that.getFormName(props);
     let formData: CCFormData = {},
@@ -226,7 +226,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     let {options, data} = that.getObserveOptions();
     let {required, message: requiredMsg} = that.findRequired(data, options);
     let state = {
-      value: Types.isFunction(getValue) ? that.execGetValue(formName, value, formData) : value,
+      value: Types.isFunction(convertValue) ? that.execGetValue(formName, value, formData) : value,
       initialValue: value,
       visible: !Types.isEmpty(visible) ? !!that.isCallbackKey(visible, data, options) : true,
       disabled: !Types.isEmpty(disabled) ? !!that.isCallbackKey(disabled, data, options) : false,
@@ -247,7 +247,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
    * @param {ICCField} [props]
    * @returns {string}
    */
-  getFormName(props?: ICCField): CCFormName {
+  getFormName(props?: ICCField): CCNamePath {
     let {form, eachConfig, autoListName} = props || this.props;
     return eachConfig && autoListName
       ? typeof form !== 'number' && form
@@ -295,8 +295,8 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     return {required: rules === true};
   }
 
-  execGetValue(formName: CCFormName, value: any, data: CCFormData) {
-    let {getValue, eachConfig, inline} = this.props;
+  execGetValue(formName: CCNamePath, value: any, data: CCFormData) {
+    let {convertValue, eachConfig, inline} = this.props;
 
     if (!inline && !Types.isBlank(formName)) {
       const name = String(formName);
@@ -307,7 +307,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
     try {
       // @ts-ignore
-      return getValue(value);
+      return convertValue(value);
     } catch (e) {
       console.warn('取值GetValue异常:', e);
     }
@@ -472,19 +472,19 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   getConfig() {
     const that = this;
-    const {inline, field, ignore, getValue, parentField} = that.props;
+    const {inline, transform, ignore, convertValue, parentField} = that.props;
     const {disabled, visible} = that.state;
     return {
       inline,
       form: that.getFormName(that.props),
       alias: that.getFormAlias(that.props),
       title: that.getTitle(),
-      field,
+      transform,
       visible,
       parentVisible: parentField.visible,
       disabled,
       ignore,
-      getValue,
+      convertValue,
     };
   }
 
@@ -501,11 +501,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     if (that.unmount || value === that.state.value) return;
 
     const context = that.context as ICCFormContext;
-    const {listener: {key, setValue} = {}} = that.props;
+    const {listener: {key, transform} = {}} = that.props;
 
     that.changeFlag = true;
     that.changeForm = true;
-    key && context.emitter?.emit(key, setValue ? setValue(value, context.data) : value);
+    key && context.emitter?.emit(key, transform ? transform(value, context.data) : value);
     that.handleValue(value, callback);
   }
 
@@ -683,7 +683,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this;
     const context = this.context as ICCFormContext;
     const {listener} = that.props;
-    that.handleValue(listener?.getValue ? listener.getValue(value, context.data) : value);
+    that.handleValue(listener?.convertValue ? listener.convertValue(value, context.data) : value);
   }
 
   componentDidMount() {

@@ -50,14 +50,14 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 | unique        | Object Type, 唯一标识字段名                                         | string                                                             | id      |
 | inline        | Object Type, 是否内联数据<br/> {a: 1, b: {b1: 1}} => {a: 1, b1: 1} | boolean                                                            | true    |
 | ignore        | 是否忽略此字段                                                      | boolean                                                            | false   |
-| field         | 提交取值处理数据                                                     | string \| (data, formData) => any                                  | -       |
+| transform     | 提交取值处理数据                                                     | string \| (data, formData) => any                                  | -       |
 | value         | 受控字段值                                                        | any                                                                | -       |
 | onChange      | 值改变回调                                                        | function(value)                                                    | -       |
 | visible       | 可见性规则                                                        | boolean \| (formData, options) => boolean                          | -       |
 | disabled      | 禁用规则                                                         | boolean \| (formData, options) => boolean                          | -       |
 | union         | 联动规则                                                         | string \| string[] \| ((options) => string \| string[])            | -       |
 | unionValue    | 联动值控制规                                                       | (value: any, data: {val: any; data: Object; form?: string}) => any | -       |
-| getValue      | 处理值转换到表单内的格式                                                 | (value: any) => any                                                | -       |
+| convertValue  | 处理值转换到表单内的格式                                                 | (value: any) => any                                                | -       |
 | rules         | 验证规则                                                         | boolean \| Array<CCRulesType> \| CCRulesType                       | -       |
 | initialValue  | 初始值                                                          | any                                                                | -       |
 | defaultValue  | 默认值                                                          | any                                                                | -       |
@@ -199,12 +199,12 @@ class App extends React.Component {
         form: 'obj',
         title: 'Object',
         inline: false,
-        field: (da) =>
+        transform: (da) =>
           da && {
             c_id: da.o_id,
             c_name: da.o_name,
           },
-        getValue: (da) =>
+        convertValue: (da) =>
           da && {
             o_id: da.id,
             o_name: da.name,

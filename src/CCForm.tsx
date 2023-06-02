@@ -15,7 +15,7 @@ import {FormHelper, Observer, Tools, Types} from './helper';
 
 export type CCFormData = Record<string, any>;
 
-export type CCFormName = string | number | undefined;
+export type CCNamePath = string | number | undefined;
 
 export interface ICCForm {
   form?: CCFormInstance;
@@ -75,7 +75,7 @@ export interface CCFormInstance {
    */
   addData: (data: CCFormData) => void;
   /**
-   * 设置表单数据, 默认不调用 getValue
+   * 设置表单数据, 默认不调用 convertValue
    * @param {: FormData | any[]} data
    * @param {{isGet: boolean, isChange: boolean}} options
    */
@@ -239,7 +239,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
    * @param {*} value filed change value
    * @param {{raw: boolean}} options
    */
-  fieldChange(name: CCFormName, value: any, options: {raw?: boolean} = {}) {
+  fieldChange(name: CCNamePath, value: any, options: {raw?: boolean} = {}) {
     const that = this;
     const {raw = false} = options;
     if (Types.isBlank(name) || that.state.data[name] === value) return;
@@ -258,7 +258,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     }
   }
 
-  formChange(name?: CCFormName) {
+  formChange(name?: CCNamePath) {
     const that = this;
     clearTimeout(that.timeoutChange);
     let ps = !Types.isBlank(name) && that.getField(name)?.props;
@@ -270,14 +270,14 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     });
   }
 
-  private _setFieldValue(name: CCFormName, value: CCFormData) {
+  private _setFieldValue(name: CCNamePath, value: CCFormData) {
     if (!Types.isBlank(name)) {
       this.state.data[name] = value;
       this.state.originData[name] = value;
     }
   }
 
-  private _setFieldRawValue(name: CCFormName, value: CCFormData) {
+  private _setFieldRawValue(name: CCNamePath, value: CCFormData) {
     if (!Types.isBlank(name)) {
       Observer.raw(this.state.data)[name] = value;
       this.state.originData[name] = value;
@@ -313,7 +313,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
    * @param {string} name
    * @returns {*}
    */
-  getField(name: CCFormName) {
+  getField(name: CCNamePath) {
     return Types.isBlank(name) ? null : this.fieldsMap.get(name);
   }
 
@@ -362,7 +362,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   }
 
   /**
-   * 设置表单数据, 默认不调用 getValue
+   * 设置表单数据, 默认不调用 convertValue
    * @param {: FormData | any[]} data
    * @param {{isGet: boolean, isChange: boolean}} options
    */
@@ -380,7 +380,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       });
     };
     for (const f of that.fields) {
-      let {form, getValue, alias} = f.getConfig();
+      let {form, transform, alias} = f.getConfig();
       if (form) {
         let sym = Symbol();
         // let prevValue = f.value;
@@ -395,7 +395,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
         }
         if (sym === value) continue;
 
-        value = isGet && Types.isFunction(getValue) ? f.execGetValue(form, value, data) : value;
+        value = isGet && Types.isFunction(transform) ? f.execGetValue(form, value, data) : value;
 
         count++;
         if (isChange) {

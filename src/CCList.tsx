@@ -7,12 +7,12 @@
 import type {ContextType, FC, ReactNode} from 'react';
 import {Component, createContext} from 'react';
 
-import type {CCFormData, CCFormName, ICCFormContext} from './CCForm';
+import type {CCFormData, CCNamePath, ICCFormContext} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
 import {Tools, Types} from './helper';
 
 export interface ICCList {
-  form?: CCFormName;
+  form?: CCNamePath;
   formList?: CCListInstance;
   initRows?: number;
   initialValue?: Array<any>;
@@ -111,7 +111,7 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
     return `CC${++this.uuid}`;
   }
 
-  getFormName(props: ICCList): CCFormName {
+  getFormName(props: ICCList): CCNamePath {
     const {form, eachConfig} = props;
     return eachConfig ? (form ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
   }
