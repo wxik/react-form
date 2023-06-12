@@ -5,9 +5,11 @@
  */
 
 import type {ContextType, FC, ReactNode} from 'react';
-import {Component, createContext} from 'react';
+import {Component} from 'react';
 
-import type {CCFormData, CCNamePath, ICCFormContext} from './CCForm';
+import type {CCListContext, CCListOperation, ICCFormContext} from './CCContext';
+import {CCFormListContext} from './CCContext';
+import type {CCNamePath} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
 import {Tools, Types} from './helper';
 
@@ -16,8 +18,8 @@ export interface ICCList {
   formList?: CCListInstance;
   initRows?: number;
   initialValue?: Array<any>;
-  eachConfig?: CCListOperation;
-  children: (props: CCListOperation) => ReactNode;
+  eachConfig?: CCListContext;
+  children: (props: CCListContext) => ReactNode;
 }
 
 export interface IListItem extends Omit<ICCList, 'eachConfig'> {}
@@ -35,20 +37,6 @@ export interface CCListInstance {
   getData: () => void;
   getSize: () => number;
 }
-
-export interface CCListOperation {
-  form: string;
-  index: number;
-  key: string;
-  length: number;
-  data: any[];
-  formData: CCFormData;
-  remove: () => void;
-  add: (item?: any, insertIndex?: number) => void;
-  move: (from: number, to: number) => void;
-}
-
-export const CCFormListContext = createContext<CCListOperation | null>(null);
 
 export class CCListWrapper extends Component<ICCList, ICCListState> {
   declare context: ContextType<typeof CCForm.Context>;
@@ -272,7 +260,8 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
     if (!children) return null;
     return Types.isArray(keys)
       ? keys.map((key, index) => {
-          const pro: CCListOperation = {
+          const pro: CCListContext = {
+            listInstance: that,
             form: Types.isBlank(formName) ? String(index) : `${formName}.${index}`,
             index,
             key,
@@ -283,7 +272,7 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
             add: that.addItem.bind(that),
             move: that.moveItem.bind(that),
           };
-          return <CCFormListContext.Provider value={pro} key={key} children={children(pro)} />;
+          return <CCFormListContext.Provider value={pro} key={key} children={children(pro as CCListOperation)} />;
         })
       : null;
   }
@@ -293,7 +282,7 @@ export const CCList: FC<IListItem> = (props) => (
   <CCFormListContext.Consumer>
     {(eachData) => {
       let {form, initialValue, children} = props;
-      const listData = eachData as CCListOperation;
+      const listData = eachData as CCListContext;
       if (listData) {
         const item = listData.data[listData.index];
         initialValue = form ? (Types.isObject(item) && form in item ? item[form] : initialValue) : item;

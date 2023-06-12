@@ -4,12 +4,12 @@
  * @sine 2020-04-11 11:43
  */
 import type {ComponentType, ContextType, ReactElement, ReactNode, Ref} from 'react';
-import {Component, createContext} from 'react';
+import {Component} from 'react';
 
-import type {CCFormData, CCFormInstance, CCNamePath, ICCFormContext} from './CCForm';
+import type {CCListContext, ICCFieldContext, ICCFormContext} from './CCContext';
+import {CCFieldContext, CCFormListContext} from './CCContext';
+import type {CCFormData, CCFormInstance, CCNamePath} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
-import type {CCListOperation} from './CCList';
-import {CCFormListContext} from './CCList';
 import {FormHelper, Observer, Tools, Types} from './helper';
 
 export interface ICCFieldListener {
@@ -20,7 +20,7 @@ export interface ICCFieldListener {
 
 interface CCFieldObserveOptions {
   data: CCFormData;
-  options: Record<string, any> & Partial<CCListOperation>;
+  options: Record<string, any> & Partial<CCListContext>;
   originData: CCFormData;
 }
 
@@ -65,7 +65,7 @@ export interface ICCField {
   unionValue?: (value: any, data: {val: any; data: CCFormData; form?: string}) => any;
   convertValue?: (value: any) => any;
   rules?: boolean | Array<CCRulesType> | CCRulesType; // 验证
-  eachConfig?: CCListOperation; //循环内
+  eachConfig?: CCListContext; //循环内
   initialValue?: any;
   defaultValue?: any;
   forwardRef?: Ref<any>;
@@ -139,19 +139,10 @@ export type CCRulesType =
   | RegExp
   | ((formData: CCFormData, options: CCFieldOptions) => boolean | string);
 
-export interface ICCFieldContext {
-  fieldInstance: CCFieldWrapper;
-  visible: boolean;
-}
-
 const DEFAULT_UNIQUE = 'id';
 const DEFAULT_INLINE = true;
 const DEFAULT_OMIT_CONTEXT = false;
-const DEFAULT_CONTEXT_VALUE = {
-  visible: true,
-};
 
-export const CCFieldContext = createContext<ICCFieldContext>(DEFAULT_CONTEXT_VALUE as ICCFieldContext);
 export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   declare context: ContextType<typeof CCForm.Context>;
   static contextType = CCForm.Context;
@@ -831,7 +822,7 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
     return (props: T & ICCFieldOmit) => (
       <CCFormListContext.Consumer>
         {(eachData) => {
-          const listData = eachData as CCListOperation;
+          const listData = eachData as CCListContext;
           let {initialValue, form, inline = DEFAULT_INLINE} = props;
           if (listData) {
             const item = listData.data[listData.index];

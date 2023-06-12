@@ -8,13 +8,12 @@
 import type {ComponentType, ReactElement} from 'react';
 import {cloneElement, forwardRef} from 'react';
 
-import type {ICCFormContext} from './CCForm';
+import type {CCListContext, ICCFormContext} from './CCContext';
+import {CCFormListContext} from './CCContext';
 import {CCForm} from './CCForm';
-import type {CCListOperation} from './CCList';
-import {CCFormListContext} from './CCList';
 
 export interface ICCOutlet extends ICCFormContext {
-  eachConfig?: CCListOperation;
+  eachConfig?: CCListContext;
 }
 
 export interface IOutlet {

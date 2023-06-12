@@ -88,7 +88,7 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 | children | 子节点     | ReactElement | -       |
 
 
-### CCForm.useForm()、CCForm.createForm()
+### CCForm.useForm()、CCForm.createForm()、CCForm.useFormInstance()
 
 - `function subData({merge?: boolean}): CCFormData` 获取表单可提交数据
 - `function validate(): boolean` 验证表单
@@ -98,7 +98,7 @@ import {CCField, CCForm, CCList} from '@wxik/react-form';
 - `function setData(data: CCFormData | any[], options: {isChange?: boolean; isGet?: boolean})` 设置表单数据, 默认不触发`onChange`不调用`getValue`
 
 
-### CCForm.useList()、 CCForm.createList()
+### CCForm.useList()、 CCForm.createList()、CCForm.useListInstance()
 
 - `function add(value?: any, insertIndex?: number)` add new row
 - `function remove(index: number | number[])` remove row
