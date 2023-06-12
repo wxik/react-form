@@ -383,7 +383,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       });
     };
     for (const f of that.fields) {
-      let {form, transform, alias} = f.getConfig();
+      let {form, convertValue, alias} = f.getConfig();
       if (form) {
         let sym = Symbol();
         // let prevValue = f.value;
@@ -398,7 +398,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
         }
         if (sym === value) continue;
 
-        value = isGet && Types.isFunction(transform) ? f.execGetValue(form, value, data) : value;
+        value = isGet && Types.isFunction(convertValue) ? f.execGetValue(form, value, data) : value;
 
         count++;
         if (isChange) {

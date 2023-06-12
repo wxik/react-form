@@ -109,6 +109,7 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
   setData(data: any[]) {
     const that = this;
     const {initRows} = that.props;
+    let {keys} = that.state;
     if (Types.isEmpty(data) || !Types.isArray(data)) {
       data = [];
     } else if (data.length === 0) {
@@ -117,7 +118,9 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
     // 如果初始化 id 会导致之前的数据不刷新
     // this._initID();
     that.removeOutData(data.length);
-    const keys = Array.from(data).fill(1).map(that.genID);
+    // key 的改变会出发销毁, 导致Field重新创建, 取了表单中数据
+    // const keys = Array.from(data).fill(1).map(that.genID);
+    keys = keys.slice(0, data.length);
     that.setState({keys, data});
   }
 

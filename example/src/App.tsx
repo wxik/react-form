@@ -19,9 +19,9 @@ import IBotInput from '@ibot/ibot/lib/input';
 // @ts-ignore
 import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
 import type {CCFormData} from '@wxik/react-form';
-import {CCField, CCForm, CCOutletView} from '@wxik/react-form';
+import {CCField, CCForm, CCListAction, CCListView, CCOutletView} from '@wxik/react-form';
 import Select from 'rc-select';
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import type {IField} from './Field';
 import {Field} from './Field';
@@ -39,14 +39,13 @@ class App extends React.Component<any> {
     initialValue: {
       select: 'java',
       radio: 'on',
-      sl: [{name: 'Award Name 1', c: ['Award Name 1', '32']}],
+      sl: [{c: ['Award Name 1', '32']}, {c: ['Award Name 2', 'aw 2']}],
       job: Array(4)
         .fill({
-          bcdef: Math.random(),
           id: 1,
           name: 'c',
         })
-        .map((it, ix) => ({...it, name: 'c' + ix, a: ix})),
+        .map((it, ix) => ({...it, name: 'c' + ix, a: ix, id: ix % 3})),
     },
   };
 
@@ -104,8 +103,8 @@ class App extends React.Component<any> {
         disabled: (data: CCFormData, {form}) => data[`${form}.a`] == 2,
       },
       {
-        form: 'obj',
-        title: 'Object',
+        form: 'id',
+        title: '下拉(Object)',
         inline: false,
         transform: (da) =>
           da && {
@@ -120,13 +119,13 @@ class App extends React.Component<any> {
         forValue: (value) => value?.id,
         normalize: (v: any, {args}) => args[0]?.data,
         antd: true,
-        label: 'o_name',
-        // fieldType: 'select',
+        label: 'value',
+        fieldType: 'select',
         fieldProps: {
           options: [
-            {label: '对弈', value: 1, data: {id: 1, value: '对弈'}},
-            {label: '对弈 - 1', value: 2, data: {id: 2, value: '对弈 - 1'}},
-            {label: '对弈 - 2', value: 3, data: {id: 3, value: '对弈 - 2'}},
+            {label: '对弈', value: 0, data: {id: 0, value: '对弈'}},
+            {label: '对弈 - 1', value: 1, data: {id: 1, value: '对弈 - 1'}},
+            {label: '对弈 - 2', value: 2, data: {id: 2, value: '对弈 - 2'}},
           ],
         },
       },
@@ -138,12 +137,12 @@ class App extends React.Component<any> {
       },
     ];
     console.time('App');
-    console.profile('App');
+    // console.profile('App');
   }
 
   componentDidMount() {
     setTimeout(() => {
-      console.profileEnd('App');
+      // console.profileEnd('App');
       console.timeEnd('App');
     });
   }
@@ -162,15 +161,15 @@ class App extends React.Component<any> {
       // name: 'Inject Name: ' + Math.random(),
       alias: 'Inject Alias ' + Math.random(),
       sb: ['76656', '654'],
-      sl: [{c: ['123', '----324---'], d: ['2', '3']}],
+      check_group: ['react'],
+      select: 'react',
+      select2: {key: 2, value: '2'},
+      sl: [{c: [Math.random(), '----324---' + Math.random()]}],
       job: Array(1).fill({
-        bcdef: Math.random(),
-        id: 123,
+        id: 2,
         name: 'c',
-        // obj: {
-        //     id,
-        //     name: Math.random()
-        // }
+        sex: Math.random(),
+        sex2: 'test',
       }),
     });
   }
@@ -205,6 +204,7 @@ class App extends React.Component<any> {
             <Field
               form={'check_group'}
               title={'多选'}
+              initialValue={[]}
               normalize={(value) => value.valueList}
               fieldNames={{value: 'valueList'}}>
               <ICheckGroup
@@ -267,12 +267,11 @@ class App extends React.Component<any> {
           <div style={styles.sop}>
             <div className={'flex gap-3'}>
               <CCForm.List form={'sl'} initRows={1} formList={that.list1}>
-                <div>
+                <div className={'flex gap-3 flex-col'}>
                   <CCListView>
                     {({remove, index}) => (
-                      <div
-                        className={'flex my-2.5 gap-3 border-dotted border border-sky-500 rounded p-2.5 items-center '}>
-                        <TabName ignore form={'name'} union={`sl.${index}.c.0`} unionValue={(v) => v} />
+                      <div className={'flex  gap-3 border-dotted border border-sky-500 rounded p-2.5 items-center '}>
+                        <TabName injectListName={false} union={`sl.${index}.c.0`} unionValue={(v) => v} />
 
                         <button onClick={remove} className={'leading-[0px]'}>
                           <Icon name={'trash-can'} />
@@ -293,15 +292,17 @@ class App extends React.Component<any> {
                     )}
                   </CCListAction>
                 </div>
-                <div>
+                <div className={'flex flex-wrap gap-3'}>
                   <CCListView>
                     {({index}) => (
-                      <div className={'border-dotted border border-sky-500 my-2.5 p-2.5 rounded'}>
+                      <div className={'border-dotted border border-sky-500  p-2.5 rounded'}>
                         <CCForm.List form="c" initRows={1}>
                           {({add, remove, key, index: index2}) => (
                             <div style={styles.form} key={key}>
-                              <Field  title={'SL 吃吃 - ' + (index + 1) + ' - ' + (index2 + 1)}
-                                      initialValue={String(index + 1)}>
+                              <Field
+                                rules
+                                title={'SL 吃吃 - ' + (index + 1) + ' - ' + (index2 + 1)}
+                                initialValue={String(index + 1)}>
                                 <IBotInput />
                               </Field>
                               <div className={'mt-[30px] gap-3 flex'}>
@@ -375,14 +376,23 @@ class App extends React.Component<any> {
 }
 
 const TabName = CCField()((props) => {
-  const {value, form, union} = props;
-  console.log(form, union);
+  const {value} = props;
   return (
     <div className={'flex-1'}>
       <div className={'w-64 truncate'}>{value} - test</div>
     </div>
   );
 });
+
+const TestUnMount = (props: {name: string}) => {
+  const {name} = props;
+  useEffect(() => {
+    return () => {
+      console.log('umount', name);
+    };
+  }, [name]);
+  return null;
+};
 
 const styles: Record<string, any> = {
   form: {

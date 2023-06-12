@@ -68,7 +68,7 @@ export const Field: FC<IField> = CCField<IFieldProps>()((props) => {
   const forProps = () => {
     const cProps: Record<string, any> = {
       onChange: handleChange,
-      [valueKey]: Types.isNumber(value) ? String(value) : value,
+      [valueKey]: antd ? value : String(value ?? ''),
       disabled,
     };
     if (antd) {

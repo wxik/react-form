@@ -401,10 +401,16 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     let {unionValue} = that.props;
     const {options, data, originData} = that.getObserveOptions();
     const formInstance = context.formInstance;
+    const formName = that.getFormName();
 
     unionValue = Types.isFunction(unionValue) ? unionValue : () => void 0;
 
-    let findUnion = function (name: string, ks: string[] = []) {
+    /**
+     * 递归查询级联
+     * @param name
+     * @param ks
+     */
+    const findUnion = function (name: string, ks: string[] = []) {
       let pUnions = formInstance.getField(name)?.getUnionList() || [];
       pUnions.forEach((un: string | string[]) => {
         let fd = Types.isArray(un) ? un[0] : un;
@@ -417,16 +423,19 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     };
 
     union.forEach((un: string | [string, Function]) => {
-      let [name, func] = Types.isArray(un) ? un : [un, unionValue];
-      let unionAll = findUnion(name, [name]);
-      let reaction = Observer.autoRun(() => {
-        let value = that.execCallback(func, data[name], {
+      const [name, func] = Types.isArray(un) ? un : [un, unionValue];
+      const unionAll = findUnion(name, [name]);
+      const reaction = Observer.autoRun(() => {
+        const value = that.execCallback(func, data[name], {
           ...options,
           val: that.value,
           data: originData,
         });
+        const onValue = () => !that.unmount && name in data && that.handleChange(value);
+        // 如果没有字段名称, 初始化时触发联动设值
+        if (Types.isEmpty(formName)) onValue();
         if (that.isObserveUnion && formInstance?.changeState !== CCFormStateStatusEnum.SET) {
-          !that.unmount && name in data && that.handleChange(value);
+          onValue();
         } else {
           // 递归监听一下上级.上级.等等
           unionAll.forEach((pun) => data[pun]);
