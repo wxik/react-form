@@ -4,11 +4,11 @@
  * @since 2023-05-10 11:37
  */
 import type {RefObject} from 'react';
-import {createRef, useMemo, useRef} from 'react';
+import {createRef, useContext, useMemo, useRef} from 'react';
 
+import {CCFormContext, CCFormListContext} from '../CCContext';
 import type {CCForm, CCFormData, CCFormInstance} from '../CCForm';
-import type {CCListWrapper} from '../CCList';
-import type {CCListInstance} from '../CCList';
+import type {CCListInstance, CCListWrapper} from '../CCList';
 
 export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
   return {
@@ -69,6 +69,13 @@ export const useForm = (): [CCFormInstance] => {
   return [useMemo<CCFormInstance>(() => formHandler(ref), [])];
 };
 
+export const useFormInstance = (): CCFormInstance => {
+  const {formInstance} = useContext(CCFormContext)!;
+  const ref = useRef<CCForm>(formInstance);
+  ref.current = formInstance;
+  return useMemo<CCFormInstance>(() => formHandler(ref), []);
+};
+
 export const createList = (): CCListInstance => {
   return listHelder(createRef<CCListWrapper>());
 };
@@ -76,4 +83,11 @@ export const createList = (): CCListInstance => {
 export const useList = (): [CCListInstance] => {
   const ref = useRef<CCListWrapper>(null);
   return [useMemo<CCListInstance>(() => listHelder(ref), [])];
+};
+
+export const useListInstance = (): CCListInstance => {
+  const {listInstance} = useContext(CCFormListContext)!;
+  const ref = useRef<CCListWrapper>(listInstance);
+  ref.current = listInstance;
+  return useMemo<CCListInstance>(() => listHelder(ref), []);
 };

@@ -3,13 +3,13 @@
  * @author Quia
  * @sine 2020-04-11 11:43
  */
-import type {ComponentType, ContextType, ReactElement, ReactNode, Ref} from 'react';
-import {Component, createContext} from 'react';
+import type {ComponentType, ContextType, FC, ReactElement, ReactNode, Ref} from 'react';
+import {Component, useContext} from 'react';
 
-import type {CCFormData, CCFormInstance, CCNamePath, ICCFormContext} from './CCForm';
+import type {CCListContext, CCListViewContext, ICCFieldContext, ICCFormContext} from './CCContext';
+import {CCFieldContext, CCFormListContext, CCFormListViewContext} from './CCContext';
+import type {CCFormData, CCFormInstance, CCNamePath} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
-import type {CCListOperation} from './CCList';
-import {CCFormListContext} from './CCList';
 import {FormHelper, Observer, Tools, Types} from './helper';
 
 export interface ICCFieldListener {
@@ -20,7 +20,7 @@ export interface ICCFieldListener {
 
 interface CCFieldObserveOptions {
   data: CCFormData;
-  options: Record<string, any> & Partial<CCListOperation>;
+  options: Record<string, any> & Partial<CCListContext>;
   originData: CCFormData;
 }
 
@@ -47,7 +47,7 @@ export interface ICCField {
   /**
    * 自动拼接集合传递的 formName
    */
-  autoListName?: boolean;
+  injectListName?: boolean;
   /**
    * 提交取值处理数据
    */
@@ -58,14 +58,14 @@ export interface ICCField {
   /**
    * 是否保护子节点在隐藏是不销毁, 并接受 visible 值
    */
-  preserveNode?: boolean;
+  preserve?: boolean;
   visible?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
   union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
   unionValue?: (value: any, data: {val: any; data: CCFormData; form?: string}) => any;
   convertValue?: (value: any) => any;
   rules?: boolean | Array<CCRulesType> | CCRulesType; // 验证
-  eachConfig?: CCListOperation; //循环内
+  eachConfig?: CCListContext; //循环内
   initialValue?: any;
   defaultValue?: any;
   forwardRef?: Ref<any>;
@@ -86,11 +86,14 @@ export interface ICCField {
    */
   forValue?: (value: any, formData: CCFormData) => any;
   listener?: ICCFieldListener;
-  refreshMark?: any; // 刷新标志
   /**
-   * 取消注入 Context 给下级
+   * 自定义字段更新逻辑
    */
-  omitContext?: boolean;
+  shouldUpdate?: any | any[];
+  /**
+   * 注入节点信息给下级
+   */
+  deliver?: boolean;
   parentField: ICCFieldContext; // 上级字段节点数据
 }
 
@@ -136,19 +139,11 @@ export type CCRulesType =
   | RegExp
   | ((formData: CCFormData, options: CCFieldOptions) => boolean | string);
 
-export interface ICCFieldContext {
-  fieldInstance: CCFieldWrapper;
-  visible: boolean;
-}
-
 const DEFAULT_UNIQUE = 'id';
 const DEFAULT_INLINE = true;
 const DEFAULT_OMIT_CONTEXT = false;
-const DEFAULT_CONTEXT_VALUE = {
-  visible: true,
-};
+const DEFAULT_INJECT_LIST_NAME = true;
 
-export const CCFieldContext = createContext<ICCFieldContext>(DEFAULT_CONTEXT_VALUE as ICCFieldContext);
 export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   declare context: ContextType<typeof CCForm.Context>;
   static contextType = CCForm.Context;
@@ -156,9 +151,9 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   static defaultProps = {
     inline: DEFAULT_INLINE,
     unique: DEFAULT_UNIQUE,
-    omitContext: DEFAULT_OMIT_CONTEXT,
-    autoListName: true,
-    preserveNode: false,
+    deliver: DEFAULT_OMIT_CONTEXT,
+    injectListName: DEFAULT_INJECT_LIST_NAME,
+    preserve: false,
   };
 
   static getDerivedStateFromProps(nextProps: ICCField, prevState: CCFieldState) {
@@ -228,8 +223,8 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     let state = {
       value: Types.isFunction(convertValue) ? that.execGetValue(formName, value, formData) : value,
       initialValue: value,
-      visible: !Types.isEmpty(visible) ? !!that.isCallbackKey(visible, data, options) : true,
-      disabled: !Types.isEmpty(disabled) ? !!that.isCallbackKey(disabled, data, options) : false,
+      visible: !Types.isEmpty(visible) ? !!that.execCallback(visible, data, options) : true,
+      disabled: !Types.isEmpty(disabled) ? !!that.execCallback(disabled, data, options) : false,
       error: false,
       required,
       requiredMsg,
@@ -248,8 +243,8 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
    * @returns {string}
    */
   getFormName(props?: ICCField): CCNamePath {
-    let {form, eachConfig, autoListName} = props || this.props;
-    return eachConfig && autoListName
+    let {form, eachConfig, injectListName} = props || this.props;
+    return eachConfig && injectListName
       ? typeof form !== 'number' && form
         ? `${eachConfig.form}.${form}`
         : eachConfig.form
@@ -284,12 +279,12 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     if (!Types.isEmpty(rules)) {
       if (Types.isArray(rules)) {
         const required = rules.find(
-          (da) => Types.isObject(da) && !!that.isCallbackKey((da as CCRequiredType).required, data, options),
+          (da) => Types.isObject(da) && !!that.execCallback((da as CCRequiredType).required, data, options),
         ) as CCRequiredType;
 
         return {required: !!required?.required, message: required?.message};
       } else {
-        return {required: that.isCallbackKey(rules, data, options) === true};
+        return {required: that.execCallback(rules, data, options) === true};
       }
     }
     return {required: rules === true};
@@ -357,7 +352,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     options.val = that.value;
 
     if (!Types.isEmpty(disabled)) {
-      that.disabled = !!that.isCallbackKey(disabled, data, options);
+      that.disabled = !!that.execCallback(disabled, data, options);
     }
   }
 
@@ -373,7 +368,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     options.val = that.value;
 
     if (!Types.isEmpty(visible)) {
-      that.visible = !!that.isCallbackKey(visible, data, options);
+      that.visible = !!that.execCallback(visible, data, options);
     }
   }
 
@@ -425,7 +420,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       let [name, func] = Types.isArray(un) ? un : [un, unionValue];
       let unionAll = findUnion(name, [name]);
       let reaction = Observer.autoRun(() => {
-        let value = that.isCallbackKey(func, data[name], {
+        let value = that.execCallback(func, data[name], {
           ...options,
           val: that.value,
           data: originData,
@@ -455,19 +450,18 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     return union;
   }
 
-  isCallbackKey<T>(func: any | ((...a: T[]) => any), ...args: T[]) {
+  execCallback<T>(func: any | ((...a: T[]) => any), ...args: T[]) {
     try {
       return Types.isFunction(func) ? func(...args) : func;
     } catch (e) {
       console.warn(e);
-      return false;
     }
   }
 
   getTitle(): ReactElement {
     const that = this;
     let {options, data} = that.getObserveOptions();
-    return that.isCallbackKey(that.props.title, data, options);
+    return that.execCallback(that.props.title, data, options);
   }
 
   getConfig() {
@@ -707,8 +701,17 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this,
       props = that.props,
       state = that.state;
+
+    const shouldUpdate = () => {
+      const nextUpdate = nextProps.shouldUpdate;
+      const update = props.shouldUpdate;
+      if (Types.isArray(nextUpdate) && Types.isArray(update)) {
+        return nextUpdate.some((it, ix) => it !== update[ix]);
+      } else {
+        return nextUpdate !== update;
+      }
+    };
     return (
-      nextProps.refreshMark !== props.refreshMark ||
       nextState.value !== state.value ||
       nextState.required !== state.required ||
       nextState.error !== state.error ||
@@ -716,7 +719,8 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       nextState.disabled !== state.disabled ||
       nextState._refreshMark !== state._refreshMark ||
       nextProps.form !== props.form ||
-      that.getFormName(nextProps) !== that.getFormName(props)
+      that.getFormName(nextProps) !== that.getFormName(props) ||
+      shouldUpdate()
     );
   }
 
@@ -755,7 +759,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     }
 
     if (formName !== that.getFormName(prevProps)) {
-      that.observeData();
+      // that.observeData();
       context.formInstance.fieldChange(formName, value, {raw: true});
     }
 
@@ -771,15 +775,15 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       forwardRef,
       // @ts-ignore
       __Component__: Target,
-      preserveNode,
+      preserve,
       title,
       valuePropName,
       forValue,
       parentField,
-      omitContext,
+      deliver,
       ...rest
     } = that.props;
-    if (!visible && !preserveNode) return null;
+    if (!visible && !preserve) return null;
 
     const nowValue = forValue ? forValue(value, context.data) : value;
     // @ts-ignore
@@ -805,7 +809,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       />
     );
 
-    return omitContext ? element : <CCFieldContext.Provider value={providerValue} children={element} />;
+    return deliver ? element : <CCFieldContext.Provider value={providerValue} children={element} />;
   }
 }
 
@@ -817,11 +821,11 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
   const {defaultValue} = options;
   return function (Target: ComponentType<T & IFieldItem>) {
     return (props: T & ICCFieldOmit) => (
-      <CCFormListContext.Consumer>
+      <CCFormListViewContext.Consumer>
         {(eachData) => {
-          const listData = eachData as CCListOperation;
-          let {initialValue, form, inline = DEFAULT_INLINE} = props;
-          if (listData) {
+          const listData = eachData as CCListViewContext;
+          let {initialValue, form, inline = DEFAULT_INLINE, injectListName = DEFAULT_INJECT_LIST_NAME} = props;
+          if (listData && injectListName) {
             const item = listData.data[listData.index];
             initialValue = form
               ? Types.isObject(item) && form in item
@@ -829,6 +833,8 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
                 : inline
                 ? initialValue
                 : item
+              : Types.isUndefined(item)
+              ? initialValue
               : item;
           }
 
@@ -847,7 +853,7 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
             </CCFieldContext.Consumer>
           );
         }}
-      </CCFormListContext.Consumer>
+      </CCFormListViewContext.Consumer>
     );
   };
 }

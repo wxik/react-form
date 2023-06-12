@@ -3,14 +3,24 @@
  * @author Quia
  * @sine 2020-04-11 16:03
  */
-import type {ComponentType, FC, ForwardRefExoticComponent, PropsWithoutRef, ReactNode, RefAttributes} from 'react';
-import {Component, createContext} from 'react';
+import type {
+  ComponentType,
+  FC,
+  ForwardRefExoticComponent,
+  FunctionComponent,
+  PropsWithoutRef,
+  ReactNode,
+  RefAttributes,
+} from 'react';
+import {Component} from 'react';
 
-import type {CCFieldWrapper, ICCField, IFieldItem} from './CCField';
-import type {ICCFieldOmit} from './CCField';
+import type {ICCFormContext} from './CCContext';
+import {CCFormContext} from './CCContext';
+import type {CCFieldWrapper, ICCField, ICCFieldOmit, IFieldItem} from './CCField';
 import type {CCListInstance, CCListWrapper, IListItem} from './CCList';
-import type {ICCOutlet} from './CCOutlet';
-import type {IOutlet} from './CCOutlet';
+import type {ICCListAction} from './CCListAction';
+import type {ICCListView} from './CCListView';
+import type {ICCOutlet, IOutlet} from './CCOutlet';
 import {FormHelper, Observer, Tools, Types} from './helper';
 
 export type CCFormData = Record<string, any>;
@@ -37,15 +47,6 @@ export interface ICCEmitter {
   addListener: (key: string, handle: (...value: any[]) => void) => void;
   removeListener: (key: string, handle: (...value: any[]) => void) => void;
   emit: (key: string, ...value: any[]) => void;
-}
-
-export interface ICCFormContext {
-  data: CCFormData;
-  originData: CCFormData;
-  initialValue?: CCFormData;
-  emitter?: ICCEmitter;
-  formInstance: CCForm;
-  disabled: boolean;
 }
 
 export interface CCFormInstance {
@@ -96,13 +97,13 @@ function isField(field: CCFieldWrapper | CCListWrapper): field is CCFieldWrapper
   return field.fieldType === CCFieldEnum.Field;
 }
 
-const CCFormContext = createContext<ICCFormContext | null>(null);
-
 export class CCForm extends Component<ICCForm, ICCFormState> {
   static Context = CCFormContext;
 
   static useForm: () => [CCFormInstance] = FormHelper.useForm;
+  static useFormInstance: () => CCFormInstance = FormHelper.useFormInstance;
   static useList: () => [CCListInstance] = FormHelper.useList;
+  static useListInstance: () => CCListInstance = FormHelper.useListInstance;
   static createForm: () => CCFormInstance = FormHelper.createForm;
   static createList: () => CCListInstance = FormHelper.createList;
 
@@ -115,6 +116,8 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   static Field: <T = {}>(options?: {
     defaultValue?: any;
   }) => (Target: ComponentType<T & IFieldItem>) => (props: T & ICCFieldOmit) => JSX.Element;
+  static ListView: FunctionComponent<ICCListView>;
+  static ListAction: FC<ICCListAction>;
 
   static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {
     const {data, initialValue} = nextProps;

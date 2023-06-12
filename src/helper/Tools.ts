@@ -61,11 +61,11 @@ export function getItemValue(item: Record<string, any>, key: string, defaultValu
  * getItemValue(object, 'a.e.e', 'default') === 'default'
  * getItemValue(object, 'a.b1.1') === 2 //也可以取数组
  * @param {Object|Array} item
- * @param {String} key
+ * @param {String|Number} [key]
  * @param {*} [defaultValue]
  * @returns {*}
  */
-export function get(item: Record<string, any>, key: string | number, defaultValue?: any) {
+export function get(item: Record<string, any>, key: string | number | undefined, defaultValue?: any) {
   if (Types.isEmpty(item) || Types.isBlank(key)) return defaultValue;
 
   if (Types.isObject(item) || Types.isArray(item)) {

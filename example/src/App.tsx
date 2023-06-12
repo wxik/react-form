@@ -13,11 +13,13 @@ import './assets/rc-select.pcss';
 // @ts-ignore
 import {CheckGroup as ICheckGroup} from '@ibot/ibot/lib/check';
 // @ts-ignore
+import Icon from '@ibot/ibot/lib/icon';
+// @ts-ignore
 import IBotInput from '@ibot/ibot/lib/input';
 // @ts-ignore
 import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
 import type {CCFormData} from '@wxik/react-form';
-import {CCForm, CCOutlet} from '@wxik/react-form';
+import {CCField, CCForm, CCOutletView} from '@wxik/react-form';
 import Select from 'rc-select';
 import React from 'react';
 
@@ -37,8 +39,8 @@ class App extends React.Component<any> {
     initialValue: {
       select: 'java',
       radio: 'on',
-      sl: [{c: ['123', '32']}],
-      job: Array(999)
+      sl: [{name: 'Award Name 1', c: ['Award Name 1', '32']}],
+      job: Array(4)
         .fill({
           bcdef: Math.random(),
           id: 1,
@@ -181,16 +183,9 @@ class App extends React.Component<any> {
     this.list2.add({sex2: 'test', sex: Math.random()}, 0);
   }
 
-  moveList2(from: number, to: number) {
-    this.list2.move(from, to);
-  }
-
-  addList1() {
-    this.list1.add({});
-  }
-
-  removeList1() {
-    this.list1.remove([1, 2]);
+  addList1(length: number) {
+    const name = `Award Name ${length + 1}`;
+    this.list1.add({c: [name], name});
   }
 
   render() {
@@ -270,58 +265,75 @@ class App extends React.Component<any> {
             </Field>
           </div>
           <div style={styles.sop}>
-            <div className={'flex gap-2.5'}>
-              <button onClick={() => that.addList1()} style={styles.btn}>
-                添加一行
-              </button>
-              <button onClick={() => that.removeList1()} style={styles.btn}>
-                删除 2, 3 行
-              </button>
-            </div>
-            <CCForm.List form={'sl'} initRows={1} formList={that.list1}>
-              {({add, remove, key}) => (
-                <div key={key} className={'flex gap-3 items-center'}>
-                  <div className={'border-dotted border border-sky-500 my-2.5 p-2.5 rounded'}>
-                    <CCForm.List form="c" initRows={1}>
-                      {({add, remove, key, index}) => (
-                        <div style={styles.form} key={key}>
-                          <Field title={'SL 吃吃 - ' + index} initialValue={String(index)}>
-                            <IBotInput />
-                          </Field>
-                          <div className={'mt-[30px] gap-3 flex'}>
-                            <button style={styles.btn2} onClick={() => add()}>
-                              +
-                            </button>
-                            <button style={styles.btn2} onClick={remove}>
-                              -
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </CCForm.List>
-                  </div>
-                  <button style={styles.btn2} onClick={() => add()}>
-                    +
-                  </button>
-                  <button style={styles.btn2} onClick={remove}>
-                    -
-                  </button>
+            <div className={'flex gap-3'}>
+              <CCForm.List form={'sl'} initRows={1} formList={that.list1}>
+                <div>
+                  <CCListView>
+                    {({remove, index}) => (
+                      <div
+                        className={'flex my-2.5 gap-3 border-dotted border border-sky-500 rounded p-2.5 items-center '}>
+                        <TabName ignore form={'name'} union={`sl.${index}.c.0`} unionValue={(v) => v} />
+
+                        <button onClick={remove} className={'leading-[0px]'}>
+                          <Icon name={'trash-can'} />
+                        </button>
+                      </div>
+                    )}
+                  </CCListView>
+                  <CCListAction>
+                    {({add, length, remove}) => (
+                      <div className={'flex gap-2.5'}>
+                        <button style={styles.btn} onClick={() => that.addList1(length)}>
+                          添加一行
+                        </button>
+                        <button onClick={() => remove([1, 2])} style={styles.btn}>
+                          删除 2, 3 行
+                        </button>
+                      </div>
+                    )}
+                  </CCListAction>
                 </div>
-              )}
-            </CCForm.List>
+                <div>
+                  <CCListView>
+                    {({index}) => (
+                      <div className={'border-dotted border border-sky-500 my-2.5 p-2.5 rounded'}>
+                        <CCForm.List form="c" initRows={1}>
+                          {({add, remove, key, index: index2}) => (
+                            <div style={styles.form} key={key}>
+                              <Field  title={'SL 吃吃 - ' + (index + 1) + ' - ' + (index2 + 1)}
+                                      initialValue={String(index + 1)}>
+                                <IBotInput />
+                              </Field>
+                              <div className={'mt-[30px] gap-3 flex'}>
+                                <button style={styles.btn2} onClick={() => add()}>
+                                  +
+                                </button>
+                                <button style={styles.btn2} onClick={remove}>
+                                  -
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </CCForm.List>
+                      </div>
+                    )}
+                  </CCListView>
+                </div>
+              </CCForm.List>
+            </div>
           </div>
           <div style={styles.sop}>
             <button onClick={() => that.addList2()} style={styles.btn}>
               最前面插入一行
             </button>
             <CCForm.List form={'job'} formList={that.list2} initRows={1}>
-              {({add, remove, index}) => (
+              {({add, remove, index, move}) => (
                 <div style={styles.form}>
                   <div className={'mt-[30px] gap-3 flex'}>
-                    <button style={styles.btn2} onClick={() => that.moveList2(index, index - 1)}>
+                    <button style={styles.btn2} onClick={() => move(index, index - 1)}>
                       ↑
                     </button>
-                    <button style={styles.btn2} onClick={() => that.moveList2(index, index + 1)}>
+                    <button style={styles.btn2} onClick={() => move(index, index + 1)}>
                       ↓
                     </button>
                   </div>
@@ -350,17 +362,27 @@ class App extends React.Component<any> {
             <button onClick={() => that.count()} style={styles.btn}>
               Submit
             </button>
-            <CCOutlet.View forProps={(props) => ({disabled: props.disabled})}>
+            <CCOutletView forProps={(props) => ({disabled: props.disabled})}>
               <button style={styles.btn} onClick={() => that.inject()}>
                 Inject
               </button>
-            </CCOutlet.View>
+            </CCOutletView>
           </div>
         </CCForm>
       </div>
     );
   }
 }
+
+const TabName = CCField()((props) => {
+  const {value, form, union} = props;
+  console.log(form, union);
+  return (
+    <div className={'flex-1'}>
+      <div className={'w-64 truncate'}>{value} - test</div>
+    </div>
+  );
+});
 
 const styles: Record<string, any> = {
   form: {
