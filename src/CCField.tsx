@@ -3,11 +3,11 @@
  * @author Quia
  * @sine 2020-04-11 11:43
  */
-import type {ComponentType, ContextType, ReactElement, ReactNode, Ref} from 'react';
-import {Component} from 'react';
+import type {ComponentType, ContextType, FC, ReactElement, ReactNode, Ref} from 'react';
+import {Component, useContext} from 'react';
 
-import type {CCListContext, ICCFieldContext, ICCFormContext} from './CCContext';
-import {CCFieldContext, CCFormListContext} from './CCContext';
+import type {CCListContext, CCListViewContext, ICCFieldContext, ICCFormContext} from './CCContext';
+import {CCFieldContext, CCFormListContext, CCFormListViewContext} from './CCContext';
 import type {CCFormData, CCFormInstance, CCNamePath} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
 import {FormHelper, Observer, Tools, Types} from './helper';
@@ -142,6 +142,7 @@ export type CCRulesType =
 const DEFAULT_UNIQUE = 'id';
 const DEFAULT_INLINE = true;
 const DEFAULT_OMIT_CONTEXT = false;
+const DEFAULT_INJECT_LIST_NAME = true;
 
 export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   declare context: ContextType<typeof CCForm.Context>;
@@ -151,7 +152,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     inline: DEFAULT_INLINE,
     unique: DEFAULT_UNIQUE,
     deliver: DEFAULT_OMIT_CONTEXT,
-    injectListName: true,
+    injectListName: DEFAULT_INJECT_LIST_NAME,
     preserve: false,
   };
 
@@ -758,7 +759,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     }
 
     if (formName !== that.getFormName(prevProps)) {
-      that.observeData();
+      // that.observeData();
       context.formInstance.fieldChange(formName, value, {raw: true});
     }
 
@@ -820,11 +821,11 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
   const {defaultValue} = options;
   return function (Target: ComponentType<T & IFieldItem>) {
     return (props: T & ICCFieldOmit) => (
-      <CCFormListContext.Consumer>
+      <CCFormListViewContext.Consumer>
         {(eachData) => {
-          const listData = eachData as CCListContext;
-          let {initialValue, form, inline = DEFAULT_INLINE} = props;
-          if (listData) {
+          const listData = eachData as CCListViewContext;
+          let {initialValue, form, inline = DEFAULT_INLINE, injectListName = DEFAULT_INJECT_LIST_NAME} = props;
+          if (listData && injectListName) {
             const item = listData.data[listData.index];
             initialValue = form
               ? Types.isObject(item) && form in item
@@ -832,6 +833,8 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
                 : inline
                 ? initialValue
                 : item
+              : Types.isUndefined(item)
+              ? initialValue
               : item;
           }
 
@@ -850,7 +853,7 @@ export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
             </CCFieldContext.Consumer>
           );
         }}
-      </CCFormListContext.Consumer>
+      </CCFormListViewContext.Consumer>
     );
   };
 }

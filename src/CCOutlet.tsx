@@ -9,7 +9,7 @@ import type {ComponentType, ReactElement} from 'react';
 import {cloneElement, forwardRef} from 'react';
 
 import type {CCListContext, ICCFormContext} from './CCContext';
-import {CCFormListContext} from './CCContext';
+import {CCFormListViewContext} from './CCContext';
 import {CCForm} from './CCForm';
 
 export interface ICCOutlet extends ICCFormContext {
@@ -24,18 +24,18 @@ export interface IOutlet {
 export function CCOutlet<T = {}, P = any>() {
   return function (Target: ComponentType<T & ICCOutlet>) {
     return forwardRef<P, T>((props, ref) => (
-      <CCFormListContext.Consumer>
+      <CCFormListViewContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>
             {(fieldContext) => <Target {...props} ref={ref} {...fieldContext!} eachConfig={eachContext || void 0} />}
           </CCForm.Context.Consumer>
         )}
-      </CCFormListContext.Consumer>
+      </CCFormListViewContext.Consumer>
     ));
   };
 }
 
-CCOutlet.View = CCOutlet<IOutlet>()((props) => {
+export const CCOutletView = CCOutlet<IOutlet>()((props) => {
   const {children, forProps, ...rest} = props;
   return cloneElement(children, forProps ? forProps(rest) : rest);
 });

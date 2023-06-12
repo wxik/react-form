@@ -3,13 +3,23 @@
  * @author Quia
  * @sine 2020-04-11 16:03
  */
-import type {ComponentType, FC, ForwardRefExoticComponent, PropsWithoutRef, ReactNode, RefAttributes} from 'react';
+import type {
+  ComponentType,
+  FC,
+  ForwardRefExoticComponent,
+  FunctionComponent,
+  PropsWithoutRef,
+  ReactNode,
+  RefAttributes,
+} from 'react';
 import {Component} from 'react';
 
 import type {ICCFormContext} from './CCContext';
 import {CCFormContext} from './CCContext';
 import type {CCFieldWrapper, ICCField, ICCFieldOmit, IFieldItem} from './CCField';
 import type {CCListInstance, CCListWrapper, IListItem} from './CCList';
+import type {ICCListAction} from './CCListAction';
+import type {ICCListView} from './CCListView';
 import type {ICCOutlet, IOutlet} from './CCOutlet';
 import {FormHelper, Observer, Tools, Types} from './helper';
 
@@ -106,6 +116,8 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   static Field: <T = {}>(options?: {
     defaultValue?: any;
   }) => (Target: ComponentType<T & IFieldItem>) => (props: T & ICCFieldOmit) => JSX.Element;
+  static ListView: FunctionComponent<ICCListView>;
+  static ListAction: FC<ICCListAction>;
 
   static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {
     const {data, initialValue} = nextProps;
