@@ -3,11 +3,11 @@
  * @author Quia
  * @sine 2020-04-11 11:43
  */
-import type {ComponentType, ContextType, FC, ReactElement, ReactNode, Ref} from 'react';
-import {Component, useContext} from 'react';
+import type {ComponentType, ContextType, ReactElement, ReactNode, Ref} from 'react';
+import {Component} from 'react';
 
 import type {CCListContext, CCListViewContext, ICCFieldContext, ICCFormContext} from './CCContext';
-import {CCFieldContext, CCFormListContext, CCFormListViewContext} from './CCContext';
+import {CCFieldContext, CCFormListViewContext} from './CCContext';
 import type {CCFormData, CCFormInstance, CCNamePath} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
 import {FormHelper, Observer, Tools, Types} from './helper';
@@ -92,6 +92,7 @@ export interface ICCField {
   shouldUpdate?: any | any[];
   /**
    * 注入节点信息给下级
+   * @default true
    */
   deliver?: boolean;
   parentField: ICCFieldContext; // 上级字段节点数据
@@ -141,7 +142,7 @@ export type CCRulesType =
 
 const DEFAULT_UNIQUE = 'id';
 const DEFAULT_INLINE = true;
-const DEFAULT_OMIT_CONTEXT = false;
+const DEFAULT_OMIT_CONTEXT = true;
 const DEFAULT_INJECT_LIST_NAME = true;
 
 export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
@@ -818,7 +819,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       />
     );
 
-    return deliver ? element : <CCFieldContext.Provider value={providerValue} children={element} />;
+    return !deliver ? element : <CCFieldContext.Provider value={providerValue} children={element} />;
   }
 }
 
