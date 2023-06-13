@@ -4,18 +4,13 @@
  * @sine 2020-04-16 10:14
  */
 import '@ibot/ibot/lib/root/index.css';
-import '@ibot/ibot/lib/icon/index.css';
-import '@ibot/ibot/lib/input/index.css';
 import '@ibot/ibot/lib/radio/index.css';
 import '@ibot/ibot/lib/check/index.css';
 import './assets/rc-select.pcss';
 
+import {TrashIcon} from '@heroicons/react/24/outline';
 // @ts-ignore
 import {CheckGroup as ICheckGroup} from '@ibot/ibot/lib/check';
-// @ts-ignore
-import Icon from '@ibot/ibot/lib/icon';
-// @ts-ignore
-import IBotInput from '@ibot/ibot/lib/input';
 // @ts-ignore
 import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
 import type {CCFormData} from '@wxik/react-form';
@@ -23,6 +18,7 @@ import {CCField, CCForm, CCListAction, CCListView, CCOutletView} from '@wxik/rea
 import Select from 'rc-select';
 import React, {useEffect} from 'react';
 
+import {Input} from './components/Input';
 import type {IField} from './Field';
 import {Field} from './Field';
 
@@ -196,7 +192,7 @@ class App extends React.Component<any> {
           <div style={styles.form}>
             {that.config.map((config, index) => (
               <Field key={config.form} {...config}>
-                <IBotInput />
+                <Input />
               </Field>
             ))}
           </div>
@@ -261,7 +257,7 @@ class App extends React.Component<any> {
               initialValue={''}
               unionValue={(value) => (value === 'react' ? '你好 React' : '')}
               visible={(formData) => formData.select !== 'vue' && formData.radio === 'on'}>
-              <IBotInput />
+              <Input />
             </Field>
           </div>
           <div style={styles.sop}>
@@ -274,7 +270,7 @@ class App extends React.Component<any> {
                         <TabName injectListName={false} union={`sl.${index}.c.0`} unionValue={(v) => v} />
 
                         <button onClick={remove} className={'leading-[0px]'}>
-                          <Icon name={'trash-can'} />
+                          <TrashIcon className="h-4" />
                         </button>
                       </div>
                     )}
@@ -303,7 +299,7 @@ class App extends React.Component<any> {
                                 rules
                                 title={'SL 吃吃 - ' + (index + 1) + ' - ' + (index2 + 1)}
                                 initialValue={String(index + 1)}>
-                                <IBotInput />
+                                <Input />
                               </Field>
                               <div className={'mt-[30px] gap-3 flex'}>
                                 <button style={styles.btn2} onClick={() => add()}>
@@ -340,11 +336,7 @@ class App extends React.Component<any> {
                   </div>
                   {that.formList.map((config) => (
                     <Field key={config.form} {...config}>
-                      {config.fieldType === 'select' ? (
-                        <Select className={'w-44'} {...config.fieldProps} />
-                      ) : (
-                        <IBotInput />
-                      )}
+                      {config.fieldType === 'select' ? <Select className={'w-44'} {...config.fieldProps} /> : <Input />}
                     </Field>
                   ))}
                   <div className={'mt-[30px] gap-3 flex'}>

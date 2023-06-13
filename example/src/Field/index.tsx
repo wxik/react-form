@@ -3,7 +3,6 @@
  * @author Quia (zehua.tang)
  * @since 2023-05-12 11:27
  */
-import {Types} from '@wxik/core';
 import type {ICCField} from '@wxik/react-form';
 import {CCField} from '@wxik/react-form';
 import cls from 'classnames';
@@ -49,7 +48,6 @@ export const Field: FC<IField> = CCField<IFieldProps>()((props) => {
     layout,
     visible,
     fieldNames = {},
-    antd,
   } = props;
   const {value: valueKey = 'value'} = fieldNames;
 
@@ -65,22 +63,16 @@ export const Field: FC<IField> = CCField<IFieldProps>()((props) => {
     }
   };
 
-  const forProps = () => {
-    const cProps: Record<string, any> = {
-      onChange: handleChange,
-      [valueKey]: antd ? value : String(value ?? ''),
-      disabled,
-    };
-    if (antd) {
-      cProps.status = error ? 'error' : void 0;
-    } else {
-      cProps.isInvalid = error;
-    }
-    return cProps;
-  };
-
   // console.log('Field:', value);
-  const element = childCount === 1 ? cloneElement(children as ReactElement, forProps()) : children;
+  const element =
+    childCount === 1
+      ? cloneElement(children as ReactElement, {
+          onChange: handleChange,
+          [valueKey]: value,
+          disabled,
+          status: error ? 'error' : void 0,
+        })
+      : children;
   return (
     <div className={cls(styles.itemWarp, className, !visible && '!atom-hidden')}>
       {title ? (
