@@ -10,6 +10,9 @@
     "@wxik/core": "^0.5.5",
     "classnames": "^2.3.2",
     "rc-select": "^12.1.13",
+    "@tailwindcss/forms": "^0.5.3",
+    "@headlessui/react": "^1.7.15",
+    "@heroicons/react": "^2.0.18",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
