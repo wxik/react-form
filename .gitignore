@@ -6,3 +6,4 @@ dist/
 esm/
 yarn-error.log
 .idea
+/example/.dumi/tmp

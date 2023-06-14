@@ -3,14 +3,13 @@
  * @author Quia (zehua.tang)
  * @since 2023-05-12 11:27
  */
+import './index.css';
+
 import type {ICCField} from '@wxik/react-form';
 import {CCField} from '@wxik/react-form';
 import cls from 'classnames';
 import type {FC, ReactElement} from 'react';
 import {Children, cloneElement, useMemo} from 'react';
-
-// @ts-ignore
-import styles from './index.module.css';
 
 interface IFieldProps {
   children?: ReactElement | ReactElement[];
@@ -74,19 +73,19 @@ export const Field: FC<IField> = CCField<IFieldProps>()((props) => {
         })
       : children;
   return (
-    <div className={cls(styles.itemWarp, className, !visible && '!atom-hidden')}>
+    <div className={cls('form-item-warp', className, !visible && 'form-hidden')}>
       {title ? (
         <div
           className={cls(
-            styles.item,
+            'form-item',
             warpClassName,
             layout === 'horizontal'
-              ? styles.horizontal
+              ? 'form-horizontal'
               : layout === 'vertical'
-              ? styles.vertical
-              : styles.defaultLayout,
+              ? 'form-vertical'
+              : 'form-default-layout',
           )}>
-          <label className={cls(styles.itemLabel, required && styles.requiredMarkOptional, labelClassName)}>
+          <label className={cls('form-item-label', required && 'required-mark-optional', labelClassName)}>
             {title}
           </label>
           {element}
@@ -96,9 +95,9 @@ export const Field: FC<IField> = CCField<IFieldProps>()((props) => {
       )}
 
       {errors && (
-        <div className={cls(styles.errorWarp, errorClassName)}>
+        <div className={cls('form-error-warp', errorClassName)}>
           {errors.map((it, ix) => (
-            <div key={`${ix}-${it}`} className={cls(styles.error)}>
+            <div key={`${ix}-${it}`} className={'form-error'}>
               {it}
             </div>
           ))}
