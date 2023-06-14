@@ -61,26 +61,35 @@ export interface CCFormInstance {
    */
   validate: () => boolean;
   /**
+   * 验证表单
+   */
+  validateErrors: (paths?: CCNamePath[]) => CCValidateError[];
+  /**
    * 初始化表单数据, 不触发 onChange
    * @param {CCFormData | any[]} data
    */
   setOriginData: (data: CCFormData | any[]) => void;
   /**
-   *  初始化表单数据, 触发 onChange, 不触发联动
+   * 设置表单数据, 触发字段 onChange 但不触发联动
    * @param {Array|Object} data
    */
   setFieldData: (data: CCFormData | any[]) => void;
   /**
-   * 添加字段数据(字段可不存在)并触发 onChange
+   * 添加字段数据(字段可不存在): 触发联动、字段不接收值
    * @param {CCFormData} data
    */
   addData: (data: CCFormData) => void;
   /**
-   * 设置表单数据, 默认不调用 convertValue
-   * @param {: FormData | any[]} data
+   * 设置表单数据, 默认不调用字段 convertValue 和 onChange
+   * @param {CCFormData | any[]} data
    * @param {{isGet: boolean, isChange: boolean}} options
    */
   setData: (data: CCFormData) => void;
+}
+
+export interface CCValidateError {
+  key: CCNamePath;
+  messages?: string[];
 }
 
 export enum CCFieldEnum {
@@ -358,15 +367,15 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
 
   /**
    * 设置字段数据
-   * @param {Array|Object} data
+   * @param {CCFormData | any[]} data
    */
   setFieldData(data: CCFormData | any[]) {
     this.setData(data, {isGet: true, isChange: true});
   }
 
   /**
-   * 设置表单数据, 默认不调用 convertValue
-   * @param {: FormData | any[]} data
+   * 设置表单数据
+   * @param {CCFormData | any[]} data
    * @param {{isGet: boolean, isChange: boolean}} options
    */
   setData(data: CCFormData | any[], options: {isChange?: boolean; isGet?: boolean} = {}) {
@@ -412,7 +421,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   }
 
   /**
-   * 添加字段数据(字段可不存在)
+   * 添加字段数据(字段可不存在): 触发联动、字段不接收值
    * @param {CCFormData} data
    */
   addData(data: CCFormData) {
@@ -433,12 +442,19 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
 
   /**
    * 验证表单, 返回错误信息
+   * @param {CCNamePath[]} [paths]
+   * @returns {CCValidateError[]}
    */
-  validateErrors() {
+  validateErrors(paths: CCNamePath[] = []): CCValidateError[] {
     let errors = new Map();
     for (let f of this.fields) {
       let field = f.getConfig();
-      if (field.form && field.visible && field.parentVisible) {
+      if (
+        field.form &&
+        field.visible &&
+        field.parentVisible &&
+        (paths.length ? paths.findIndex((path) => String(field.form).indexOf(String(path)) === 0) !== -1 : true)
+      ) {
         const {error, errors: messages} = f.validateErrors();
         if (error) {
           errors.set(field.form, {

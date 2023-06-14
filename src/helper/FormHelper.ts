@@ -12,22 +12,25 @@ import type {CCListInstance, CCListWrapper} from '../CCList';
 
 export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
   return {
-    subData: (options: {merge?: boolean} = {}) => {
+    subData: (options) => {
       return ref.current?.subData(options)!;
     },
     validate: () => {
       return ref.current?.validate()!;
     },
+    validateErrors: (paths) => {
+      return ref.current?.validateErrors(paths)!;
+    },
     setOriginData: (data: CCFormData | any[]) => {
       return ref.current?.setOriginData(data);
     },
-    setFieldData: (data: CCFormData | any[]) => {
+    setFieldData: (data) => {
       return ref.current?.setFieldData(data);
     },
-    addData: (data: CCFormData) => {
+    addData: (data) => {
       return ref.current?.addData(data);
     },
-    setData: (data: CCFormData) => {
+    setData: (data) => {
       return ref.current?.setData(data);
     },
     // @ts-ignore
