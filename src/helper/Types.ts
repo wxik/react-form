@@ -52,6 +52,15 @@ export function isObject(type: any): type is Record<any, any> {
 }
 
 /**
+ * Check the type whether is promise or not
+ * @param {*} type
+ * @returns {boolean}
+ */
+export function isPromise<T extends any>(type: any): type is Promise<T> {
+  return typeof type === 'object' && (toString.call(type) === '[object Promise]' || Promise.resolve(type) === type);
+}
+
+/**
  * Check the type whether is array or not
  * @param {*} type
  * @returns {boolean}

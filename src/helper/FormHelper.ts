@@ -18,6 +18,9 @@ export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
     validate: () => {
       return ref.current?.validate()!;
     },
+    asyncValidate: async () => {
+      return await ref.current?.asyncValidate()!;
+    },
     setOriginData: (data: CCFormData | any[]) => {
       return ref.current?.setOriginData(data);
     },

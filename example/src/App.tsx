@@ -63,7 +63,7 @@ class App extends React.Component<any> {
           {pattern: /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/, message: '请输入数值 - 正则'},
           (data: CCFormData) => {
             const valid = /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/.test(data.name);
-            return valid ? true : '请输入数值 - 方法处理';
+            return valid || '请输入数值 - 方法处理';
           },
         ],
       },
@@ -156,6 +156,15 @@ class App extends React.Component<any> {
     // this.setState({data});
   }
 
+  async countAsync() {
+    try {
+      const valid = await this.form.asyncValidate();
+      console.log('异步验证:', valid, this.form.subData());
+    } catch (e) {
+      console.log('-----');
+    }
+  }
+
   inject() {
     this.form.setOriginData({
       // name: 'Inject Name: ' + Math.random(),
@@ -186,6 +195,16 @@ class App extends React.Component<any> {
     const name = `Award Name ${length + 1}`;
     this.list1.add({c: [name], name});
   }
+
+  validateItem = (date) => {
+    return new Promise((resolve) => {
+      console.log('validateItem');
+      setTimeout(() => {
+        console.log('validateItem');
+        resolve(true);
+      }, 1000 * 1);
+    });
+  };
 
   render() {
     let that = this;
@@ -258,7 +277,8 @@ class App extends React.Component<any> {
               form={'des'}
               title={'科目描述'}
               union={'select'}
-              initialValue={''}
+              initialValue={'cc'}
+              rules={[that.validateItem]}
               unionValue={(value) => (value === 'react' ? '你好 React' : '')}
               visible={(formData) => formData.select !== 'vue' && formData.radio === 'on'}>
               <IBotInput />
@@ -362,6 +382,9 @@ class App extends React.Component<any> {
           <div className={'gap-2.5 flex p-5'}>
             <button onClick={() => that.count()} style={styles.btn}>
               Submit
+            </button>
+            <button onClick={() => that.countAsync()} style={styles.btn}>
+              Submit by Async
             </button>
             <CCOutletView forProps={(props) => ({disabled: props.disabled})}>
               <button style={styles.btn} onClick={() => that.inject()}>

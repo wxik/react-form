@@ -16,7 +16,7 @@ import {Component} from 'react';
 
 import type {ICCFormContext} from './CCContext';
 import {CCFormContext} from './CCContext';
-import type {CCFieldWrapper, ICCField, ICCFieldOmit, IFieldItem} from './CCField';
+import type {CCFieldError, CCFieldWrapper, ICCField, ICCFieldOmit, IFieldItem} from './CCField';
 import type {CCListInstance, CCListWrapper, IListItem} from './CCList';
 import type {ICCListAction} from './CCListAction';
 import type {ICCListView} from './CCListView';
@@ -60,6 +60,11 @@ export interface CCFormInstance {
    * @returns {boolean}
    */
   validate: () => boolean;
+  /**
+   * 异步验证表单
+   * @returns {Promise<boolean>}
+   */
+  asyncValidate: () => Promise<boolean>;
   /**
    * 初始化表单数据, 不触发 onChange
    * @param {CCFormData | any[]} data
@@ -424,7 +429,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   }
 
   /**
-   * 验证表单
+   * 验证表单, 不处理表单中带有异步的验证
    * @returns {boolean}
    */
   validate() {
@@ -432,24 +437,54 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   }
 
   /**
+   * 异步验证表单
+   */
+  async asyncValidate() {
+    return (await this.asyncValidateErrors()).length === 0;
+  }
+
+  /**
    * 验证表单, 返回错误信息
    */
   validateErrors() {
-    let errors = new Map();
+    const errors = new Map<CCNamePath, CCFieldError>();
+    this._validateErrors(errors, (field, callback) => callback(field.validateErrors()));
+    return Array.from(errors.values());
+  }
+
+  asyncValidateErrors() {
+    return new Promise<Array<CCFieldError>>((resolve) => {
+      const errors = new Map<CCNamePath, CCFieldError>();
+      let total = 0;
+      let count = 0;
+      this._validateErrors(errors, (field, callback) => {
+        total++;
+        (async () => {
+          callback(await field.asyncValidateErrors());
+          count++;
+          if (count === total) {
+            resolve(Array.from(errors.values()));
+          }
+        })();
+      });
+    });
+  }
+
+  private _validateErrors(
+    errors: Map<CCNamePath, CCFieldError>,
+    callback: (field: CCFieldWrapper, callback: (data: any) => void) => void,
+  ) {
     for (let f of this.fields) {
       let field = f.getConfig();
       if (field.form && field.visible && field.parentVisible) {
-        const {error, errors: messages} = f.validateErrors();
-        if (error) {
-          errors.set(field.form, {
-            key: field.form,
-            ref: f,
-            messages,
-          });
-        }
+        callback(f, (data: {error: boolean; errors?: string[]}) => {
+          const {error, errors: messages} = data;
+          if (error) {
+            errors.set(field.form, {key: field.form, ref: f, messages});
+          }
+        });
       }
     }
-    return Array.from(errors.values());
   }
 
   /**
