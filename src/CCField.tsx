@@ -278,17 +278,17 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this;
     let {rules} = that.props;
     if (!Types.isEmpty(rules)) {
+      rules = Types.isObject(rules) ? ([rules] as CCRulesType[]) : rules;
+      const findReq = (da: any) =>
+        Types.isObject(da) && !!that.execCallback((da as CCRequiredType).required, data, options);
       if (Types.isArray(rules)) {
-        const required = rules.find(
-          (da) => Types.isObject(da) && !!that.execCallback((da as CCRequiredType).required, data, options),
-        ) as CCRequiredType;
-
+        const required = rules.find(findReq) as CCRequiredType;
         return {required: !!required?.required, message: required?.message};
       } else {
         return {required: that.execCallback(rules, data, options) === true};
       }
     }
-    return {required: rules === true};
+    return {required: false};
   }
 
   execGetValue(formName: CCNamePath, value: any, data: CCFormData) {
