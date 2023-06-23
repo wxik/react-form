@@ -7,7 +7,7 @@ import type {RefObject} from 'react';
 import {createRef, useContext, useMemo, useRef} from 'react';
 
 import {CCFormContext, CCFormListContext} from '../CCContext';
-import type {CCForm, CCFormData, CCFormInstance} from '../CCForm';
+import type {CCForm, CCFormData, CCFormInstance, CCNamePath} from '../CCForm';
 import type {CCListInstance, CCListWrapper} from '../CCList';
 
 export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
@@ -20,6 +20,12 @@ export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
     },
     asyncValidate: async () => {
       return await ref.current?.asyncValidate()!;
+    },
+    validateErrors: (paths?: CCNamePath[]) => {
+      return ref.current?.validateErrors(paths)!;
+    },
+    asyncValidateErrors: async (paths?: CCNamePath[]) => {
+      return ref.current?.asyncValidateErrors(paths)!;
     },
     setOriginData: (data: CCFormData | any[]) => {
       return ref.current?.setOriginData(data);

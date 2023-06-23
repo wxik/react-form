@@ -145,7 +145,7 @@ type ReturnRuleType = undefined | boolean | string;
 export type CCRulesType =
   | CCRequiredType
   | RegExp
-  | ((formData: CCFormData, options: CCFieldOptions) => ReturnRuleType | Promise<ReturnRuleType>);
+  | ((formData: CCFormData, options: CCFieldOptions) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
 
 export interface CCFieldError {
   key: CCNamePath;

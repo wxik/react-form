@@ -158,7 +158,8 @@ class App extends React.Component<any> {
 
   async countAsync() {
     try {
-      const valid = await this.form.asyncValidate();
+      console.log('start');
+      const valid = await this.form.asyncValidateErrors(['des']);
       console.log('异步验证:', valid, this.form.subData());
     } catch (e) {
       console.log('-----');
@@ -196,13 +197,13 @@ class App extends React.Component<any> {
     this.list1.add({c: [name], name});
   }
 
-  validateItem = (date) => {
+  validateItem = () => {
     return new Promise((resolve) => {
       console.log('validateItem');
       setTimeout(() => {
         console.log('validateItem');
-        resolve(true);
-      }, 1000 * 1);
+        resolve('异步验证错误');
+      }, 1000);
     });
   };
 
