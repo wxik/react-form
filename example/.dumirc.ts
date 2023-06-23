@@ -10,7 +10,7 @@ export default defineConfig({
     footer: `Open-source MIT Licensed | Copyright © 2023-present <br/> Powered by self`,
     prefersColor: {default: 'light', switch: false},
   },
-  outputPath: 'docs-dist',
+  outputPath: path.join(__dirname, '..', 'docs'),
   alias: {
     '@wxik/react-form': path.resolve('../src'),
     '@': path.resolve(__dirname, 'src'),

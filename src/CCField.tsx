@@ -196,7 +196,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   private providerValue: ICCFieldContext | {} = {};
   public fieldType = CCFieldEnum.Field;
 
-  constructor(props: ICCField, context: ContextType<typeof CCForm.Context>) {
+  constructor(props: ICCField, context?: ContextType<typeof CCForm.Context>) {
     super(props, context);
     const that = this;
     that.listenerValueChange = that.listenerValueChange.bind(that);

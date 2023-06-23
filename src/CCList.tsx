@@ -51,7 +51,7 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
   private uuid: number = 0;
   public fieldType = CCFieldEnum.List;
 
-  constructor(props: ICCList, context: any) {
+  constructor(props: ICCList, context?: any) {
     super(props, context);
     const that = this;
     const {formList} = props;

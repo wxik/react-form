@@ -16,25 +16,28 @@ group:
 
 ### API
 
-| key          | explain                                                 | type                   | default |
-| :----------- | ------------------------------------------------------- | :--------------------- | :------ |
-| data         | 表单共享传入数据, 采用对象引用                          | CCFormData             | -       |
-| initialValue | 初始化数据                                              | CCFormData             | -       |
+| key          | explain                                | type                   | default |
+|:-------------|----------------------------------------|:-----------------------|:--------|
+| form         | 代理对象                                   | CCFormInstance         | -       |
+| data         | 表单共享传入数据, 采用对象引用                       | CCFormData             | -       |
+| initialValue | 初始化数据                                  | CCFormData             | -       |
 | disabled     | 设置表单组件禁用, 透传给 CCField, 但 CCField 可自行控制 | boolean                | -       |
-| onChange     | 值改变回调                                              | function(data, fields) | \_      |
-| emitter      | 发布与订阅辅助                                          | ICCEmitter             | -       |
+| onChange     | 值改变回调                                  | function(data, fields) | _       |
+| emitter      | 发布与订阅辅助                                | ICCEmitter             | -       |
 
 ##### CCFormInstance
 
-| key            | explain                                   | type                                                                                                         | version |
-|:---------------|-------------------------------------------|:-------------------------------------------------------------------------------------------------------------|:--------|
-| subData        | 获取表单 submitData                           | (`options`?: {`merge`?: boolean}) => CCFormData                                                              | -       |
-| validate       | 验证表单                                      | () => boolean                                                                                                | -       |
-| validateErrors | 验证表单                                      | (`paths`?: CCNamePath[]) => CCValidateError[]                                                                | -       |
-| setOriginData  | 初始化表单数据, 不触发`onChange`                    | (`data`: CCFormData \| any[]) => void                                                                        | -       |
-| setFieldData   | 设置表单数据, 触发`onChange`和`convertValue`但不触发联动 | (`data`: CCFormData \| any[]) => void                                                                        | -       |
-| addData        | 添加字段数据(字段可不存在), 触发联动, 字段不会主动接收值           | (`data`: CCFormData) => void                                                                                 | -       |
-| setData        | 设置表单数据, 默认不调用字段`convertValue`和`onChange`  | (<br/>`data`: CCFormData \| any[], <br/>`options`?: {`isChange`?: boolean; `isGet`?: boolean})<br/>) => void | -       |
+| key                 | explain                                   | type                                                                                                       | version |
+|:--------------------|-------------------------------------------|:-----------------------------------------------------------------------------------------------------------|:--------|
+| subData             | 获取表单 submitData                           | (`options`?: {`merge`?: boolean}) => CCFormData                                                            | -       |
+| validate            | 验证表单                                      | () => boolean                                                                                              | -       |
+| asyncValidate       | 异步验证表单                                    | () => Promise<boolean>                                                                                     | -       |
+| validateErrors      | 验证表单                                      | (`paths`?: CCNamePath[]) => CCValidateError[]                                                              | -       |
+| asyncValidateErrors | 异步验证表单                                    | (<br/>`paths`?: CCNamePath[]<br/>) => Promise<CCValidateError[]>                                           | -       |
+| setOriginData       | 初始化表单数据, 不触发`onChange`                    | (`data`: CCFormData \| any[]) => void                                                                      | -       |
+| setFieldData        | 设置表单数据, 触发`onChange`和`convertValue`但不触发联动 | (`data`: CCFormData \| any[]) => void                                                                      | -       |
+| addData             | 添加字段数据(字段可不存在), 触发联动, 字段不会主动接收值           | (`data`: CCFormData) => void                                                                               | -       |
+| setData             | 设置表单数据, 默认不调用字段`convertValue`和`onChange`  | (<br/>`data`: CCFormData \| any[], <br/>`options`?: {`isChange`?: boolean;`isGet`?: boolean}<br/>) => void | -       |
 
 ### Hooks
 

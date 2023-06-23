@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "doc:dev": "dumi dev",
-    "doc:build": "dumi build"
+    "doc:build": "dumi build",
+    "doc:preview": "dumi preview"
   },
   "dependencies": {
     "@heroicons/react": "^2.0.18",
@@ -18,9 +19,9 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.8",
-    "@types/react-dom": "^18.2.4",
-    "@vitejs/plugin-react": "^4.0.0",
+    "@types/react": "^18.2.13",
+    "@types/react-dom": "^18.2.6",
+    "@vitejs/plugin-react": "^4.0.1",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.2",
