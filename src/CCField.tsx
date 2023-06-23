@@ -29,6 +29,11 @@ type CCFieldOptions = CCFieldObserveOptions['options'] & {
   data?: CCFormData;
 };
 
+interface ReturnValidateError {
+  error: boolean;
+  errors?: string[];
+}
+
 export interface ICCField {
   form?: CCNamePath; // field name
   alias?: string | Array<string>; // alias field name
@@ -135,10 +140,18 @@ export type CCRequiredType = {
   message?: string;
 };
 
+type ReturnRuleType = undefined | boolean | string;
+
 export type CCRulesType =
   | CCRequiredType
   | RegExp
-  | ((formData: CCFormData, options: CCFieldOptions) => boolean | string);
+  | ((formData: CCFormData, options: CCFieldOptions) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
+
+export interface CCFieldError {
+  key: CCNamePath;
+  messages?: string[];
+  ref: CCFieldWrapper;
+}
 
 const DEFAULT_UNIQUE = 'id';
 const DEFAULT_INLINE = true;
@@ -278,17 +291,17 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this;
     let {rules} = that.props;
     if (!Types.isEmpty(rules)) {
+      rules = Types.isObject(rules) ? ([rules] as CCRulesType[]) : rules;
+      const findReq = (da: any) =>
+        Types.isObject(da) && !!that.execCallback((da as CCRequiredType).required, data, options);
       if (Types.isArray(rules)) {
-        const required = rules.find(
-          (da) => Types.isObject(da) && !!that.execCallback((da as CCRequiredType).required, data, options),
-        ) as CCRequiredType;
-
+        const required = rules.find(findReq) as CCRequiredType;
         return {required: !!required?.required, message: required?.message};
       } else {
         return {required: that.execCallback(rules, data, options) === true};
       }
     }
-    return {required: rules === true};
+    return {required: false};
   }
 
   execGetValue(formName: CCNamePath, value: any, data: CCFormData) {
@@ -582,19 +595,57 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     }
   }
 
-  validateErrors(): {error: boolean; errors?: string[]} {
+  /**
+   * 同步验证
+   */
+  validateErrors(): ReturnValidateError {
+    return this._validateErrors(this.validate());
+  }
+
+  /**
+   * 异步验证
+   */
+  async asyncValidateErrors() {
+    const that = this;
+    let valid = that.validate({async: true});
+    if (Types.isArray(valid)) {
+      // 走一步
+      let newValid: any[] = [];
+      let validSuccess = true;
+      for (const it of valid) {
+        if (Types.isPromise(it)) {
+          let value;
+          try {
+            value = await it;
+          } catch (e) {
+            value = e;
+          }
+          if (Types.isString(value)) {
+            newValid.push(value);
+          } else if (!value) {
+            validSuccess = false;
+          }
+        } else {
+          newValid.push(it);
+        }
+      }
+      valid = newValid.length ? newValid : validSuccess;
+    }
+    return this._validateErrors(valid);
+  }
+
+  private _validateErrors(valid: Array<ReturnRuleType | Promise<ReturnRuleType>> | boolean) {
     const that = this;
     const {errors, error} = that.state;
 
     let errorMessages;
     let currentError;
-    const valid = that.validate();
     if (Types.isBoolean(valid)) {
       currentError = !valid;
       errorMessages = void 0;
     } else {
       currentError = !!valid.length;
-      errorMessages = valid;
+      errorMessages = valid as string[];
     }
 
     if (currentError !== error) {
@@ -608,10 +659,12 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   /**
    * 验证字段
+   * @param {{async: boolean}} options
    * @returns {boolean}
    */
-  validate(): string[] | boolean {
+  private validate(options: {async?: boolean} = {}): Array<ReturnRuleType | Promise<ReturnRuleType>> | boolean {
     const that = this;
+    const {async = false} = options;
     const context = that.context as ICCFormContext;
     const {ignore, rules, eachConfig} = that.props;
     const {required, requiredMsg, value, visible} = that.state;
@@ -622,16 +675,16 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     if (required && isEmpty) return !Types.isBlank(requiredMsg) ? [requiredMsg] : false;
     if (isEmpty) return true;
 
-    let options = {val: that.value};
+    let args = {val: that.value};
     if (eachConfig) {
-      Object.assign(options, eachConfig);
+      Object.assign(args, eachConfig);
     }
 
     const validRule = (rule?: CCRulesType) => {
       if (rule && rule instanceof RegExp) {
         return rule.test(value);
       } else if (Types.isFunction(rule)) {
-        return (rule as Function)(context.data, options);
+        return (rule as Function)(context.data, args);
       } else if (Types.isObject(rule)) {
         const {pattern, message} = rule;
         if (pattern && !pattern.test(value)) {
@@ -642,17 +695,19 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     };
 
     if (Types.isArray(rules)) {
-      const messages: string[] = [];
-      let error = true;
+      const messages: Array<string | Promise<string | boolean>> = [];
+      let validSuccess = true;
       rules.forEach((rule) => {
         const valid = validRule(rule);
         if (Types.isString(valid)) {
           messages.push(valid);
+        } else if (async && Types.isPromise<string | boolean>(valid)) {
+          messages.push(valid);
         } else if (!valid) {
-          error = false;
+          validSuccess = false;
         }
       });
-      return messages.length ? messages : error;
+      return messages.length ? messages : validSuccess;
     } else if (Types.isObject(rules)) {
       const valid = validRule(rules);
       return Types.isString(valid) ? [valid] : valid;
@@ -761,7 +816,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     }
 
     if ((value !== prevState.value && that.changeFlag) || (required !== prevState.required && !required)) {
-      that.validateErrors();
+      that.asyncValidateErrors();
     }
 
     if (prevProps.form !== that.props.form) {

@@ -16,7 +16,7 @@ import {Component} from 'react';
 
 import type {ICCFormContext} from './CCContext';
 import {CCFormContext} from './CCContext';
-import type {CCFieldWrapper, ICCField, ICCFieldOmit, IFieldItem} from './CCField';
+import type {CCFieldError, CCFieldWrapper, ICCField, ICCFieldOmit, IFieldItem} from './CCField';
 import type {CCListInstance, CCListWrapper, IListItem} from './CCList';
 import type {ICCListAction} from './CCListAction';
 import type {ICCListView} from './CCListView';
@@ -61,9 +61,22 @@ export interface CCFormInstance {
    */
   validate: () => boolean;
   /**
-   * 验证表单
+   * 异步验证表单
+   * @returns {Promise<boolean>}
    */
-  validateErrors: (paths?: CCNamePath[]) => CCValidateError[];
+  asyncValidate: () => Promise<boolean>;
+  /**
+   * 验证表单
+   * @param {CCNamePath[]} [paths]
+   * @default []
+   */
+  validateErrors: (paths?: CCNamePath[]) => CCFieldError[];
+  /**
+   * 异步验证表单
+   * @param {CCNamePath[]} [paths]
+   * @default []
+   */
+  asyncValidateErrors: (paths?: CCNamePath[]) => Promise<CCFieldError[]>;
   /**
    * 初始化表单数据, 不触发 onChange
    * @param {CCFormData | any[]} data
@@ -433,7 +446,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   }
 
   /**
-   * 验证表单
+   * 验证表单, 不处理表单中带有异步的验证
    * @returns {boolean}
    */
   validate() {
@@ -441,31 +454,71 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   }
 
   /**
+   * 异步验证表单
+   */
+  async asyncValidate() {
+    return (await this.asyncValidateErrors()).length === 0;
+  }
+
+  /**
    * 验证表单, 返回错误信息
    * @param {CCNamePath[]} [paths]
    * @returns {CCValidateError[]}
    */
-  validateErrors(paths: CCNamePath[] = []): CCValidateError[] {
-    let errors = new Map();
+  validateErrors(paths: CCNamePath[] = []) {
+    const errors = new Map<CCNamePath, CCFieldError>();
+    this._validateErrors(errors, (field, callback) => callback(field.validateErrors()), paths);
+    return Array.from(errors.values());
+  }
+
+  async asyncValidateErrors(paths: CCNamePath[] = []) {
+    return new Promise<Array<CCFieldError>>((resolve) => {
+      const errors = new Map<CCNamePath, CCFieldError>();
+      let total = 0;
+      let count = 0;
+      this._validateErrors(
+        errors,
+        (field, callback) => {
+          total++;
+          (async () => {
+            callback(await field.asyncValidateErrors());
+            count++;
+            if (count === total) {
+              resolve(Array.from(errors.values()));
+            }
+          })();
+        },
+        paths,
+      );
+    });
+  }
+
+  /**
+   * 验证表单, 返回错误信息
+   * @param {Map<CCNamePath, CCFieldError>} errors
+   * @param {field: CCFieldWrapper, callback: (data: any) => void) => void} callback
+   * @param {CCNamePath[]} [paths]
+   * @returns {CCFieldError[]}
+   */
+  private _validateErrors(
+    errors: Map<CCNamePath, CCFieldError>,
+    callback: (field: CCFieldWrapper, callback: (data: any) => void) => void,
+    paths: CCNamePath[] = [],
+  ) {
     for (let f of this.fields) {
       let field = f.getConfig();
       if (
         field.form &&
         field.visible &&
         field.parentVisible &&
-        (paths.length ? paths.findIndex((path) => String(field.form).indexOf(String(path)) === 0) !== -1 : true)
+        (!paths.length || paths.findIndex((path) => String(field.form).indexOf(String(path)) === 0) !== -1)
       ) {
-        const {error, errors: messages} = f.validateErrors();
-        if (error) {
-          errors.set(field.form, {
-            key: field.form,
-            ref: f,
-            messages,
-          });
-        }
+        callback(f, (data: {error: boolean; errors?: string[]}) => {
+          const {error, errors: messages} = data;
+          error && errors.set(field.form, {key: field.form, ref: f, messages});
+        });
       }
     }
-    return Array.from(errors.values());
   }
 
   /**
