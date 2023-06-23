@@ -154,7 +154,6 @@ class App extends React.Component<any> {
 
   async countAsync() {
     try {
-      console.log('start');
       const valid = await this.form.asyncValidateErrors(['des']);
       console.log('异步验证:', valid, this.form.subData());
     } catch (e) {

@@ -476,7 +476,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       const errors = new Map<CCNamePath, CCFieldError>();
       let total = 0;
       let count = 0;
-      this._validateErrors(
+      let status = this._validateErrors(
         errors,
         (field, callback) => {
           total++;
@@ -490,21 +490,24 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
         },
         paths,
       );
+      // 如果没有字段需要验证立即返回
+      !status && resolve([]);
     });
   }
 
   /**
-   * 验证表单, 返回错误信息
+   * 验证表单, 返回错验证状态
    * @param {Map<CCNamePath, CCFieldError>} errors
    * @param {field: CCFieldWrapper, callback: (data: any) => void) => void} callback
    * @param {CCNamePath[]} [paths]
-   * @returns {CCFieldError[]}
+   * @returns {boolean}
    */
   private _validateErrors(
     errors: Map<CCNamePath, CCFieldError>,
     callback: (field: CCFieldWrapper, callback: (data: any) => void) => void,
     paths: CCNamePath[] = [],
-  ) {
+  ): boolean {
+    let validStatus = false;
     for (let f of this.fields) {
       let field = f.getConfig();
       if (
@@ -513,12 +516,14 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
         field.parentVisible &&
         (!paths.length || paths.findIndex((path) => String(field.form).indexOf(String(path)) === 0) !== -1)
       ) {
+        validStatus = true;
         callback(f, (data: {error: boolean; errors?: string[]}) => {
           const {error, errors: messages} = data;
           error && errors.set(field.form, {key: field.form, ref: f, messages});
         });
       }
     }
+    return validStatus;
   }
 
   /**
