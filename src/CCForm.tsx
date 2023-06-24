@@ -33,6 +33,7 @@ import type {
   IFieldItem,
   IListItem,
 } from './interface';
+import type {CCFieldStatus} from './interface';
 
 interface ICCFormState {
   data: CCFormData;
@@ -88,7 +89,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   }
 
   private originData: CCFormData | undefined;
-  private fieldData: Record<string, any> = {};
+  private fieldStatus: Record<string, CCFieldStatus> = Observer.observable({});
   public changeState = CCFormStateStatusEnum.DEFAULT;
   private fields = new Set<CCFieldWrapper>();
   private fieldsMap = new Map<string | number, CCFieldWrapper>();
@@ -158,7 +159,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       const state = field.initState();
       const form = field.getFormName();
       if (!Types.isBlank(form) && !(form in that.state.data)) {
-        that._setFieldRawValue(form, state.value);
+        that._setFieldValue(form, state.value, {raw: true});
       }
       field.setState(state);
     }
@@ -204,7 +205,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const that = this;
     const {raw = false} = options;
     if (Types.isBlank(name) || that.state.data[name] === value) return;
-    raw ? that._setFieldRawValue(name, value) : that._setFieldValue(name, value);
+    that._setFieldValue(name, value, {raw});
 
     that.formChange(name);
   }
@@ -231,17 +232,20 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     });
   }
 
-  private _setFieldValue(name: CCNamePath, value: CCFormData) {
+  private _setFieldValue(name: CCNamePath, value: CCFormData, options: {raw?: boolean} = {}) {
+    const {raw = false} = options;
     if (!Types.isBlank(name)) {
-      this.state.data[name] = value;
+      const {data} = this.state;
+      (raw ? Observer.raw(data) : data)[name] = value;
       this.state.originData[name] = value;
     }
   }
 
-  private _setFieldRawValue(name: CCNamePath, value: CCFormData) {
+  private _setFieldStatus(name: CCNamePath, field: CCFieldWrapper, options: {raw?: boolean} = {}) {
+    const {raw = false} = options;
     if (!Types.isBlank(name)) {
-      Observer.raw(this.state.data)[name] = value;
-      this.state.originData[name] = value;
+      const {disabled, required, error: validate, visible} = field.getConfig();
+      (raw ? Observer.raw(this.fieldStatus) : this.fieldStatus)[name] = {disabled, visible, required, validate};
     }
   }
 
@@ -255,7 +259,8 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       let form = field.getFormName();
       if (!Types.isBlank(form)) that.fieldsMap.set(form, field);
       that.fields.add(field);
-      that._setFieldRawValue(form, field.value);
+      that._setFieldValue(form, field.value, {raw: true});
+      that._setFieldStatus(form, field, {raw: true});
       that.updateFields.add(field);
 
       clearTimeout(that.autoRunTime);
@@ -530,6 +535,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     providerValue.originData = originData;
     providerValue.initialValue = initialValue;
     providerValue.disabled = disabled;
+    providerValue.fieldStatus = that.fieldStatus;
     return <CCFormContext.Provider value={providerValue} children={that.props.children} />;
   }
 }

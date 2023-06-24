@@ -192,7 +192,8 @@ class App extends React.Component<any> {
     this.list1.add({c: [name], name});
   }
 
-  validateItem = () => {
+  validateItem = (data, options) => {
+    console.log(data, options);
     return new Promise((resolve) => {
       console.log('validateItem');
       setTimeout(() => {

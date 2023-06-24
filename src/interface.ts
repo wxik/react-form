@@ -16,6 +16,7 @@ export type CCNamePath = string | number | undefined;
 export interface ICCFormContext {
   data: CCFormData;
   originData: CCFormData;
+  fieldStatus: Record<string, CCFieldStatus>;
   initialValue?: CCFormData;
   emitter?: ICCEmitter;
   formInstance: CCForm;
@@ -196,7 +197,11 @@ export interface ICCFieldListener {
 
 export interface CCFieldObserveOptions {
   data: CCFormData;
-  options: Record<string, any> & Partial<CCListContext>;
+  options: {
+    val: any;
+    data: CCFormData;
+    list?: CCListContext;
+  };
   originData: CCFormData;
 }
 
@@ -271,4 +276,11 @@ export interface ICCListActionOperation extends CCListContext {
   remove: (index: number | number[]) => void;
   add: (item?: any, insertIndex?: number) => void;
   move: (from: number, to: number) => void;
+}
+
+export interface CCFieldStatus {
+  visible: boolean;
+  disabled: boolean;
+  required: boolean;
+  validate: boolean;
 }

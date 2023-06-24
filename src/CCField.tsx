@@ -89,7 +89,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     that.onChange = that.onChange.bind(that);
     that.observeVisible = that.observeVisible.bind(that);
     that.observeDisabled = that.observeDisabled.bind(that);
-    that.observeRules = that.observeRules.bind(that);
+    that.observeRequired = that.observeRequired.bind(that);
     that.formInstance = FormHelper.formHandler({current: context?.formInstance ?? null});
     that.state = that.initState();
     that.providerValue = {
@@ -118,7 +118,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
         value = context.data[formName];
       }
     }
-    let {options, data} = that.getObserveOptions();
+    let {options, data} = that.getOptions();
     let {required, message: requiredMsg} = that.findRequired(data, options);
     let state = {
       value: Types.isFunction(convertValue) ? that.execGetValue(formName, value, formData) : value,
@@ -204,7 +204,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       // @ts-ignore
       return convertValue(value);
     } catch (e) {
-      console.warn('取值GetValue异常:', e);
+      console.warn('ConvertValue:', e);
     }
   }
 
@@ -214,7 +214,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     that.observeReactions.push(
       Observer.autoRun(that.observeVisible),
       Observer.autoRun(that.observeDisabled),
-      Observer.autoRun(that.observeRules),
+      Observer.autoRun(that.observeRequired),
     );
     that.observeUnion();
   }
@@ -224,19 +224,16 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     this.observeReactions = [];
   }
 
-  getObserveOptions(): CCFieldObserveOptions {
+  getOptions(): CCFieldObserveOptions {
     const that = this;
     let {eachConfig} = that.props;
-    let context = that.context as ICCFormContext;
-    let data = context.data;
-    let originData = context.originData;
-    let options = {};
-
-    if (eachConfig) {
-      options = eachConfig;
-      // 下列方式在大列表中性能极差
-      // Object.assign(options, eachConfig);
-    }
+    let {value} = that.state || {};
+    let {data, originData} = that.context as ICCFormContext;
+    let options = {
+      val: value,
+      data: originData, // 使用 originData 不会触发连锁反应
+      list: eachConfig,
+    };
     return {options, data, originData};
   }
 
@@ -248,9 +245,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this;
     if (that.unmount) return;
     let {disabled} = that.props;
-    let {options, data} = that.getObserveOptions();
-    options.val = that.value;
-
+    let {options, data} = that.getOptions();
     if (!Types.isEmpty(disabled)) {
       that.disabled = !!that.execCallback(disabled, data, options);
     }
@@ -264,9 +259,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this;
     if (that.unmount) return;
     let {visible} = that.props;
-    let {options, data} = that.getObserveOptions();
-    options.val = that.value;
-
+    let {options, data} = that.getOptions();
     if (!Types.isEmpty(visible)) {
       that.visible = !!that.execCallback(visible, data, options);
     }
@@ -276,12 +269,10 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
    * 监听验证规则
    * @private
    */
-  private observeRules() {
+  private observeRequired() {
     const that = this;
     if (that.unmount) return;
-    let {options, data} = that.getObserveOptions();
-    options.val = that.value;
-
+    let {options, data} = that.getOptions();
     let {required, message} = that.findRequired(data, options);
     that.required = required;
     that.requiredMsg = message;
@@ -299,7 +290,6 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     if (that.unmount || Types.isEmptyArray(union)) return;
 
     let {unionValue} = that.props;
-    const {options, data, originData} = that.getObserveOptions();
     const formInstance = context.formInstance;
     const formName = that.getFormName();
 
@@ -326,10 +316,10 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       const [name, func] = Types.isArray(un) ? un : [un, unionValue];
       const unionAll = findUnion(name, [name]);
       const reaction = Observer.autoRun(() => {
+        const {options, data, originData} = that.getOptions();
         const value = that.execCallback(func, data[name], {
           ...options,
-          val: that.value,
-          data: originData,
+          data: originData, // originData 不会引起连锁触发
         });
         const onValue = () => !that.unmount && name in data && that.handleChange(value);
         // 如果没有字段名称, 初始化时触发联动设值
@@ -351,7 +341,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     let {union} = that.props;
     if (Types.isBlank(union)) return null;
 
-    let {options} = that.getObserveOptions();
+    let {options} = that.getOptions();
     union = Types.isFunction(union) ? union(options) : union;
 
     if (Types.isBlank(union)) return null;
@@ -369,24 +359,25 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   getTitle(): ReactElement {
     const that = this;
-    let {options, data} = that.getObserveOptions();
+    let {options, data} = that.getOptions();
     return that.execCallback(that.props.title, data, options);
   }
 
   getConfig() {
     const that = this;
     const {inline, transform, ignore, convertValue, parentField} = that.props;
-    const {disabled, visible} = that.state;
+    const {disabled, visible, error, required} = that.state;
     return {
       inline,
       form: that.getFormName(that.props),
       alias: that.getFormAlias(that.props),
-      title: that.getTitle(),
       transform,
       visible,
       parentVisible: parentField.visible,
       disabled,
       ignore,
+      error,
+      required,
       convertValue,
     };
   }
@@ -551,8 +542,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   private validate(options: {async?: boolean} = {}): Array<ReturnRuleType | Promise<ReturnRuleType>> | boolean {
     const that = this;
     const {async = false} = options;
-    const context = that.context as ICCFormContext;
-    const {ignore, rules, eachConfig} = that.props;
+    const {ignore, rules} = that.props;
     const {required, requiredMsg, value, visible} = that.state;
 
     if ((ignore && !required) || !visible) return true;
@@ -561,16 +551,13 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     if (required && isEmpty) return !Types.isBlank(requiredMsg) ? [requiredMsg] : false;
     if (isEmpty) return true;
 
-    let args = {val: that.value};
-    if (eachConfig) {
-      Object.assign(args, eachConfig);
-    }
+    const {options: callArgs, originData} = that.getOptions();
 
     const validRule = (rule?: CCRulesType) => {
       if (rule && rule instanceof RegExp) {
         return rule.test(value);
       } else if (Types.isFunction(rule)) {
-        return (rule as Function)(context.data, args);
+        return (rule as Function)(originData, callArgs);
       } else if (Types.isObject(rule)) {
         const {pattern, message} = rule;
         if (pattern && !pattern.test(value)) {
