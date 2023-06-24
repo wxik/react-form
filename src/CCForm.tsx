@@ -9,100 +9,35 @@ import type {
   ForwardRefExoticComponent,
   FunctionComponent,
   PropsWithoutRef,
-  ReactNode,
   RefAttributes,
 } from 'react';
 import {Component} from 'react';
 
-import type {ICCFormContext} from './CCContext';
 import {CCFormContext} from './CCContext';
-import type {CCFieldError, CCFieldWrapper, ICCField, ICCFieldOmit, IFieldItem} from './CCField';
-import type {CCListInstance, CCListWrapper, IListItem} from './CCList';
+import type {CCFieldWrapper} from './CCField';
+import type {CCListWrapper} from './CCList';
 import type {ICCListAction} from './CCListAction';
 import type {ICCListView} from './CCListView';
 import type {ICCOutlet, IOutlet} from './CCOutlet';
 import {FormHelper, Observer, Tools, Types} from './helper';
-
-export type CCFormData = Record<string, any>;
-
-export type CCNamePath = string | number | undefined;
-
-export interface ICCForm {
-  form?: CCFormInstance;
-  data?: CCFormData;
-  initialValue?: Object;
-  onChange?: (data: CCFormData, fields: Array<ICCField>) => void;
-  emitter?: ICCEmitter; // 字段改变发射器
-  children: ReactNode;
-  disabled?: boolean;
-}
+import type {
+  CCFieldError,
+  CCFormData,
+  CCFormInstance,
+  CCListInstance,
+  CCNamePath,
+  ICCField,
+  ICCFieldOmit,
+  ICCForm,
+  ICCFormContext,
+  IFieldItem,
+  IListItem,
+} from './interface';
 
 interface ICCFormState {
   data: CCFormData;
   originData: CCFormData;
   initialValue?: CCFormData;
-}
-
-export interface ICCEmitter {
-  addListener: (key: string, handle: (...value: any[]) => void) => void;
-  removeListener: (key: string, handle: (...value: any[]) => void) => void;
-  emit: (key: string, ...value: any[]) => void;
-}
-
-export interface CCFormInstance {
-  /**
-   * 获取表单submitData
-   * @returns {{merge ?: boolean}}
-   */
-  subData: (options?: {merge?: boolean}) => CCFormData;
-  /**
-   * 验证表单
-   * @returns {boolean}
-   */
-  validate: () => boolean;
-  /**
-   * 异步验证表单
-   * @returns {Promise<boolean>}
-   */
-  asyncValidate: () => Promise<boolean>;
-  /**
-   * 验证表单
-   * @param {CCNamePath[]} [paths]
-   * @default []
-   */
-  validateErrors: (paths?: CCNamePath[]) => CCFieldError[];
-  /**
-   * 异步验证表单
-   * @param {CCNamePath[]} [paths]
-   * @default []
-   */
-  asyncValidateErrors: (paths?: CCNamePath[]) => Promise<CCFieldError[]>;
-  /**
-   * 初始化表单数据, 不触发 onChange
-   * @param {CCFormData | any[]} data
-   */
-  setOriginData: (data: CCFormData | any[]) => void;
-  /**
-   * 设置表单数据, 触发字段 onChange 但不触发联动
-   * @param {Array|Object} data
-   */
-  setFieldData: (data: CCFormData | any[]) => void;
-  /**
-   * 添加字段数据(字段可不存在): 触发联动、字段不接收值
-   * @param {CCFormData} data
-   */
-  addData: (data: CCFormData) => void;
-  /**
-   * 设置表单数据, 默认不调用字段 convertValue 和 onChange
-   * @param {CCFormData | any[]} data
-   * @param {{isGet: boolean, isChange: boolean}} options
-   */
-  setData: (data: CCFormData) => void;
-}
-
-export interface CCValidateError {
-  key: CCNamePath;
-  messages?: string[];
 }
 
 export enum CCFieldEnum {
@@ -153,7 +88,8 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   }
 
   private originData: CCFormData | undefined;
-  changeState = CCFormStateStatusEnum.DEFAULT;
+  private fieldData: Record<string, any> = {};
+  public changeState = CCFormStateStatusEnum.DEFAULT;
   private fields = new Set<CCFieldWrapper>();
   private fieldsMap = new Map<string | number, CCFieldWrapper>();
   private removeFields = new Set<CCFieldWrapper>();

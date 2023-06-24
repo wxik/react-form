@@ -6,17 +6,11 @@
 import type {FC, ReactNode} from 'react';
 import {useContext} from 'react';
 
-import type {CCListContext} from './CCContext';
 import {CCFormListContext} from './CCContext';
-
-interface ListAction extends CCListContext {
-  remove: (index: number | number[]) => void;
-  add: (item?: any, insertIndex?: number) => void;
-  move: (from: number, to: number) => void;
-}
+import type {ICCListActionOperation} from './interface';
 
 export interface ICCListAction {
-  children: (props: ListAction) => ReactNode;
+  children: (props: ICCListActionOperation) => ReactNode;
 }
 
 export const CCListAction: FC<ICCListAction> = (props) => {

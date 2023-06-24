@@ -6,9 +6,9 @@
 import type {FC, ReactNode} from 'react';
 import {useContext} from 'react';
 
-import type {ICCListOperation} from './CCContext';
 import {CCFormListContext, CCFormListViewContext} from './CCContext';
 import {Types} from './helper';
+import type {ICCListOperation} from './interface';
 
 export interface ICCListView {
   children: (props: ICCListOperation) => ReactNode;

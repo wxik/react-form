@@ -11,10 +11,21 @@ import {CCListAction} from './CCListAction';
 import {CCListView} from './CCListView';
 import {CCOutlet, CCOutletView} from './CCOutlet';
 
-export type {ICCListOperation} from './CCContext';
-export type {CCRequiredType, CCRulesType, ICCFieldOmit as ICCField, ICCFieldListener, IFieldItem} from './CCField';
-export type {CCFormData, CCFormInstance, ICCEmitter, ICCForm} from './CCForm';
-export type {CCListInstance, ICCList} from './CCList';
+export type {
+  CCFormData,
+  CCFormInstance,
+  CCListInstance,
+  CCRequiredType,
+  CCRulesType,
+  ICCEmitter,
+  ICCFieldOmit as ICCField,
+  ICCFieldListener,
+  ICCForm,
+  ICCList,
+  ICCListActionOperation,
+  ICCListOperation,
+  IFieldItem,
+} from './interface';
 
 CCForm.List = CCList;
 CCForm.ListView = CCListView;

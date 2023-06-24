@@ -7,8 +7,9 @@ import type {RefObject} from 'react';
 import {createRef, useContext, useMemo, useRef} from 'react';
 
 import {CCFormContext, CCFormListContext} from '../CCContext';
-import type {CCForm, CCFormData, CCFormInstance, CCNamePath} from '../CCForm';
-import type {CCListInstance, CCListWrapper} from '../CCList';
+import type {CCForm} from '../CCForm';
+import type {CCListWrapper} from '../CCList';
+import type {CCFormData, CCFormInstance, CCListInstance, CCNamePath} from '../interface';
 
 export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
   return {

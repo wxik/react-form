@@ -1,125 +1,30 @@
 /**
  *
- * @author Quia
+ * @author wxik
  * @sine 2020-04-11 11:43
  */
-import type {ComponentType, ContextType, ReactElement, ReactNode, Ref} from 'react';
+import type {ComponentType, ContextType, ReactElement} from 'react';
 import {Component} from 'react';
 
-import type {CCListContext, CCListViewContext, ICCFieldContext, ICCFormContext} from './CCContext';
 import {CCFieldContext, CCFormListViewContext} from './CCContext';
-import type {CCFormData, CCFormInstance, CCNamePath} from './CCForm';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
 import {FormHelper, Observer, Tools, Types} from './helper';
-
-export interface ICCFieldListener {
-  key: string;
-  convertValue: (value: any, data: CCFormData) => any;
-  transform: (value: any, data: CCFormData) => any;
-}
-
-interface CCFieldObserveOptions {
-  data: CCFormData;
-  options: Record<string, any> & Partial<CCListContext>;
-  originData: CCFormData;
-}
-
-type CCFieldOptions = CCFieldObserveOptions['options'] & {
-  val?: any;
-  data?: CCFormData;
-};
-
-interface ReturnValidateError {
-  error: boolean;
-  errors?: string[];
-}
-
-export interface ICCField {
-  form?: CCNamePath; // field name
-  alias?: string | Array<string>; // alias field name
-  title?: ReactNode | ((form?: string) => ReactNode); // field title
-  label?: string; //
-  unique?: string; //唯一标识, 默认 = id
-  /**
-   * 是否内联对象 false => {a: 1, b: {b1: 1}} => {a: 1, b1: 1}
-   * @default true
-   */
-  inline?: boolean;
-  /**
-   *  是否忽略此字段
-   */
-  ignore?: boolean;
-  /**
-   * 自动拼接集合传递的 formName
-   */
-  injectListName?: boolean;
-  /**
-   * 提交取值处理数据
-   */
-  transform?: string | ((data: any, formData: CCFormData) => any);
-  value?: any;
-
-  onChange?: (value: any) => void;
-  /**
-   * 是否保护子节点在隐藏是不销毁, 并接受 visible 值
-   */
-  preserve?: boolean;
-  visible?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
-  disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
-  union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
-  unionValue?: (value: any, data: {val: any; data: CCFormData; form?: string}) => any;
-  convertValue?: (value: any) => any;
-  rules?: boolean | Array<CCRulesType> | CCRulesType; // 验证
-  eachConfig?: CCListContext; //循环内
-  initialValue?: any;
-  defaultValue?: any;
-  forwardRef?: Ref<any>;
-  /**
-   * 触发 onChange 时进行值转换后存入 Form
-   * @param {any} value
-   * @param {{val: any, data: CCFormData: args: any[]}} data
-   */
-  normalize?: (value: any, data: {val: any; data: CCFormData; args: any[]}) => any;
-  /**
-   * value 进入子组件后的别名
-   */
-  valuePropName?: string;
-  /**
-   *  转换 value 给组件
-   * @param {any} value
-   * @param {CCFormData} formData
-   */
-  forValue?: (value: any, formData: CCFormData) => any;
-  listener?: ICCFieldListener;
-  /**
-   * 自定义字段更新逻辑
-   */
-  shouldUpdate?: any | any[];
-  /**
-   * 注入节点信息给下级
-   * @default true
-   */
-  deliver?: boolean;
-  parentField: ICCFieldContext; // 上级字段节点数据
-}
-
-/**
- * 给最后的组件 props 使用
- */
-export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName' | 'forValue'> {
-  title?: ReactNode;
-  value: any;
-  data: CCFormData;
-  error: boolean; // 是否验证错误
-  errors?: string[]; // 验证错误的提示信息
-  disabled: boolean; // 是否禁用
-  visible: boolean;
-  required: boolean; // 是否必填验证
-  formInstance: CCFormInstance;
-  onChange: (value: any, ...args: any[]) => void;
-}
-
-export type ICCFieldOmit = Omit<ICCField, 'parentField' | 'eachConfig'>;
+import type {
+  CCFieldObserveOptions,
+  CCFormData,
+  CCFormInstance,
+  CCListViewContext,
+  CCNamePath,
+  CCRequiredType,
+  CCRulesType,
+  ICCField,
+  ICCFieldContext,
+  ICCFieldOmit,
+  ICCFormContext,
+  IFieldItem,
+  ReturnRuleType,
+  ReturnValidateError,
+} from './interface';
 
 interface CCFieldState {
   value: any; // 存储的值
@@ -132,25 +37,6 @@ interface CCFieldState {
   disabled: boolean; // 是否禁用
   _refreshMark: Object; // 刷新标志, 触发: shouldComponentUpdate 验证
   [key: string]: any;
-}
-
-export type CCRequiredType = {
-  required?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
-  pattern?: RegExp;
-  message?: string;
-};
-
-type ReturnRuleType = undefined | boolean | string;
-
-export type CCRulesType =
-  | CCRequiredType
-  | RegExp
-  | ((formData: CCFormData, options: CCFieldOptions) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
-
-export interface CCFieldError {
-  key: CCNamePath;
-  messages?: string[];
-  ref: CCFieldWrapper;
 }
 
 const DEFAULT_UNIQUE = 'id';

@@ -4,39 +4,18 @@
  * @sine 2020-04-20 11:27
  */
 
-import type {ContextType, FC, ReactNode} from 'react';
+import type {ContextType, FC} from 'react';
 import {Component, useContext} from 'react';
 
-import type {CCListContext, CCListViewContext, ICCFormContext} from './CCContext';
 import {CCFormListContext, CCFormListViewContext} from './CCContext';
-import type {CCNamePath} from './CCForm';
 import {CCFieldEnum, CCForm} from './CCForm';
 import {CCListView} from './CCListView';
 import {Tools, Types} from './helper';
-
-export interface ICCList {
-  form?: CCNamePath;
-  formList?: CCListInstance;
-  initRows?: number;
-  initialValue?: Array<any>;
-  eachConfig?: CCListViewContext;
-  children: ((props: CCListViewContext) => ReactNode) | ReactNode;
-}
-
-export interface IListItem extends Omit<ICCList, 'eachConfig'> {}
+import type {CCListContext, CCListViewContext, CCNamePath, ICCFormContext, ICCList, IListItem} from './interface';
 
 interface ICCListState {
   keys: string[]; // 存储的值
   data: any[];
-}
-
-export interface CCListInstance {
-  add: (value?: any, insertIndex?: number) => void;
-  remove: (index: number | number[]) => void;
-  move: (from: number, to: number) => void;
-  setData: (data: any[]) => void;
-  getData: () => void;
-  getSize: () => number;
 }
 
 export class CCListWrapper extends Component<ICCList, ICCListState> {
