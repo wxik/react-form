@@ -29,10 +29,25 @@ export interface ICCEmitter {
   emit: (key: string, ...value: any[]) => void;
 }
 
+export interface CCOptions {
+  val: any;
+  form: CCNamePath;
+  data: CCFormData;
+  listData?: any[];
+  status: Record<string, CCFieldStatus>;
+  selfStatus: CCFieldStatus;
+}
+
+export interface IFieldOptions {
+  data: CCFormData;
+  options: CCOptions;
+  originData: CCFormData;
+}
+
 export type CCRulesType =
   | CCRequiredType
   | RegExp
-  | ((formData: CCFormData, options: CCFieldOptions) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
+  | ((formData: CCFormData, options: CCOptions) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
 
 export interface CCListContext {
   form: CCNamePath;
@@ -78,9 +93,9 @@ export interface ICCField {
    * 是否保护子节点在隐藏是不销毁, 并接受 visible 值
    */
   preserve?: boolean;
-  visible?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
-  disabled?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
-  union?: string | string[] | ((options: CCFieldObserveOptions['options']) => string | string[]);
+  visible?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
+  disabled?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
+  union?: string | string[] | ((options: CCOptions) => string | string[]);
   unionValue?: (value: any, data: {val: any; data: CCFormData; form?: string}) => any;
   convertValue?: (value: any) => any;
   rules?: boolean | Array<CCRulesType> | CCRulesType; // 验证
@@ -195,21 +210,6 @@ export interface ICCFieldListener {
   transform: (value: any, data: CCFormData) => any;
 }
 
-export interface CCFieldObserveOptions {
-  data: CCFormData;
-  options: {
-    val: any;
-    data: CCFormData;
-    list?: CCListContext;
-  };
-  originData: CCFormData;
-}
-
-export type CCFieldOptions = CCFieldObserveOptions['options'] & {
-  val?: any;
-  data?: CCFormData;
-};
-
 export interface ReturnValidateError {
   error: boolean;
   errors?: string[];
@@ -222,7 +222,7 @@ export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName
   title?: ReactNode;
   value: any;
   data: CCFormData;
-  error: boolean; // 是否验证错误
+  error?: boolean; // 是否验证错误
   errors?: string[]; // 验证错误的提示信息
   disabled: boolean; // 是否禁用
   visible: boolean;
@@ -234,7 +234,7 @@ export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName
 export type ICCFieldOmit = Omit<ICCField, 'parentField' | 'eachConfig'>;
 
 export type CCRequiredType = {
-  required?: boolean | ((formData: CCFormData, options: CCFieldOptions) => boolean);
+  required?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
   pattern?: RegExp;
   message?: string;
 };
@@ -282,5 +282,5 @@ export interface CCFieldStatus {
   visible: boolean;
   disabled: boolean;
   required: boolean;
-  validate: boolean;
+  validate?: boolean;
 }

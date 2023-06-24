@@ -10,11 +10,11 @@ import {CCFieldContext, CCFormListViewContext} from './CCContext';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
 import {FormHelper, Observer, Tools, Types} from './helper';
 import type {
-  CCFieldObserveOptions,
   CCFormData,
   CCFormInstance,
   CCListViewContext,
   CCNamePath,
+  CCOptions,
   CCRequiredType,
   CCRulesType,
   ICCField,
@@ -22,6 +22,7 @@ import type {
   ICCFieldOmit,
   ICCFormContext,
   IFieldItem,
+  IFieldOptions,
   ReturnRuleType,
   ReturnValidateError,
 } from './interface';
@@ -31,7 +32,7 @@ interface CCFieldState {
   defaultValue?: any; // 默认值
   required: boolean; // 是否必填验证
   requiredMsg?: string; // 必填验证的提示信息
-  error: boolean; // 是否验证错误
+  error?: boolean; // 是否验证错误
   errors?: string[]; // 验证错误的提示信息
   visible: boolean; // 是否显示
   disabled: boolean; // 是否禁用
@@ -125,7 +126,6 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       initialValue: value,
       visible: !Types.isEmpty(visible) ? !!that.execCallback(visible, data, options) : true,
       disabled: !Types.isEmpty(disabled) ? !!that.execCallback(disabled, data, options) : false,
-      error: false,
       required,
       requiredMsg,
       _refreshMark: {},
@@ -169,11 +169,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   /**
    * 查找必填信息
    * @param {CCFormData} data
-   * @param {CCFieldObserveOptions['options']} options
+   * @param {CCOptions} options
    * @private
    * @return {require: boolean, message?: string}
    */
-  private findRequired(data: CCFormData, options: CCFieldObserveOptions['options']) {
+  private findRequired(data: CCFormData, options: CCOptions) {
     const that = this;
     let {rules} = that.props;
     if (!Types.isEmpty(rules)) {
@@ -224,15 +224,23 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     this.observeReactions = [];
   }
 
-  getOptions(): CCFieldObserveOptions {
+  getOptions(): IFieldOptions {
     const that = this;
-    let {eachConfig} = that.props;
-    let {value} = that.state || {};
-    let {data, originData} = that.context as ICCFormContext;
+    let {form, data: listData} = that.props.eachConfig || {};
+    let {value, disabled, visible, error, required} = that.state || {};
+    let {data, originData, fieldStatus} = that.context as ICCFormContext;
     let options = {
+      form,
       val: value,
       data: originData, // 使用 originData 不会触发连锁反应
-      list: eachConfig,
+      status: fieldStatus,
+      selfStatus: {
+        disabled,
+        visible,
+        required,
+        validate: Types.isEmpty(error) ? void 0 : !error,
+      },
+      listData,
     };
     return {options, data, originData};
   }
@@ -363,14 +371,16 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     return that.execCallback(that.props.title, data, options);
   }
 
-  getConfig() {
+  getConfig(props?: ICCField, state?: CCFieldState) {
     const that = this;
-    const {inline, transform, ignore, convertValue, parentField} = that.props;
-    const {disabled, visible, error, required} = that.state;
+    props = props || that.props;
+    state = state || that.state;
+    const {inline, transform, ignore, convertValue, parentField} = props;
+    const {disabled, visible, error, required} = state;
     return {
       inline,
-      form: that.getFormName(that.props),
-      alias: that.getFormAlias(that.props),
+      form: that.getFormName(props),
+      alias: that.getFormAlias(props),
       transform,
       visible,
       parentVisible: parentField.visible,
@@ -467,7 +477,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   set visible(visible: boolean) {
     const that = this;
     if (visible !== that.state.visible) {
-      if (!visible) that.setState({error: false, errors: void 0});
+      if (!visible) that.setState({error: void 0, errors: void 0});
       that.setState({visible});
     }
   }
@@ -664,15 +674,25 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   getSnapshotBeforeUpdate(prevProps: ICCField, prevState: CCFieldState) {
     const that = this;
-    const context = this.context as ICCFormContext;
+    const {formInstance} = this.context as ICCFormContext;
+    const {required, error, visible, disabled} = that.state;
     const formName = that.getFormName(that.props);
     const prevFormName = that.getFormName(prevProps);
     if (prevProps.form !== this.props.form) {
-      context.formInstance.unmountField(this);
+      formInstance.unmountField(this);
     }
 
     if (formName !== prevFormName && !Types.isBlank(formName)) {
-      context.formInstance.renameField(formName, that);
+      formInstance.renameField(formName, that);
+    }
+
+    if (
+      required !== prevState.required ||
+      error !== prevState.error ||
+      visible !== prevState.visible ||
+      disabled !== prevState.disabled
+    ) {
+      formInstance.setFieldStatus(formName, {required, error, visible, disabled});
     }
 
     return null;
@@ -680,25 +700,27 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   componentDidUpdate(prevProps: ICCField, prevState: CCFieldState) {
     const that = this;
-    const context = this.context as ICCFormContext;
-    const {value, required} = that.state;
+    const {formInstance} = this.context as ICCFormContext;
+    const {value, required, error} = that.state;
     const formName = that.getFormName(that.props);
     if (value !== prevState.value) {
-      context.formInstance.fieldChange(formName, value, {raw: !that.changeForm});
+      formInstance.fieldChange(formName, value, {raw: !that.changeForm});
       that.changeFlag && that.props.onChange?.(value);
     }
 
-    if ((value !== prevState.value && that.changeFlag) || (required !== prevState.required && !required)) {
+    if (
+      (value !== prevState.value && that.changeFlag) ||
+      (required !== prevState.required && !required && !Types.isEmpty(error))
+    ) {
       that.asyncValidateErrors();
     }
 
     if (prevProps.form !== that.props.form) {
-      context.formInstance.setField(that);
+      formInstance.setField(that);
     }
 
     if (formName !== that.getFormName(prevProps)) {
-      // that.observeData();
-      context.formInstance.fieldChange(formName, value, {raw: true});
+      formInstance.fieldChange(formName, value, {raw: true});
     }
 
     that.changeFlag = false;

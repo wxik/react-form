@@ -241,11 +241,20 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     }
   }
 
-  private _setFieldStatus(name: CCNamePath, field: CCFieldWrapper, options: {raw?: boolean} = {}) {
+  public setFieldStatus(
+    name: CCNamePath,
+    config: {disabled: boolean; required: boolean; error?: boolean; visible: boolean},
+    options: {raw?: boolean} = {},
+  ) {
     const {raw = false} = options;
     if (!Types.isBlank(name)) {
-      const {disabled, required, error: validate, visible} = field.getConfig();
-      (raw ? Observer.raw(this.fieldStatus) : this.fieldStatus)[name] = {disabled, visible, required, validate};
+      const {disabled, required, error, visible} = config;
+      (raw ? Observer.raw(this.fieldStatus) : this.fieldStatus)[name] = {
+        disabled,
+        visible,
+        required,
+        validate: Types.isEmpty(error) ? void 0 : !error,
+      };
     }
   }
 
@@ -260,7 +269,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       if (!Types.isBlank(form)) that.fieldsMap.set(form, field);
       that.fields.add(field);
       that._setFieldValue(form, field.value, {raw: true});
-      that._setFieldStatus(form, field, {raw: true});
+      that.setFieldStatus(form, field.getConfig(), {raw: true});
       that.updateFields.add(field);
 
       clearTimeout(that.autoRunTime);

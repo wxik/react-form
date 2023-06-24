@@ -55,12 +55,30 @@ class App extends React.Component<any> {
         initialValue: 'T - Name',
         onChange: (v: any) => console.log(v),
         rules: [
-          {required: true, message: '请输入名称'},
+          {
+            required: (formData, {status, selfStatus}) => {
+              return status.name2?.validate !== true || !!selfStatus.validate;
+            },
+            message: '请输入名称',
+          },
           {pattern: /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/, message: '请输入数值 - 正则'},
           (data: CCFormData) => {
             const valid = /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/.test(data.name);
             return valid || '请输入数值 - 方法处理';
           },
+        ],
+      },
+      {
+        form: `name2`,
+        title: 'T - name 2',
+        rules: [
+          {
+            required: (formData, {status, selfStatus}) => {
+              return status.name?.validate !== true || !!selfStatus.validate;
+            },
+            message: '请输入名称',
+          },
+          {pattern: /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/, message: '请输入数值 - 正则'},
         ],
       },
     ];
@@ -192,7 +210,7 @@ class App extends React.Component<any> {
     this.list1.add({c: [name], name});
   }
 
-  validateItem = (data, options) => {
+  validateItem = (data: any, options: any) => {
     console.log(data, options);
     return new Promise((resolve) => {
       console.log('validateItem');
@@ -277,7 +295,7 @@ class App extends React.Component<any> {
               initialValue={'cc'}
               rules={[that.validateItem]}
               unionValue={(value) => (value === 'react' ? '你好 React' : '')}
-              visible={(formData) => formData.select !== 'vue' && formData.radio === 'on'}>
+              visible={(formData, {status}) => formData.select !== 'vue' && status.select?.visible}>
               <Input />
             </Field>
           </div>

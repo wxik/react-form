@@ -15,6 +15,7 @@ export type {
   CCFormData,
   CCFormInstance,
   CCListInstance,
+  CCOptions,
   CCRequiredType,
   CCRulesType,
   ICCEmitter,
