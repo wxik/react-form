@@ -44,6 +44,8 @@ const DEFAULT_UNIQUE = 'id';
 const DEFAULT_INLINE = true;
 const DEFAULT_OMIT_CONTEXT = true;
 const DEFAULT_INJECT_LIST_NAME = true;
+const DEFAULT_PRESERVE = false;
+const DEFAULT_UNION_VALIDATE = false;
 
 export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   declare context: ContextType<typeof CCForm.Context>;
@@ -54,7 +56,8 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     unique: DEFAULT_UNIQUE,
     deliver: DEFAULT_OMIT_CONTEXT,
     injectListName: DEFAULT_INJECT_LIST_NAME,
-    preserve: false,
+    preserve: DEFAULT_PRESERVE,
+    unionValidate: DEFAULT_UNION_VALIDATE,
   };
 
   static getDerivedStateFromProps(nextProps: ICCField, prevState: CCFieldState) {
@@ -297,11 +300,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const union = that.getUnionList();
     if (that.unmount || Types.isEmptyArray(union)) return;
 
-    let {unionValue} = that.props;
+    let {unionValue, unionValidate} = that.props;
     const formInstance = context.formInstance;
     const formName = that.getFormName();
 
-    unionValue = Types.isFunction(unionValue) ? unionValue : () => void 0;
+    unionValue = Types.isFunction(unionValue) ? unionValue : () => (unionValidate ? that.value : void 0);
 
     /**
      * 递归查询级联
@@ -329,7 +332,12 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
           ...options,
           data: originData, // originData 不会引起连锁触发
         });
-        const onValue = () => !that.unmount && name in data && that.handleChange(value);
+        const onValue = () =>
+          !that.unmount &&
+          name in data &&
+          that.handleChange(value, () => {
+            unionValidate && that.asyncValidateErrors();
+          });
         // 如果没有字段名称, 初始化时触发联动设值
         if (Types.isEmpty(formName)) onValue();
         if (that.isObserveUnion && formInstance?.changeState !== CCFormStateStatusEnum.SET) {
@@ -402,7 +410,10 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   handleChange(value: any, callback?: () => void) {
     const that = this;
-    if (that.unmount || value === that.state.value) return;
+    if (that.unmount || value === that.state.value) {
+      callback?.();
+      return;
+    }
 
     const context = that.context as ICCFormContext;
     const {listener: {key, transform} = {}} = that.props;
@@ -429,7 +440,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     if (!that.unmount && !that.equalsValue(value, prevValue)) {
       that.setState({value}, callback);
     } else {
-      callback && callback();
+      callback?.();
     }
   }
 

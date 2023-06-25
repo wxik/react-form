@@ -81,6 +81,14 @@ class App extends React.Component<any> {
           {pattern: /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/, message: '请输入数值 - 正则'},
         ],
       },
+      {
+        form: `name3`,
+        initialValue: 'union validate',
+        title: 'T - name 3',
+        union: 'name2',
+        unionValidate: true,
+        rules: [{pattern: /^[1-9]\d*(\.\d+)?$|0(\.\d*[1-9]\d*)?$/, message: '请输入数值 - 正则'}],
+      },
     ];
     Array(2)
       .fill(1)

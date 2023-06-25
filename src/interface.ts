@@ -97,6 +97,11 @@ export interface ICCField {
   disabled?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
   union?: string | string[] | ((options: CCOptions) => string | string[]);
   unionValue?: (value: any, data: {val: any; data: CCFormData; form?: string}) => any;
+  /**
+   * 开启联动验证
+   * @default false
+   */
+  unionValidate?: boolean;
   convertValue?: (value: any) => any;
   rules?: boolean | Array<CCRulesType> | CCRulesType; // 验证
   eachConfig?: CCListContext; //循环内
