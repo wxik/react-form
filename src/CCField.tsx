@@ -332,20 +332,24 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
           ...options,
           data: originData, // originData 不会引起连锁触发
         });
-        const onValue = () =>
+        let isFlag = false;
+        const onValue = (options: {valid?: boolean} = {}) => {
+          const {valid = false} = options;
           !that.unmount &&
-          name in data &&
-          that.handleChange(value, () => {
-            unionValidate && that.asyncValidateErrors();
-          });
-        // 如果没有字段名称, 初始化时触发联动设值
-        if (Types.isEmpty(formName)) onValue();
+            name in data &&
+            that.handleChange(value, () => {
+              valid && unionValidate && that.asyncValidateErrors();
+            });
+        };
         if (that.isObserveUnion && formInstance?.changeState !== CCFormStateStatusEnum.SET) {
-          onValue();
+          isFlag = true;
+          onValue({valid: true});
         } else {
           // 递归监听一下上级.上级.等等
           unionAll.forEach((pun) => data[pun]);
         }
+        // 如果没有字段名称, 初始化时触发联动设值
+        if (!isFlag && Types.isEmpty(formName)) onValue();
       });
       that.observeReactions.push(reaction);
     });
