@@ -111,11 +111,13 @@ export function extractData(
   (config || []).forEach(({form, transform, inline = true}) => {
     let data: any = normalObservable($data[form]);
 
+    // 如果 inline = false 则由 transform 自己处理数组
     if (Types.isFunction(transform)) {
-      // field 如果是方法
-      data = Types.isArray(data) ? data.map((da, index) => transform(da, $data, index)) : transform(data, $data);
+      data =
+        inline && Types.isArray(data) ? data.map((da, index) => transform(da, $data, index)) : transform(data, $data);
     } else if (!Types.isBlank(transform)) {
-      data = Types.isArray(data) ? data.map((da) => getItemValue(da, transform)) : getItemValue(data, transform);
+      data =
+        inline && Types.isArray(data) ? data.map((da) => getItemValue(da, transform)) : getItemValue(data, transform);
     }
 
     // 处理重复字段名称: (a.b@1, a.b@2) => a.b
