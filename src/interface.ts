@@ -66,7 +66,7 @@ export interface ICCFieldContext {
 export interface ICCField {
   form?: CCNamePath; // field name
   alias?: string | Array<string>; // alias field name
-  title?: ReactNode | ((form?: string) => ReactNode); // field title
+  title?: ReactNode | ((formData: CCFormData, options: CCOptions) => ReactNode); // field title
   label?: string; //
   unique?: string; //唯一标识, 默认 = id
   /**
