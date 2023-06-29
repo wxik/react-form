@@ -230,7 +230,8 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
     return (
       nextProps.form !== props.form ||
       nextState.keys !== state.keys ||
-      that.getFormName(nextProps) !== that.getFormName(props)
+      that.getFormName(nextProps) !== that.getFormName(props) ||
+      Tools.shouldUpdate(props.shouldUpdate, nextProps.shouldUpdate)
     );
   }
 

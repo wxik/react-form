@@ -17,7 +17,6 @@ import {CCFormContext} from './CCContext';
 import type {CCFieldWrapper} from './CCField';
 import type {CCListWrapper} from './CCList';
 import type {ICCListAction} from './CCListAction';
-import type {ICCListView} from './CCListView';
 import type {ICCOutlet, IOutlet} from './CCOutlet';
 import {FormHelper, Observer, Tools, Types} from './helper';
 import type {
@@ -30,6 +29,7 @@ import type {
   ICCFieldOmit,
   ICCForm,
   ICCFormContext,
+  ICCListView,
   IFieldItem,
   IListItem,
 } from './interface';

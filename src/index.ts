@@ -12,6 +12,7 @@ import {CCListView} from './CCListView';
 import {CCOutlet, CCOutletView} from './CCOutlet';
 
 export type {
+  CCFieldError,
   CCFormData,
   CCFormInstance,
   CCListInstance,
@@ -25,6 +26,7 @@ export type {
   ICCList,
   ICCListActionOperation,
   ICCListOperation,
+  ICCListView,
   IFieldItem,
 } from './interface';
 

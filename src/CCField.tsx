@@ -665,15 +665,6 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       props = that.props,
       state = that.state;
 
-    const shouldUpdate = () => {
-      const nextUpdate = nextProps.shouldUpdate;
-      const update = props.shouldUpdate;
-      if (Types.isArray(nextUpdate) && Types.isArray(update)) {
-        return nextUpdate.some((it, ix) => it !== update[ix]);
-      } else {
-        return nextUpdate !== update;
-      }
-    };
     return (
       nextState.value !== state.value ||
       nextState.required !== state.required ||
@@ -683,7 +674,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       nextState._refreshMark !== state._refreshMark ||
       nextProps.form !== props.form ||
       that.getFormName(nextProps) !== that.getFormName(props) ||
-      shouldUpdate()
+      Tools.shouldUpdate(props.shouldUpdate, nextProps.shouldUpdate)
     );
   }
 

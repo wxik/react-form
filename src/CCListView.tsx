@@ -3,19 +3,12 @@
  * @author wxik
  * @since 2023-06-12 16:47
  */
-import type {FC, ReactNode} from 'react';
+import type {FC} from 'react';
 import {useContext} from 'react';
 
 import {CCFormListContext, CCFormListViewContext} from './CCContext';
 import {Types} from './helper';
-import type {ICCListOperation} from './interface';
-import type {CCListContext} from './interface';
-
-export interface ICCListView {
-  component?: (values: CCListContext, children: ReactNode) => ReactNode;
-  provider?: (operation: ICCListOperation, children: ReactNode) => ReactNode;
-  children: (operation: ICCListOperation) => ReactNode;
-}
+import type {ICCListOperation, ICCListView} from './interface';
 
 export const CCListView: FC<ICCListView> = (props) => {
   const {children, component, provider} = props;

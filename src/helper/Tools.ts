@@ -208,3 +208,11 @@ export function getValueFromEvent(valuePropName: string, event: any) {
   }
   return event;
 }
+
+export function shouldUpdate(cur: any | any[], next: any | any[]) {
+  if (Types.isArray(next) && Types.isArray(cur)) {
+    return next.some((it, ix) => it !== cur[ix]);
+  } else {
+    return next !== cur;
+  }
+}

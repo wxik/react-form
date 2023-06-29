@@ -271,6 +271,10 @@ export interface ICCList {
   initialValue?: Array<any>;
   eachConfig?: CCListViewContext;
   children: ((props: CCListViewContext) => ReactNode) | ReactNode;
+  /**
+   * 自定义字段更新逻辑
+   */
+  shouldUpdate?: any | any[];
 }
 
 export interface IListItem extends Omit<ICCList, 'eachConfig'> {}
@@ -288,4 +292,10 @@ export interface CCFieldStatus {
   disabled: boolean;
   required: boolean;
   validate?: boolean;
+}
+
+export interface ICCListView {
+  component?: (values: CCListContext, children: ReactNode) => ReactNode;
+  provider?: (operation: ICCListOperation, children: ReactNode) => ReactNode;
+  children: (operation: ICCListOperation) => ReactNode;
 }
