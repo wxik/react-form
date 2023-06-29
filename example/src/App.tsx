@@ -311,7 +311,9 @@ class App extends React.Component<any> {
             <div className={'flex gap-3'}>
               <CCForm.List form={'sl'} initRows={1} formList={that.list1}>
                 <div className={'flex gap-3 flex-col'}>
-                  <CCListView>
+                  <CCListView
+                    component={(children) => <div className={'bg-red-200'} children={children} />}
+                    provider={(props, children) => <div children={children} />}>
                     {({remove, index}) => (
                       <div className={'flex  gap-3 border-dotted border border-sky-500 rounded p-2.5 items-center '}>
                         <TabName injectListName={false} union={`sl.${index}.c.0`} unionValue={(v) => v} />
