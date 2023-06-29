@@ -47,7 +47,10 @@ export interface IFieldOptions {
 export type CCRulesType =
   | CCRequiredType
   | RegExp
-  | ((formData: CCFormData, options: CCOptions) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
+  | ((
+      formData: CCFormData,
+      options: CCOptions & {isUnionValid: boolean},
+    ) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
 
 export interface CCListContext {
   form: CCNamePath;
@@ -142,6 +145,7 @@ export interface ICCForm {
   data?: CCFormData;
   initialValue?: Object;
   onChange?: (data: CCFormData, fields: Array<ICCField>) => void;
+  onErrorChange?: (errors: CCFieldError[]) => void;
   emitter?: ICCEmitter; // 字段改变发射器
   children: ReactNode;
   disabled?: boolean;
@@ -150,7 +154,7 @@ export interface ICCForm {
 export interface CCFieldError {
   key: CCNamePath;
   messages?: string[];
-  ref: CCFieldWrapper;
+  // ref: CCFieldWrapper;
 }
 
 export interface CCFormInstance {

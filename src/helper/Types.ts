@@ -47,7 +47,7 @@ export function isBoolean(type: any): type is boolean {
  * @param {*} type
  * @returns {boolean}
  */
-export function isObject(type: any): type is Record<any, any> {
+export function isObject<T = Record<any, any>>(type: any): type is T {
   return typeof type === 'object' && toString.call(type) === '[object Object]';
 }
 

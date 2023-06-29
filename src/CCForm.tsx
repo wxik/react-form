@@ -98,8 +98,10 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   private listFields = new Set<CCListWrapper>();
   private providerValue: ICCFormContext | {} = {};
   private timeoutChange: any = void 0;
+  private timeoutErrorChange: any = void 0;
   private tempFields: Array<ICCField> | undefined;
   private autoRunTime: any = void 0;
+  private errorsMap = new Map<string, CCFieldError>();
 
   constructor(props: ICCForm) {
     super(props);
@@ -230,6 +232,30 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       that.handleChange(that.tempFields!);
       that.tempFields = [];
     });
+  }
+
+  /**
+   * 错误验证更改
+   * @param {string} name
+   * @param {Array<string>} errors
+   */
+  errorsChange(name: string, errors?: string[]) {
+    const that = this;
+    const {onErrorChange} = that.props;
+
+    that.errorsMap.set(name, {key: name, messages: errors});
+    if (onErrorChange) {
+      clearTimeout(that.timeoutErrorChange);
+      that.timeoutErrorChange = setTimeout(() => {
+        const strErrors: CCFieldError[] = [];
+        that.errorsMap.forEach((value) => {
+          if (value.messages?.length) {
+            strErrors.push(value);
+          }
+        });
+        onErrorChange(strErrors);
+      });
+    }
   }
 
   private _setFieldValue(name: CCNamePath, value: CCFormData, options: {raw?: boolean} = {}) {
@@ -457,11 +483,12 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     callback: (field: CCFieldWrapper, callback: (data: any) => void) => void,
     paths: CCNamePath[] = [],
   ): boolean {
+    const that = this;
     let validStatus = false;
     for (let f of this.fields) {
       let field = f.getConfig();
       if (
-        field.form &&
+        !Types.isBlank(field.form) &&
         field.visible &&
         field.parentVisible &&
         (!paths.length || paths.findIndex((path) => String(field.form).indexOf(String(path)) === 0) !== -1)
@@ -469,7 +496,9 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
         validStatus = true;
         callback(f, (data: {error: boolean; errors?: string[]}) => {
           const {error, errors: messages} = data;
-          error && errors.set(field.form, {key: field.form, ref: f, messages});
+          const errorData = {key: field.form, messages};
+          error && errors.set(field.form, errorData);
+          that.errorsMap.set(String(field.form), errorData);
         });
       }
     }

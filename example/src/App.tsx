@@ -13,7 +13,7 @@ import {TrashIcon} from '@heroicons/react/24/outline';
 import {CheckGroup as ICheckGroup} from '@ibot/ibot/lib/check';
 // @ts-ignore
 import {RadioGroup as IRadioGroup} from '@ibot/ibot/lib/radio';
-import type {CCFormData} from '@wxik/react-form';
+import type {CCFieldError, CCFormData} from '@wxik/react-form';
 import {CCField, CCForm, CCListAction, CCListView, CCOutletView} from '@wxik/react-form';
 import Select from 'rc-select';
 import React, {useEffect} from 'react';
@@ -224,9 +224,17 @@ class App extends React.Component<any> {
       console.log('validateItem');
       setTimeout(() => {
         console.log('validateItem');
-        resolve('异步验证错误');
+        if (options.val) {
+          resolve('异步验证错误');
+        } else {
+          resolve(true);
+        }
       }, 1000);
     });
+  };
+
+  onErrorChange = (errors: CCFieldError[]) => {
+    console.log('error change: ', errors);
   };
 
   render() {
@@ -234,7 +242,7 @@ class App extends React.Component<any> {
     const {initialValue} = that.state;
     return (
       <div className={'flex w-full justify-center overflow-auto p-5 flex-col'}>
-        <CCForm form={that.form} initialValue={initialValue} disabled={false}>
+        <CCForm form={that.form} initialValue={initialValue} disabled={false} onErrorChange={that.onErrorChange}>
           <div style={styles.form}>
             {that.config.map((config, index) => (
               <Field key={config.form} {...config}>
@@ -292,6 +300,7 @@ class App extends React.Component<any> {
                 options={[
                   {label: 'Java', value: 'java'},
                   {label: 'React', value: 'react'},
+                  {label: 'C++', value: 'C++'},
                   {label: 'Vue', value: 'vue'},
                 ]}
               />
@@ -311,9 +320,7 @@ class App extends React.Component<any> {
             <div className={'flex gap-3'}>
               <CCForm.List form={'sl'} initRows={1} formList={that.list1}>
                 <div className={'flex gap-3 flex-col'}>
-                  <CCListView
-                    component={(children) => <div className={'bg-red-200'} children={children} />}
-                    provider={(props, children) => <div children={children} />}>
+                  <CCListView>
                     {({remove, index}) => (
                       <div className={'flex  gap-3 border-dotted border border-sky-500 rounded p-2.5 items-center '}>
                         <TabName injectListName={false} union={`sl.${index}.c.0`} unionValue={(v) => v} />

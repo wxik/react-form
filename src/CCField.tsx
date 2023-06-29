@@ -338,7 +338,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
           !that.unmount &&
             name in data &&
             that.handleChange(value, () => {
-              valid && unionValidate && that.asyncValidateErrors();
+              valid && unionValidate && that.unionValidateErrors();
             });
         };
         if (that.isObserveUnion && formInstance?.changeState !== CCFormStateStatusEnum.SET) {
@@ -507,9 +507,18 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   /**
    * 异步验证
    */
-  async asyncValidateErrors() {
+  asyncValidateErrors() {
+    return this._asyncValidateErrors();
+  }
+
+  unionValidateErrors() {
+    return this._asyncValidateErrors({isUnionValid: true});
+  }
+
+  async _asyncValidateErrors(options: {isUnionValid?: boolean} = {}) {
     const that = this;
-    let valid = that.validate({async: true});
+    const {isUnionValid} = options;
+    let valid = that.validate({async: true, isUnionValid});
     if (Types.isArray(valid)) {
       // 走一步
       let newValid: any[] = [];
@@ -561,34 +570,41 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   /**
    * 验证字段
-   * @param {{async: boolean}} options
+   * @param {{async: boolean, isUnionValid: boolean}} options
    * @returns {boolean}
    */
-  private validate(options: {async?: boolean} = {}): Array<ReturnRuleType | Promise<ReturnRuleType>> | boolean {
+  private validate(
+    options: {async?: boolean; isUnionValid?: boolean} = {},
+  ): Array<ReturnRuleType | Promise<ReturnRuleType>> | boolean {
     const that = this;
-    const {async = false} = options;
+    // isUnionValid 是否为联动触发验证, 联动验证只触发<方法验证>
+    const {async = false, isUnionValid = false} = options;
     const {ignore, rules} = that.props;
     const {required, requiredMsg, value, visible} = that.state;
 
     if ((ignore && !required) || !visible) return true;
 
-    const isEmpty = that.validateEmpty(value);
+    // 联动验证不触发空校验
+    const isEmpty = isUnionValid ? false : that.validateEmpty(value);
     if (required && isEmpty) return !Types.isBlank(requiredMsg) ? [requiredMsg] : false;
     if (isEmpty) return true;
 
     const {options: callArgs, originData} = that.getOptions();
 
     const validRule = (rule?: CCRulesType) => {
-      if (rule && rule instanceof RegExp) {
-        return rule.test(value);
-      } else if (Types.isFunction(rule)) {
-        return (rule as Function)(originData, callArgs);
-      } else if (Types.isObject(rule)) {
-        const {pattern, message} = rule;
-        if (pattern && !pattern.test(value)) {
-          return message || false;
+      if (Types.isFunction(rule)) {
+        return (rule as Function)(originData, {...callArgs, isUnionValid});
+      } else if (!isUnionValid) {
+        if (rule && rule instanceof RegExp) {
+          return rule.test(value);
+        } else if (Types.isObject<CCRequiredType>(rule)) {
+          const {pattern, message} = rule;
+          if (pattern && !pattern.test(value)) {
+            return message || false;
+          }
         }
       }
+
       return true;
     };
 
@@ -606,9 +622,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
         }
       });
       return messages.length ? messages : validSuccess;
-    } else if (Types.isObject(rules)) {
-      const valid = validRule(rules);
-      return Types.isString(valid) ? [valid] : valid;
+    } else if (!isUnionValid) {
+      if (Types.isObject(rules)) {
+        const valid = validRule(rules);
+        return Types.isString(valid) ? [valid] : valid;
+      }
     }
     return true;
   }
@@ -707,7 +725,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   componentDidUpdate(prevProps: ICCField, prevState: CCFieldState) {
     const that = this;
     const {formInstance} = this.context as ICCFormContext;
-    const {value, required, error} = that.state;
+    const {value, required, error, errors} = that.state;
     const formName = that.getFormName(that.props);
     if (value !== prevState.value) {
       formInstance.fieldChange(formName, value, {raw: !that.changeForm});
@@ -727,6 +745,10 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
     if (formName !== that.getFormName(prevProps)) {
       formInstance.fieldChange(formName, value, {raw: true});
+    }
+
+    if (!Types.isBlank(formName) && errors !== prevState.errors) {
+      formInstance.errorsChange(String(formName), errors);
     }
 
     that.changeFlag = false;

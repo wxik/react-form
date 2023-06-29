@@ -16,14 +16,15 @@ group:
 
 ### API
 
-| key          | explain                                | type                   | default |
-|:-------------|----------------------------------------|:-----------------------|:--------|
-| form         | 代理对象                                   | CCFormInstance         | -       |
-| data         | 表单共享传入数据, 采用对象引用                       | CCFormData             | -       |
-| initialValue | 初始化数据                                  | CCFormData             | -       |
-| disabled     | 设置表单组件禁用, 透传给 CCField, 但 CCField 可自行控制 | boolean                | -       |
-| onChange     | 值改变回调                                  | function(data, fields) | _       |
-| emitter      | 发布与订阅辅助                                | ICCEmitter             | -       |
+| key           | explain                                | type                                   | default |
+|:--------------|----------------------------------------|:---------------------------------------|:--------|
+| form          | 代理对象                                   | CCFormInstance                         | -       |
+| data          | 表单共享传入数据, 采用对象引用                       | CCFormData                             | -       |
+| initialValue  | 初始化数据                                  | CCFormData                             | -       |
+| disabled      | 设置表单组件禁用, 透传给 CCField, 但 CCField 可自行控制 | boolean                                | -       |
+| onChange      | 值改变回调                                  | function(`data`: CCFormData, `fields`) | _       |
+| onErrorChange | 字段错误信息改变回调                             | function(`errors`: CCFieldError[])     | _       |
+| emitter       | 发布与订阅辅助                                | ICCEmitter                             | -       |
 
 ##### CCFormInstance
 
