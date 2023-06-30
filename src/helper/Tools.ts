@@ -210,8 +210,14 @@ export function getValueFromEvent(valuePropName: string, event: any) {
 }
 
 export function shouldUpdate(cur: any | any[], next: any | any[]) {
-  if (Types.isArray(next) && Types.isArray(cur)) {
-    return next.some((it, ix) => it !== cur[ix]);
+  if (Types.isArray(cur) && Types.isArray(next)) {
+    // 如果 next 数空数组 cur 有值,则会导致无效验证, 需要交换验证
+    if (!next.length) {
+      const newNext = cur;
+      cur = next;
+      next = newNext;
+    }
+    return next.some((it: any, ix: any) => it !== cur[ix]);
   } else {
     return next !== cur;
   }
