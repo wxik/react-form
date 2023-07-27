@@ -48,7 +48,12 @@ export function isBoolean(type: any): type is boolean {
  * @returns {boolean}
  */
 export function isObject<T = Record<any, any>>(type: any): type is T {
-  return typeof type === 'object' && toString.call(type) === '[object Object]';
+  const Ctor = type && type.constructor;
+  return (
+    typeof type === 'object' &&
+    toString.call(type) === '[object Object]' &&
+    (!isFunction(Ctor) || (isFunction(Ctor) && Ctor instanceof Ctor && toString.call(Ctor) === '[object Function]'))
+  );
 }
 
 /**
