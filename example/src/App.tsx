@@ -32,6 +32,7 @@ class App extends React.Component<any> {
   private uuid = 0;
 
   state = {
+    disabled: false,
     initialValue: {
       select: 'java',
       radio: 'on',
@@ -187,6 +188,10 @@ class App extends React.Component<any> {
     }
   }
 
+  disableEdit() {
+    this.setState({disabled: !this.state.disabled});
+  }
+
   inject() {
     this.form.setOriginData({
       // name: 'Inject Name: ' + Math.random(),
@@ -239,10 +244,10 @@ class App extends React.Component<any> {
 
   render() {
     let that = this;
-    const {initialValue} = that.state;
+    const {initialValue, disabled} = that.state;
     return (
       <div className={'flex w-full justify-center overflow-auto p-5 flex-col'}>
-        <CCForm form={that.form} initialValue={initialValue} disabled={false} onErrorChange={that.onErrorChange}>
+        <CCForm form={that.form} initialValue={initialValue} disabled={disabled} onErrorChange={that.onErrorChange}>
           <div style={styles.form}>
             {that.config.map((config, index) => (
               <Field key={config.form} {...config}>
@@ -413,6 +418,9 @@ class App extends React.Component<any> {
             </button>
             <button onClick={() => that.countAsync()} style={styles.btn}>
               Submit by Async
+            </button>
+            <button onClick={() => that.disableEdit()} style={styles.btn}>
+              {disabled ? 'Enabled' : 'Disable'}
             </button>
             <CCOutletView forProps={(props) => ({disabled: props.disabled})}>
               <button style={styles.btn} onClick={() => that.inject()}>

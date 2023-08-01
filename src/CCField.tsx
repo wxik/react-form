@@ -579,10 +579,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this;
     // isUnionValid 是否为联动触发验证, 联动验证只触发<方法验证>
     const {async = false, isUnionValid = false} = options;
-    const {ignore, rules} = that.props;
+    const {rules} = that.props;
     const {required, requiredMsg, value, visible} = that.state;
 
-    if ((ignore && !required) || !visible) return true;
+    // if ((ignore && !required) || !visible) return true;
+    if (!visible) return true;
 
     // 联动验证不触发空校验
     const isEmpty = isUnionValid ? false : that.validateEmpty(value);

@@ -122,11 +122,11 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
 
   shouldComponentUpdate(nextProps: ICCForm, nextState: ICCFormState) {
     const that = this;
-    return (
-      nextState.data !== that.state.data ||
-      nextProps.children !== that.props.children ||
-      nextProps.disabled !== that.props.disabled
-    );
+    const disabledFlag = nextProps.disabled !== that.props.disabled;
+    if (disabledFlag) {
+      that.providerValue = {...that.providerValue};
+    }
+    return disabledFlag || nextState.data !== that.state.data || nextProps.children !== that.props.children;
   }
 
   getSnapshotBeforeUpdate(prevProps: ICCForm, prevState: ICCFormState) {
