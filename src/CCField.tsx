@@ -65,7 +65,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
     function p2s(name: keyof ICCField) {
       const value = nextProps[name];
-      if (!Types.isUndefined(value) && value !== prevState[`_${name}`]) {
+      if (!Types.isUndefined(value) && !Types.isFunction(value) && value !== prevState[`_${name}`]) {
         state = state || {};
         state[name] = value;
         state[`_${name}`] = value;
@@ -73,7 +73,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     }
 
     // @ts-ignore
-    ['value'].forEach(p2s);
+    ['value', 'disabled', 'visible'].forEach(p2s);
     return state;
   }
 
