@@ -13,18 +13,18 @@
     "@ibot/ibot": "0.7.0-dev.15",
     "@wxik/core": "^0.5.5",
     "classnames": "^2.3.2",
-    "dumi": "^2.2.1",
+    "dumi": "^2.2.7",
     "rc-select": "^12.1.13",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.13",
-    "@types/react-dom": "^18.2.6",
-    "@vitejs/plugin-react": "^4.0.1",
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.24",
-    "tailwindcss": "^3.3.2",
-    "vite": "^4.3.9"
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.4",
+    "autoprefixer": "^10.4.15",
+    "postcss": "^8.4.29",
+    "tailwindcss": "^3.3.3",
+    "vite": "^4.4.9"
   }
 }

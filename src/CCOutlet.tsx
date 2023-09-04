@@ -5,7 +5,7 @@
  * @author Quia
  * @since 2020-05-21 11:47
  */
-import type {ComponentType, ReactElement} from 'react';
+import type {ComponentType, ForwardRefExoticComponent, PropsWithoutRef, ReactElement, RefAttributes} from 'react';
 import {cloneElement, forwardRef} from 'react';
 
 import {CCFormListViewContext} from './CCContext';
@@ -21,9 +21,11 @@ export interface IOutlet {
   forProps?: (props: ICCOutlet) => Record<string, any>;
 }
 
-export function CCOutlet<T = {}, P = any>() {
-  return function (Target: ComponentType<T & ICCOutlet>) {
-    return forwardRef<P, T>((props, ref) => (
+export function CCOutlet<P = {}, T = any>() {
+  return function (
+    Target: ComponentType<P & ICCOutlet>,
+  ): ForwardRefExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+    return forwardRef<T, P>((props, ref) => (
       <CCFormListViewContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>

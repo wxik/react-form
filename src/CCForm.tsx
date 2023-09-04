@@ -21,6 +21,7 @@ import type {ICCOutlet, IOutlet} from './CCOutlet';
 import {FormHelper, Observer, Tools, Types} from './helper';
 import type {
   CCFieldError,
+  CCFieldStatus,
   CCFormData,
   CCFormInstance,
   CCListInstance,
@@ -33,7 +34,6 @@ import type {
   IFieldItem,
   IListItem,
 } from './interface';
-import type {CCFieldStatus} from './interface';
 
 interface ICCFormState {
   data: CCFormData;
