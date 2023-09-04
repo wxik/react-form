@@ -4,7 +4,7 @@
  * @sine 2020-04-11 11:43
  */
 import type {ComponentType, ContextType, ReactElement} from 'react';
-import {Component} from 'react';
+import {Component, createRef, useRef} from 'react';
 
 import {CCFieldContext, CCFormListViewContext} from './CCContext';
 import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
@@ -94,12 +94,9 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     that.observeVisible = that.observeVisible.bind(that);
     that.observeDisabled = that.observeDisabled.bind(that);
     that.observeRequired = that.observeRequired.bind(that);
-    that.formInstance = FormHelper.formHandler({current: context?.formInstance ?? null});
+    that.formInstance = FormHelper.formHandler({current: context?.formInstance});
     that.state = that.initState();
-    that.providerValue = {
-      fieldInstance: that,
-    };
-    // console.log('>>>>>>', props.form);
+    that.providerValue = {fieldInstance: that};
   }
 
   initState() {

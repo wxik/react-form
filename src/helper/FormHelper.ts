@@ -3,15 +3,17 @@
  * @author wxik
  * @since 2023-05-10 11:37
  */
-import type {RefObject} from 'react';
+import type {MutableRefObject} from 'react';
 import {createRef, useContext, useMemo, useRef} from 'react';
 
 import {CCFormContext, CCFormListContext} from '../CCContext';
 import type {CCForm} from '../CCForm';
 import type {CCListWrapper} from '../CCList';
 import type {CCFormData, CCFormInstance, CCListInstance, CCNamePath} from '../interface';
+import {isArray} from './Types';
 
-export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
+export const formHandler = (ref: MutableRefObject<CCForm | undefined>): CCFormInstance => {
+  let tmpData: {originData?: CCFormData; fieldData?: CCFormData} = {};
   return {
     subData: (options) => {
       return ref.current?.subData(options)!;
@@ -29,10 +31,20 @@ export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
       return ref.current?.asyncValidateErrors(paths)!;
     },
     setOriginData: (data: CCFormData | any[]) => {
-      return ref.current?.setOriginData(data);
+      const {current} = ref;
+      if (current) {
+        current.setOriginData(data);
+      } else {
+        tmpData.originData = isArray(data) ? data : Object.assign({}, tmpData.originData, data);
+      }
     },
     setFieldData: (data) => {
-      return ref.current?.setFieldData(data);
+      const {current} = ref;
+      if (current) {
+        current.setFieldData(data);
+      } else {
+        tmpData.fieldData = isArray(data) ? data : Object.assign({}, tmpData.fieldData, data);
+      }
     },
     addData: (data) => {
       return ref.current?.addData(data);
@@ -41,11 +53,23 @@ export const formHandler = (ref: RefObject<CCForm>): CCFormInstance => {
       return ref.current?.setData(data);
     },
     // @ts-ignore
-    __REF__: ref,
+    __REF__: {
+      mount: (target: CCForm) => {
+        const {originData, fieldData} = tmpData;
+        ref.current = target;
+        if (originData) target.setOriginData(originData);
+        if (fieldData) target.setFieldData(fieldData);
+        tmpData = {};
+      },
+      unmount: () => {
+        ref.current = void 0;
+        tmpData = {};
+      },
+    },
   };
 };
 
-const listHelder = (ref: RefObject<CCListWrapper>): CCListInstance => {
+const listHelder = (ref: MutableRefObject<CCListWrapper | undefined>): CCListInstance => {
   return {
     add: (value?: any, insertIndex?: number) => {
       return ref.current?.addItem(value, insertIndex);
@@ -66,16 +90,19 @@ const listHelder = (ref: RefObject<CCListWrapper>): CCListInstance => {
       return ref.current?.getData().length || 0;
     },
     // @ts-ignore
-    __REF__: ref,
+    __REF__: {
+      mount: (target: CCListWrapper) => (ref.current = target),
+      unmount: () => (ref.current = void 0),
+    },
   };
 };
 
 export const createForm = (): CCFormInstance => {
-  return formHandler(createRef<CCForm>());
+  return formHandler(createRef() as MutableRefObject<CCForm>);
 };
 
 export const useForm = (): [CCFormInstance] => {
-  const ref = useRef<CCForm>(null);
+  const ref = useRef<CCForm>();
   return [useMemo<CCFormInstance>(() => formHandler(ref), [])];
 };
 
@@ -87,11 +114,11 @@ export const useFormInstance = (): CCFormInstance => {
 };
 
 export const createList = (): CCListInstance => {
-  return listHelder(createRef<CCListWrapper>());
+  return listHelder(createRef() as MutableRefObject<CCListWrapper>);
 };
 
 export const useList = (): [CCListInstance] => {
-  const ref = useRef<CCListWrapper>(null);
+  const ref = useRef<CCListWrapper>();
   return [useMemo<CCListInstance>(() => listHelder(ref), [])];
 };
 

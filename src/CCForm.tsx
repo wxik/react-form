@@ -106,17 +106,24 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   constructor(props: ICCForm) {
     super(props);
     const that = this;
-    const {emitter, form} = props;
+    const {emitter} = props;
     that.state = {data: Observer.observable({}), originData: {}};
     that.providerValue = {
       formInstance: that,
       emitter,
     };
-    // @ts-ignore
-    if (form && form.__REF__) form.__REF__.current = that;
+  }
+
+  componentDidMount() {
+    setTimeout(() => {
+      // @ts-ignore
+      this.props.form?.__REF__.mount(this);
+    });
   }
 
   componentWillUnmount() {
+    // @ts-ignore
+    this.props.form?.__REF__.unmount();
     this.unObserveField();
   }
 

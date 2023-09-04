@@ -216,11 +216,17 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
   }
 
   componentDidMount() {
-    this.context?.formInstance.setField(this);
+    const that = this;
+    // @ts-ignore
+    that.props.formList?.__REF__.mount(that);
+    that.context?.formInstance.setField(that);
   }
 
   componentWillUnmount() {
-    this.context?.formInstance.unmountField(this);
+    const that = this;
+    // @ts-ignore
+    that.props.formList?.__REF__.unmount();
+    that.context?.formInstance.unmountField(that);
   }
 
   shouldComponentUpdate(nextProps: ICCList, nextState: ICCListState) {

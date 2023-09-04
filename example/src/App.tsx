@@ -32,6 +32,7 @@ class App extends React.Component<any> {
   private uuid = 0;
 
   state = {
+    visible: true,
     disabled: false,
     initialValue: {
       select: 'java',
@@ -242,9 +243,20 @@ class App extends React.Component<any> {
     console.log('error change: ', errors);
   };
 
+  onShowBySetData = () => {
+    this.form.setOriginData({'test.1': 'test' + Math.random()});
+    this.setState({visible: true});
+  };
+
   render() {
     let that = this;
-    const {initialValue, disabled} = that.state;
+    const {initialValue, disabled, visible} = that.state;
+    if (!visible)
+      return (
+        <button onClick={that.onShowBySetData} style={styles.btn}>
+          load form
+        </button>
+      );
     return (
       <div className={'flex w-full justify-center overflow-auto p-5 flex-col'}>
         <CCForm form={that.form} initialValue={initialValue} disabled={disabled} onErrorChange={that.onErrorChange}>
@@ -427,6 +439,9 @@ class App extends React.Component<any> {
                 Inject
               </button>
             </CCOutletView>
+            <button onClick={() => that.setState({visible: false})} style={styles.btn}>
+              hidden
+            </button>
           </div>
         </CCForm>
       </div>
