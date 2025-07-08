@@ -25,7 +25,7 @@ export function CCOutlet<P = {}, T = any>() {
   return function (
     Target: ComponentType<P & ICCOutlet>,
   ): ForwardRefExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
-    return forwardRef<T, P>((props, ref) => (
+    return forwardRef<T, P>((props: any, ref) => (
       <CCFormListViewContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>
