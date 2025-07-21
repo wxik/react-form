@@ -28,7 +28,7 @@ export default defineConfig({
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx'],
     alias: {
-      '@wxik/react-form': path.resolve('../src'),
+      '@guc/react-form': path.resolve('../src'),
     },
   },
 });

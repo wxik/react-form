@@ -5,8 +5,8 @@
  */
 import './index.css';
 
-import type {ICCField} from '@wxik/react-form';
-import {CCField} from '@wxik/react-form';
+import type {ICCField} from '@guc/react-form';
+import {CCField} from '@guc/react-form';
 import cls from 'classnames';
 import type {FC, ReactElement} from 'react';
 import {Children, cloneElement, useMemo} from 'react';

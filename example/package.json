@@ -1,7 +1,6 @@
 {
   "name": "example",
   "version": "1.0.0",
-  "private": "true",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "doc:dev": "dumi dev",
@@ -9,22 +8,23 @@
     "doc:preview": "dumi preview"
   },
   "dependencies": {
+    "@guc/core": "^0.6.0",
+    "@guc/react-form": "link:../",
     "@heroicons/react": "^2.0.18",
     "@ibot/ibot": "0.7.0-dev.15",
-    "@wxik/core": "^0.5.5",
-    "classnames": "^2.3.2",
-    "dumi": "^2.2.7",
+    "classnames": "^2.5.1",
+    "dumi": "^2.4.21",
     "rc-select": "^12.1.13",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "@types/react": "^18.2.21",
-    "@types/react-dom": "^18.2.7",
-    "@vitejs/plugin-react": "^4.0.4",
-    "autoprefixer": "^10.4.15",
-    "postcss": "^8.4.29",
-    "tailwindcss": "^3.3.3",
-    "vite": "^4.4.9"
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "vite": "^7.0.5"
   }
 }
