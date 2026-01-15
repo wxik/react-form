@@ -1,7 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* stylelint-disable at-rule-empty-line-before,at-rule-name-space-after,at-rule-no-unknown */
+/* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable */
+/* stylelint-disable declaration-bang-space-before,no-duplicate-selectors,string-no-newline */
 
+/*@import "tailwindcss";*/
+
+@layer theme, base, antd, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+/*@import "tailwindcss/preflight.css" layer(base);*/
+@import "tailwindcss/utilities.css" layer(utilities);
 
 .prism-code {
   background-color: #f6f6f6 !important;

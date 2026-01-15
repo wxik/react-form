@@ -3,8 +3,8 @@ nav:
   title: 组件
   order: 1
 title: CCField
-order: 1
-group: 基础
+order: 2
+group: 组件总览
 ---
 
 # CCField
@@ -12,7 +12,7 @@ group: 基础
 ### 代码演示
 
 ```tsx | pure
-import {CCField} from '@wxik/react-form';
+import {CCField} from '@guc/react-form';
 
 interface IProps {
     name?: string;

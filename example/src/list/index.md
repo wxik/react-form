@@ -3,36 +3,15 @@ nav:
   title: 组件
   order: 1
 title: CCList
-order: 1
-group: 基础
+order: 3
+group: 组件总览
 ---
 
 # CCList
 
 ### 代码演示
 
-```tsx
-/**
- * defaultShowCode: true
- */
-import {CCList, CCForm} from '@wxik/react-form';
-
-export default () => {
-  return (
-    <CCForm>
-      <CCList initialValue={['init row']}>
-        {({add, remove, index, data}) => (
-          <div className={'flex gap-2.5'} style={{marginBottom: 10}}>
-            <button onClick={()=> add(Math.random())}>Add Row</button>
-            <button onClick={remove}>Delete Row</button>
-            <div>Row Data: {data[index]}</div>
-          </div>
-        )}
-      </CCList>
-    </CCForm>
-  )
-};
-```
+<code src="./basic.tsx"></code>
 
 
 ### API

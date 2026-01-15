@@ -3,16 +3,17 @@ nav:
   title: 组件
   order: 1
 title: CCForm
+order: 1
 group:
-  title: 基础
+  title: 组件总览
 ---
 
 # CCForm
 
 ### 代码演示
 
-<code src="./basic/hooks.tsx" des></code>
-<code src="./basic/clazz.tsx"></code>
+<code src="./hooks.tsx"></code>
+<code src="./clazz.tsx"></code>
 
 ### API
 

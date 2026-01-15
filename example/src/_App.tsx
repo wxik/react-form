@@ -3,10 +3,6 @@
  * @author wxik
  * @sine 2020-04-16 10:14
  */
-import '@ibot/ibot/lib/root/index.css';
-import '@ibot/ibot/lib/radio/index.css';
-import '@ibot/ibot/lib/check/index.css';
-import './assets/rc-select.pcss';
 
 import type { CCFieldError, CCFormData } from '@guc/react-form';
 import { CCField, CCForm, CCListAction, CCListView, CCOutletView } from '@guc/react-form';
@@ -15,19 +11,18 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 import { CheckGroup as ICheckGroup } from '@ibot/ibot/lib/check';
 // @ts-ignore
 import { RadioGroup as IRadioGroup } from '@ibot/ibot/lib/radio';
-import Select from 'rc-select';
+import { Input,Select } from 'antd';
 import React, { useEffect } from 'react';
 
-import { Input } from './components/Input';
-import type { IField } from './Field';
-import { Field } from './Field';
+import type { IFieldProps } from './components/Field';
+import { Field } from './components/Field';
 
-class App extends React.Component<any> {
+class _App extends React.Component<any> {
   form = CCForm.createForm();
   list2 = CCForm.createList();
   list1 = CCForm.createList();
-  config: Array<IField>;
-  formList: Array<IField>;
+  config: Array<IFieldProps>;
+  formList: Array<IFieldProps>;
 
   private uuid = 0;
 
@@ -507,4 +502,4 @@ const styles: Record<string, any> = {
   },
 };
 
-export default App;
+export default _App;

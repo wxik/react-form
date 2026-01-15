@@ -160,9 +160,9 @@ export interface CCFieldError {
 export interface CCFormInstance {
   /**
    * 获取表单submitData
-   * @returns {{merge ?: boolean}}
+   * @param options {{merge ?: boolean}}
    */
-  subData: (options?: {merge?: boolean}) => CCFormData;
+  subData: (options?: { merge?: boolean }) => CCFormData;
   /**
    * 验证表单
    * @returns {boolean}
@@ -191,6 +191,10 @@ export interface CCFormInstance {
    */
   setOriginData: (data: CCFormData | any[]) => void;
   /**
+   * 重置一组字段到 initialValues
+   */
+  resetFields: (paths?: CCNamePath[]) => void;
+  /**
    * 设置表单数据, 触发字段 onChange 但不触发联动
    * @param {Array|Object} data
    */
@@ -206,11 +210,6 @@ export interface CCFormInstance {
    * @param {{isGet: boolean, isChange: boolean}} options
    */
   setData: (data: CCFormData) => void;
-}
-
-export interface CCValidateError {
-  key: CCNamePath;
-  messages?: string[];
 }
 
 export interface ICCFieldListener {
