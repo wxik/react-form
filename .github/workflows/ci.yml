@@ -22,11 +22,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 20.x
-          yarn-version: 4.x
 
       # 打包代码
       - name: Build Project
         run: |
+          corepack enable
           yarn
           cd example
           yarn
