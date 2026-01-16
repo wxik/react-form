@@ -30,8 +30,11 @@ export const formHandler = (ref: MutableRefObject<CCForm | undefined>): CCFormIn
     asyncValidateErrors: async (paths?: CCNamePath[]) => {
       return ref.current?.asyncValidateErrors(paths)!;
     },
+    resetFields: (paths?: CCNamePath[]) => {
+      return ref.current?.resetFields(paths)!;
+    },
     setOriginData: (data: CCFormData | any[]) => {
-      const {current} = ref;
+      const { current } = ref;
       if (current) {
         current.setOriginData(data);
       } else {
@@ -39,7 +42,7 @@ export const formHandler = (ref: MutableRefObject<CCForm | undefined>): CCFormIn
       }
     },
     setFieldData: (data) => {
-      const {current} = ref;
+      const { current } = ref;
       if (current) {
         current.setFieldData(data);
       } else {
@@ -55,7 +58,7 @@ export const formHandler = (ref: MutableRefObject<CCForm | undefined>): CCFormIn
     // @ts-ignore
     __REF__: {
       mount: (target: CCForm) => {
-        const {originData, fieldData} = tmpData;
+        const { originData, fieldData } = tmpData;
         ref.current = target;
         if (originData) target.setOriginData(originData);
         if (fieldData) target.setFieldData(fieldData);

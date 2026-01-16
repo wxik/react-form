@@ -11,14 +11,14 @@ import type {
   PropsWithoutRef,
   RefAttributes,
 } from 'react';
-import {Component} from 'react';
+import { Component } from 'react';
 
-import {CCFormContext} from './CCContext';
-import type {CCFieldWrapper} from './CCField';
-import type {CCListWrapper} from './CCList';
-import type {ICCListAction} from './CCListAction';
-import type {ICCOutlet, IOutlet} from './CCOutlet';
-import {FormHelper, Observer, Tools, Types} from './helper';
+import { CCFormContext } from './CCContext';
+import type { CCFieldWrapper } from './CCField';
+import type { CCListWrapper } from './CCList';
+import type { ICCListAction } from './CCListAction';
+import type { ICCOutlet, IOutlet } from './CCOutlet';
+import { FormHelper, Observer, Tools, Types } from './helper';
 import type {
   CCFieldError,
   CCFieldStatus,
@@ -78,12 +78,12 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   static ListAction: FC<ICCListAction>;
 
   static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {
-    const {data, initialValue} = nextProps;
+    const { data, initialValue } = nextProps;
     if (data && data !== prevState.originData) {
-      return {data: Observer.observable(data), originData: data};
+      return { data: Observer.observable(data), originData: data };
     }
     if (initialValue && initialValue !== prevState.initialValue) {
-      return {data: Observer.observable({}), originData: {}, initialValue};
+      return { data: Observer.observable({}), originData: {}, initialValue };
     }
     return null;
   }
@@ -106,8 +106,8 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   constructor(props: ICCForm) {
     super(props);
     const that = this;
-    const {emitter} = props;
-    that.state = {data: Observer.observable({}), originData: {}};
+    const { emitter } = props;
+    that.state = { data: Observer.observable({}), originData: {} };
     that.providerValue = {
       formInstance: that,
       emitter,
@@ -131,7 +131,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const that = this;
     const disabledFlag = nextProps.disabled !== that.props.disabled;
     if (disabledFlag) {
-      that.providerValue = {...that.providerValue};
+      that.providerValue = { ...that.providerValue };
     }
     return disabledFlag || nextState.data !== that.state.data || nextProps.children !== that.props.children;
   }
@@ -154,7 +154,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     }
   }
 
-  revertListField() {
+  private revertListField() {
     for (const fl of this.listFields) {
       const state = fl.initState();
       fl.removeOutData(state.data.length);
@@ -162,13 +162,13 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     }
   }
 
-  revertField() {
+  private revertField() {
     const that = this;
     for (const field of that.fields) {
       const state = field.initState();
       const form = field.getFormName();
       if (!Types.isBlank(form) && !(form in that.state.data)) {
-        that._setFieldValue(form, state.value, {raw: true});
+        that._setFieldValue(form, state.value, { raw: true });
       }
       field.setState(state);
     }
@@ -210,18 +210,18 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
    * @param {*} value filed change value
    * @param {{raw: boolean}} options
    */
-  fieldChange(name: CCNamePath, value: any, options: {raw?: boolean} = {}) {
+  fieldChange(name: CCNamePath, value: any, options: { raw?: boolean } = {}) {
     const that = this;
-    const {raw = false} = options;
+    const { raw = false } = options;
     if (Types.isBlank(name) || that.state.data[name] === value) return;
-    that._setFieldValue(name, value, {raw});
+    that._setFieldValue(name, value, { raw });
 
     that.formChange(name);
   }
 
-  deleteField(name: string, options: {isChange?: boolean} = {}) {
+  deleteField(name: string, options: { isChange?: boolean } = {}) {
     const that = this;
-    const {isChange = true} = options;
+    const { isChange = true } = options;
     if (!Types.isEmpty(name)) {
       delete Observer.raw(that.state.data)[name];
       delete that.state.originData[name];
@@ -248,9 +248,9 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
    */
   errorsChange(name: string, errors?: string[]) {
     const that = this;
-    const {onErrorChange} = that.props;
+    const { onErrorChange } = that.props;
 
-    that.errorsMap.set(name, {key: name, messages: errors});
+    that.errorsMap.set(name, { key: name, messages: errors });
     if (onErrorChange) {
       clearTimeout(that.timeoutErrorChange);
       that.timeoutErrorChange = setTimeout(() => {
@@ -265,10 +265,10 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     }
   }
 
-  private _setFieldValue(name: CCNamePath, value: CCFormData, options: {raw?: boolean} = {}) {
-    const {raw = false} = options;
+  private _setFieldValue(name: CCNamePath, value: CCFormData, options: { raw?: boolean } = {}) {
+    const { raw = false } = options;
     if (!Types.isBlank(name)) {
-      const {data} = this.state;
+      const { data } = this.state;
       (raw ? Observer.raw(data) : data)[name] = value;
       this.state.originData[name] = value;
     }
@@ -276,12 +276,12 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
 
   public setFieldStatus(
     name: CCNamePath,
-    config: {disabled: boolean; required: boolean; error?: boolean; visible: boolean},
-    options: {raw?: boolean} = {},
+    config: { disabled: boolean; required: boolean; error?: boolean; visible: boolean },
+    options: { raw?: boolean } = {},
   ) {
-    const {raw = false} = options;
+    const { raw = false } = options;
     if (!Types.isBlank(name)) {
-      const {disabled, required, error, visible} = config;
+      const { disabled, required, error, visible } = config;
       (raw ? Observer.raw(this.fieldStatus) : this.fieldStatus)[name] = {
         disabled,
         visible,
@@ -301,8 +301,8 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       let form = field.getFormName();
       if (!Types.isBlank(form)) that.fieldsMap.set(form, field);
       that.fields.add(field);
-      that._setFieldValue(form, field.value, {raw: true});
-      that.setFieldStatus(form, field.getConfig(), {raw: true});
+      that._setFieldValue(form, field.value, { raw: true });
+      that.setFieldStatus(form, field.getConfig(), { raw: true });
       that.updateFields.add(field);
 
       clearTimeout(that.autoRunTime);
@@ -319,7 +319,6 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   /**
    * 获取字段代理信息
    * @param {string} name
-   * @returns {*}
    */
   getField(name: CCNamePath) {
     return Types.isBlank(name) ? null : this.fieldsMap.get(name);
@@ -343,6 +342,14 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   }
 
   /**
+   * 重置表单
+   */
+  resetFields(paths?: CCNamePath[]) {
+    console.log('🤟 Code', Types.isArray(this.originData) ? [] : {}, paths);
+    this.setOriginData(Types.isArray(this.originData) ? [] : {});
+  }
+
+  /**
    * 初始化表单数据
    * @param {CCFormData | any[]} data
    */
@@ -350,7 +357,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const that = this;
     that.originData = data;
     for (const f of that.listFields) {
-      const {form} = f.getConfig();
+      const { form } = f.getConfig();
       if (!Types.isBlank(form)) {
         const value = Tools.get(data, String(form));
         value && f.setData(value);
@@ -358,7 +365,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
         f.setData(data);
       }
     }
-    that.setData(data, {isGet: true, isChange: false});
+    that.setData(data, { isGet: true, isChange: false });
   }
 
   /**
@@ -366,18 +373,20 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
    * @param {CCFormData | any[]} data
    */
   setFieldData(data: CCFormData | any[]) {
-    this.setData(data, {isGet: true, isChange: true});
+    this.setData(data, { isGet: true, isChange: true });
   }
 
   /**
    * 设置表单数据
    * @param {CCFormData | any[]} data
-   * @param {{isGet: boolean, isChange: boolean}} options
+   * @param {Object} options
+   * @param {boolean} [options.isGet = false] 是否触发字段 convertValue
+   * @param {boolean} [options.isChange = false] 是否触发字段 onChange
    */
-  setData(data: CCFormData | any[], options: {isChange?: boolean; isGet?: boolean} = {}) {
+  setData(data: CCFormData | any[], options: { isChange?: boolean; isGet?: boolean } = {}) {
     const that = this;
     if (Types.isEmpty(data)) return;
-    const {isGet = false, isChange = false} = options;
+    const { isGet = false, isChange = false } = options;
     that.changeState = CCFormStateStatusEnum.SET;
 
     let count = 0;
@@ -388,7 +397,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       });
     };
     for (const f of that.fields) {
-      let {form, convertValue, alias} = f.getConfig();
+      let { form, convertValue, alias } = f.getConfig();
       if (form) {
         let sym = Symbol();
         // let prevValue = f.value;
@@ -432,7 +441,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
    * 验证表单, 不处理表单中带有异步的验证
    * @returns {boolean}
    */
-  validate() {
+  validate(): boolean {
     return this.validateErrors().length === 0;
   }
 
@@ -446,9 +455,9 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   /**
    * 验证表单, 返回错误信息
    * @param {CCNamePath[]} [paths]
-   * @returns {CCValidateError[]}
+   * @returns {CCFieldError[]}
    */
-  validateErrors(paths: CCNamePath[] = []) {
+  validateErrors(paths: CCNamePath[] = []): CCFieldError[] {
     const errors = new Map<CCNamePath, CCFieldError>();
     this._validateErrors(errors, (field, callback) => callback(field.validateErrors()), paths);
     return Array.from(errors.values());
@@ -501,9 +510,9 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
         (!paths.length || paths.findIndex((path) => String(field.form).indexOf(String(path)) === 0) !== -1)
       ) {
         validStatus = true;
-        callback(f, (data: {error: boolean; errors?: string[]}) => {
-          const {error, errors: messages} = data;
-          const errorData = {key: field.form, messages};
+        callback(f, (data: { error: boolean; errors?: string[] }) => {
+          const { error, errors: messages } = data;
+          const errorData = { key: field.form, messages };
           error && errors.set(field.form, errorData);
           that.errorsMap.set(String(field.form), errorData);
         });
@@ -514,14 +523,14 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
 
   /**
    * 获取表单submitData
-   * @returns {{merge ?: boolean}}
+   * @param options {CCFormData}
    */
-  subData(options: {merge?: boolean} = {}) {
+  subData(options: { merge?: boolean } = {}): CCFormData {
     const that = this;
-    const {merge = false} = options;
+    const { merge = false } = options;
     const config = [],
       ignoreKeys = [];
-    const {data, initialValue} = that.state;
+    const { data, initialValue } = that.state;
     for (const f of that.removeFields) {
       const field = f.getConfig();
       if (field.form) {
@@ -548,7 +557,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const originData = that.originData ?? initialValue;
     if (merge && originData) {
       for (const f of that.listFields) {
-        const {form} = f.getConfig();
+        const { form } = f.getConfig();
         const listData = f.getData();
         let deleteIndex = f.deleteIndex;
         const subListData = Tools.get(subData, String(form!));
@@ -573,8 +582,8 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
 
   render() {
     const that = this;
-    const {disabled = false} = that.props;
-    const {data, originData, initialValue} = that.state;
+    const { disabled = false } = that.props;
+    const { data, originData, initialValue } = that.state;
     const providerValue = that.providerValue as ICCFormContext;
     providerValue.data = data;
     providerValue.originData = originData;

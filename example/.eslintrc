@@ -4,7 +4,7 @@
   "settings": {
     "import/resolver": {
       "alias": {
-        "map": [["@wxik/react-form", "../src"]],
+        "map": [["@guc/react-form", "../src"]],
         "extensions": [".tsx", ".ts", ".jsx", ".js"]
       }
     }
