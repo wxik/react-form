@@ -21,9 +21,12 @@ export default class extends Component {
 
   render() {
     return (
-      <CCForm form={this.form}>
+      <CCForm form={this.form} initialValue={{ name: 'union' }}>
         <div className={'flex gap-8 cc-form-layout-col'}>
-          <Field form={'name'} initialValue={'hooks'} title={'Name'}>
+          <Field form={'name'} title={'Name'} union={'name'} unionValue={(v) => v}>
+            <Input className={'w-3xs'} />
+          </Field>
+          <Field form={'name'} title={'Name'} union={'name'} unionValue={(v) => v}>
             <Input className={'w-3xs'} />
           </Field>
           <div className={'flex gap-2'}>
