@@ -1,4 +1,4 @@
-import {defineConfig} from 'dumi';
+import { defineConfig } from 'dumi';
 
 const path = require('path');
 const __DEV__ = process.env.NODE_ENV !== 'production';
@@ -8,7 +8,7 @@ export default defineConfig({
   logo: `${!__DEV__ ? `/${repo}` : ''}/reaction.svg`,
   favicons: ['/favicon.svg'],
   themeConfig: {
-    footer: `Open-source MIT Licensed | Copyright © 2026-present <br/> Powered by self`,
+    footer: `Open-source MIT Licensed | Copyright © ${new Date().getFullYear()}-present <br/> Powered by self`,
     prefersColor: { default: 'light', switch: false },
   },
   outputPath: path.join(__dirname, '..', 'docs'),

@@ -4,8 +4,8 @@
  * @since 2023-02-27 11:12
  */
 
-import {isObservable} from './Observer';
-import * as Types from './Types';
+import { isObservable } from './Observer';
+import { isArray, isBlank, isEmpty, isFunction, isObject, isUndefined } from './Types';
 
 function getAKeysToObjc(key: string, obj: Record<string, any>) {
   let index = 0;
@@ -34,9 +34,9 @@ function getAKeysToObjc(key: string, obj: Record<string, any>) {
  * @returns {*}
  */
 export function getItemValue(item: Record<string, any>, key: string, defaultValue?: any) {
-  if (Types.isEmpty(item) || Types.isBlank(key)) return defaultValue;
+  if (isEmpty(item) || isBlank(key)) return defaultValue;
 
-  if (Types.isObject(item) || Types.isArray(item)) {
+  if (isObject(item) || isArray(item)) {
     let value = item,
       ks: Record<string, any> = {};
     if (key in item) {
@@ -48,7 +48,7 @@ export function getItemValue(item: Record<string, any>, key: string, defaultValu
         if (!value) break;
       }
     }
-    return Types.isEmpty(value) ? defaultValue : value;
+    return isEmpty(value) ? defaultValue : value;
   } else {
     return item;
   }
@@ -65,10 +65,14 @@ export function getItemValue(item: Record<string, any>, key: string, defaultValu
  * @param {*} [defaultValue]
  * @returns {*}
  */
-export function get(item: Record<string, any>, key: string | number | undefined, defaultValue?: any) {
-  if (Types.isEmpty(item) || Types.isBlank(key)) return defaultValue;
+export function get(
+  item: Record<string, any>,
+  key: string | number | undefined,
+  defaultValue?: any,
+) {
+  if (isEmpty(item) || isBlank(key)) return defaultValue;
 
-  if (Types.isObject(item) || Types.isArray(item)) {
+  if (isObject(item) || isArray(item)) {
     let value = item,
       ks: Record<string, any> = {};
     if (key in item) {
@@ -77,7 +81,7 @@ export function get(item: Record<string, any>, key: string | number | undefined,
       let bit = getAKeysToObjc(String(key), ks).split('.');
       for (let i = 0, j = bit.length; i < j; i++) {
         let vk = bit[i];
-        if (Types.isObject(value) || Types.isArray(value)) {
+        if (isObject(value) || isArray(value)) {
           let ck = bit.slice(i).join('.');
           if (ck in value) {
             value = ck in ks ? value[ks[ck]] : value[ck];
@@ -88,7 +92,7 @@ export function get(item: Record<string, any>, key: string | number | undefined,
         if (!value) break;
       }
     }
-    return Types.isUndefined(value) ? defaultValue : value;
+    return isUndefined(value) ? defaultValue : value;
   } else {
     return item;
   }
@@ -105,19 +109,23 @@ export function get(item: Record<string, any>, key: string | number | undefined,
  */
 export function extractData(
   $data: Record<string, any>,
-  config: {form: string; transform: string | Function; inline?: boolean}[],
+  config: { form: string; transform: string | Function; inline?: boolean }[],
 ) {
   let newData = Object.create(null);
-  (config || []).forEach(({form, transform, inline = true}) => {
+  (config || []).forEach(({ form, transform, inline = true }) => {
     let data: any = normalObservable($data[form]);
 
     // 如果 inline = false 则由 transform 自己处理数组
-    if (Types.isFunction(transform)) {
+    if (isFunction(transform)) {
       data =
-        inline && Types.isArray(data) ? data.map((da, index) => transform(da, $data, index)) : transform(data, $data);
-    } else if (!Types.isBlank(transform)) {
+        inline && isArray(data)
+          ? data.map((da, index) => transform(da, $data, index))
+          : transform(data, $data);
+    } else if (!isBlank(transform)) {
       data =
-        inline && Types.isArray(data) ? data.map((da) => getItemValue(da, transform)) : getItemValue(data, transform);
+        inline && isArray(data)
+          ? data.map((da) => getItemValue(da, transform))
+          : getItemValue(data, transform);
     }
 
     // 处理重复字段名称: (a.b@1, a.b@2) => a.b
@@ -136,18 +144,18 @@ export function extractData(
           end_field = form.substr(index + 1);
 
         let origin = getItemValue(newData, start_field);
-        data = Types.isObject(data) ? data : {[end_field]: data};
+        data = isObject(data) ? data : { [end_field]: data };
 
-        if (Types.isArray(origin)) {
+        if (isArray(origin)) {
           data = origin.push(data);
-        } else if (Types.isObject(origin)) {
+        } else if (isObject(origin)) {
           data = Object.assign(origin, data);
         }
 
         parseFieldData(newData, start_field, data);
       } else {
         // form 不包含多层次结构(不包含: product.list)
-        if (Types.isObject(data)) {
+        if (isObject(data)) {
           Object.assign(newData, data);
         } else {
           newData[form] = data;
@@ -159,7 +167,7 @@ export function extractData(
   const keys = Object.keys(newData);
   if (keys.every((da) => /^([1-9]\d*|0)$/.test(da))) {
     newData.length = keys.length;
-    newData = Array.from(newData).filter((it) => !Types.isEmpty(it));
+    newData = Array.from(newData).filter((it) => !isEmpty(it));
   }
   return newData;
 }
@@ -174,8 +182,13 @@ export function extractData(
  * @param {Object} options
  * @returns {Object|Array}
  */
-export function parseFieldData(obj: Record<string, any>, field: string, value: any, options: Record<string, any> = {}) {
-  let {ks = {}} = options;
+export function parseFieldData(
+  obj: Record<string, any>,
+  field: string,
+  value: any,
+  options: Record<string, any> = {},
+) {
+  let { ks = {} } = options;
   let ock = getAKeysToObjc(field, ks);
   let oix = ock.indexOf('.');
   if (~oix) {
@@ -183,12 +196,12 @@ export function parseFieldData(obj: Record<string, any>, field: string, value: a
       name = names[0],
       nextNames = names.slice(1).join('.'),
       def = obj[name] || (nextNames[0] === '0' ? [] : Object.create(null));
-    let nDef = parseFieldData(def, nextNames, value, {ks, ...options});
-    // if (def !== obj[name] && (!Types.isArray(obj) || !Types.isEmpty(value))) {
+    let nDef = parseFieldData(def, nextNames, value, { ks, ...options });
+    // if (def !== obj[name] && (!isArray(obj) || !isEmpty(value))) {
     if (def !== obj[name]) {
       obj[name in ks ? ks[name] : name] = nDef;
     }
-  } else if (!Types.isArray(obj) || !Types.isEmpty(value)) {
+  } else if (!isArray(obj) || !isEmpty(value)) {
     obj[field in ks ? ks[field] : field] = value;
   }
   return obj;
@@ -199,7 +212,11 @@ export function parseFieldData(obj: Record<string, any>, field: string, value: a
  * @param {any} value
  */
 export function normalObservable(value: any) {
-  return isObservable(value) ? (Types.isArray(value) ? Array.from(value) : Object.assign({}, value)) : value;
+  return isObservable(value)
+    ? isArray(value)
+      ? Array.from(value)
+      : Object.assign({}, value)
+    : value;
 }
 
 export function getValueFromEvent(valuePropName: string, event: any) {
@@ -210,7 +227,7 @@ export function getValueFromEvent(valuePropName: string, event: any) {
 }
 
 export function shouldUpdate(cur: any | any[], next: any | any[]) {
-  if (Types.isArray(cur) && Types.isArray(next)) {
+  if (isArray(cur) && isArray(next)) {
     // 如果 next 数空数组 cur 有值,则会导致无效验证, 需要交换验证
     if (!next.length) {
       const newNext = cur;

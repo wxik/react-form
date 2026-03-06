@@ -9,18 +9,21 @@
   "dependencies": {
     "@guc/react-form": "link:../",
     "@heroicons/react": "^2.2.0",
-    "antd": "^6.2.0",
+    "antd": "^6.3.1",
     "clsx": "^2.1.1",
-    "dumi": "^2.4.21",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "dumi": "^2.4.23",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "@types/react": "^19.2.8",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.23",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18"
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1"
+  },
+  "peerDependencies": {
+    "@ant-design/cssinjs": "*"
   }
 }

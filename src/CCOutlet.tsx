@@ -5,12 +5,18 @@
  * @author Quia
  * @since 2020-05-21 11:47
  */
-import type {ComponentType, ForwardRefExoticComponent, PropsWithoutRef, ReactElement, RefAttributes} from 'react';
-import {cloneElement, forwardRef} from 'react';
+import type {
+  ComponentType,
+  ForwardRefExoticComponent,
+  PropsWithoutRef,
+  ReactElement,
+  RefAttributes,
+} from 'react';
+import { cloneElement, forwardRef } from 'react';
 
-import {CCFormListViewContext} from './CCContext';
-import {CCForm} from './CCForm';
-import type {CCListContext, ICCFormContext} from './interface';
+import { CCFormListViewContext } from './CCContext';
+import { CCForm } from './CCForm';
+import type { CCListContext, ICCFormContext } from './interface';
 
 export interface ICCOutlet extends ICCFormContext {
   eachConfig?: CCListContext;
@@ -29,7 +35,9 @@ export function CCOutlet<P = {}, T = any>() {
       <CCFormListViewContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>
-            {(fieldContext) => <Target {...props} ref={ref} {...fieldContext!} eachConfig={eachContext || void 0} />}
+            {(fieldContext) => (
+              <Target {...props} ref={ref} {...fieldContext!} eachConfig={eachContext || void 0} />
+            )}
           </CCForm.Context.Consumer>
         )}
       </CCFormListViewContext.Consumer>
@@ -38,6 +46,6 @@ export function CCOutlet<P = {}, T = any>() {
 }
 
 export const CCOutletView = CCOutlet<IOutlet>()((props) => {
-  const {children, forProps, ...rest} = props;
+  const { children, forProps, ...rest } = props;
   return cloneElement(children, forProps ? forProps(rest) : rest);
 });

@@ -52,7 +52,8 @@ export function isObject<T = Record<any, any>>(type: any): type is T {
   return (
     typeof type === 'object' &&
     toString.call(type) === '[object Object]' &&
-    (!isFunction(Ctor) || (isFunction(Ctor) && Ctor instanceof Ctor && toString.call(Ctor) === '[object Function]'))
+    (!isFunction(Ctor) ||
+      (isFunction(Ctor) && Ctor instanceof Ctor && toString.call(Ctor) === '[object Function]'))
   );
 }
 
@@ -62,7 +63,10 @@ export function isObject<T = Record<any, any>>(type: any): type is T {
  * @returns {boolean}
  */
 export function isPromise<T extends any>(type: any): type is Promise<T> {
-  return typeof type === 'object' && (toString.call(type) === '[object Promise]' || Promise.resolve(type) === type);
+  return (
+    typeof type === 'object' &&
+    (toString.call(type) === '[object Promise]' || Promise.resolve(type) === type)
+  );
 }
 
 /**

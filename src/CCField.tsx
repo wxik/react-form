@@ -3,12 +3,27 @@
  * @author wxik
  * @sine 2020-04-11 11:43
  */
-import type {ComponentType, ContextType, ReactElement} from 'react';
-import {Component, createRef, useRef} from 'react';
+import type { ComponentType, ContextType, ReactElement } from 'react';
+import { Component } from 'react';
 
-import {CCFieldContext, CCFormListViewContext} from './CCContext';
-import {CCFieldEnum, CCForm, CCFormStateStatusEnum} from './CCForm';
-import {FormHelper, Observer, Tools, Types} from './helper';
+import { CCFieldContext, CCFormListViewContext } from './CCContext';
+import { CCFieldEnum, CCForm, CCFormStateStatusEnum } from './CCForm';
+import { formHandler } from './helper/FormHelper';
+import { autoRun, unobserve } from './helper/Observer';
+import { get, getValueFromEvent, shouldUpdate } from './helper/Tools';
+import {
+  isArray,
+  isBlank,
+  isBoolean,
+  isEmpty,
+  isEmptyArray,
+  isEmptyObject,
+  isFunction,
+  isObject,
+  isPromise,
+  isString,
+  isUndefined,
+} from './helper/Types';
 import type {
   CCFormData,
   CCFormInstance,
@@ -65,7 +80,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
     function p2s(name: keyof ICCField) {
       const value = nextProps[name];
-      if (!Types.isUndefined(value) && !Types.isFunction(value) && value !== prevState[`_${name}`]) {
+      if (!isUndefined(value) && !isFunction(value) && value !== prevState[`_${name}`]) {
         state = state || {};
         state[name] = value;
         state[`_${name}`] = value;
@@ -94,38 +109,38 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     that.observeVisible = that.observeVisible.bind(that);
     that.observeDisabled = that.observeDisabled.bind(that);
     that.observeRequired = that.observeRequired.bind(that);
-    that.formInstance = FormHelper.formHandler({current: context?.formInstance});
+    that.formInstance = formHandler({ current: context?.formInstance });
     that.state = that.initState();
-    that.providerValue = {fieldInstance: that};
+    that.providerValue = { fieldInstance: that };
   }
 
   initState() {
     const that = this,
       props = that.props,
       context = that.context as ICCFormContext;
-    let {initialValue, convertValue, defaultValue, visible, disabled} = props;
+    let { initialValue, convertValue, defaultValue, visible, disabled } = props;
 
     let formName = that.getFormName(props);
     let formData: CCFormData = {},
-      value = Types.isUndefined(initialValue) ? defaultValue : initialValue;
+      value = isUndefined(initialValue) ? defaultValue : initialValue;
 
-    if (!Types.isBlank(formName) && context) {
+    if (!isBlank(formName) && context) {
       if (context.initialValue) {
         formData = context.initialValue;
-        value = Tools.get(context.initialValue, formName, value);
+        value = get(context.initialValue, formName, value);
       }
 
-      if (context.data && formName in context.data && !Types.isUndefined(context.data[formName])) {
+      if (context.data && formName in context.data && !isUndefined(context.data[formName])) {
         value = context.data[formName];
       }
     }
-    let {options, data} = that.getOptions();
-    let {required, message: requiredMsg} = that.findRequired(data, options);
+    let { options, data } = that.getOptions();
+    let { required, message: requiredMsg } = that.findRequired(data, options);
     let state = {
-      value: Types.isFunction(convertValue) ? that.execGetValue(formName, value, formData) : value,
+      value: isFunction(convertValue) ? that.execGetValue(formName, value, formData) : value,
       initialValue: value,
-      visible: !Types.isEmpty(visible) ? !!that.execCallback(visible, data, options) : true,
-      disabled: !Types.isEmpty(disabled) ? !!that.execCallback(disabled, data, options) : false,
+      visible: !isEmpty(visible) ? !!that.execCallback(visible, data, options) : true,
+      disabled: !isEmpty(disabled) ? !!that.execCallback(disabled, data, options) : false,
       required,
       requiredMsg,
       _refreshMark: {},
@@ -143,7 +158,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
    * @returns {string}
    */
   getFormName(props?: ICCField): CCNamePath {
-    let {form, eachConfig, injectListName} = props || this.props;
+    let { form, eachConfig, injectListName } = props || this.props;
     return eachConfig && injectListName
       ? typeof form !== 'number' && form
         ? `${eachConfig.form}.${form}`
@@ -157,10 +172,10 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
    * @returns {[string]}
    */
   getFormAlias(props: ICCField) {
-    let {alias, eachConfig} = props || this.props;
-    if (Types.isBlank(alias)) return [];
+    let { alias, eachConfig } = props || this.props;
+    if (isBlank(alias)) return [];
 
-    alias = (Types.isArray(alias) ? alias : [alias]) as string[];
+    alias = (isArray(alias) ? alias : [alias]) as string[];
     return alias.map((formName) =>
       eachConfig ? (formName ? `${eachConfig.form}.${formName}` : eachConfig.form) : formName,
     );
@@ -175,28 +190,29 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
    */
   private findRequired(data: CCFormData, options: CCOptions) {
     const that = this;
-    let {rules} = that.props;
-    if (!Types.isEmpty(rules)) {
-      rules = Types.isObject(rules) ? ([rules] as CCRulesType[]) : rules;
+    let { rules } = that.props;
+    if (!isEmpty(rules)) {
+      rules = isObject(rules) ? ([rules] as CCRulesType[]) : rules;
       const findReq = (da: any) =>
-        Types.isObject(da) && !!that.execCallback((da as CCRequiredType).required, data, options);
-      if (Types.isArray(rules)) {
+        isObject(da) && !!that.execCallback((da as CCRequiredType).required, data, options);
+      if (isArray(rules)) {
         const required = rules.find(findReq) as CCRequiredType;
-        return {required: !!required?.required, message: required?.message};
+        return { required: !!required?.required, message: required?.message };
       } else {
-        return {required: that.execCallback(rules, data, options) === true};
+        return { required: that.execCallback(rules, data, options) === true };
       }
     }
-    return {required: false};
+    return { required: false };
   }
 
   execGetValue(formName: CCNamePath, value: any, data: CCFormData) {
-    let {convertValue, eachConfig, inline} = this.props;
+    let { convertValue, eachConfig, inline } = this.props;
 
-    if (!inline && !Types.isBlank(formName)) {
+    if (!inline && !isBlank(formName)) {
       const name = String(formName);
-      let pForm = eachConfig && eachConfig.form ? eachConfig.form : name.substring(0, name.lastIndexOf('.'));
-      let pData = !Types.isBlank(pForm) ? Tools.get(data, pForm) : data;
+      let pForm =
+        eachConfig && eachConfig.form ? eachConfig.form : name.substring(0, name.lastIndexOf('.'));
+      let pData = !isBlank(pForm) ? get(data, pForm) : data;
       value = pData ?? value;
     }
 
@@ -212,23 +228,23 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this;
     that.unObserveData();
     that.observeReactions.push(
-      Observer.autoRun(that.observeVisible),
-      Observer.autoRun(that.observeDisabled),
-      Observer.autoRun(that.observeRequired),
+      autoRun(that.observeVisible),
+      autoRun(that.observeDisabled),
+      autoRun(that.observeRequired),
     );
     that.observeUnion();
   }
 
   unObserveData() {
-    this.observeReactions.forEach((func) => Observer.unobserve(func));
+    this.observeReactions.forEach((func) => unobserve(func));
     this.observeReactions = [];
   }
 
   getOptions(): IFieldOptions {
     const that = this;
-    let {form, data: listData} = that.props.eachConfig || {};
-    let {value, disabled, visible, error, required} = that.state || {};
-    let {data, originData, fieldStatus} = that.context as ICCFormContext;
+    let { form, data: listData } = that.props.eachConfig || {};
+    let { value, disabled, visible, error, required } = that.state || {};
+    let { data, originData, fieldStatus } = that.context as ICCFormContext;
     let options = {
       form,
       val: value,
@@ -238,11 +254,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
         disabled,
         visible,
         required,
-        validate: Types.isEmpty(error) ? void 0 : !error,
+        validate: isEmpty(error) ? void 0 : !error,
       },
       listData,
     };
-    return {options, data, originData};
+    return { options, data, originData };
   }
 
   /**
@@ -252,9 +268,9 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   private observeDisabled() {
     const that = this;
     if (that.unmount) return;
-    let {disabled} = that.props;
-    let {options, data} = that.getOptions();
-    if (!Types.isEmpty(disabled)) {
+    let { disabled } = that.props;
+    let { options, data } = that.getOptions();
+    if (!isEmpty(disabled)) {
       that.disabled = !!that.execCallback(disabled, data, options);
     }
   }
@@ -266,9 +282,9 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   private observeVisible() {
     const that = this;
     if (that.unmount) return;
-    let {visible} = that.props;
-    let {options, data} = that.getOptions();
-    if (!Types.isEmpty(visible)) {
+    let { visible } = that.props;
+    let { options, data } = that.getOptions();
+    if (!isEmpty(visible)) {
       that.visible = !!that.execCallback(visible, data, options);
     }
   }
@@ -280,8 +296,8 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   private observeRequired() {
     const that = this;
     if (that.unmount) return;
-    let {options, data} = that.getOptions();
-    let {required, message} = that.findRequired(data, options);
+    let { options, data } = that.getOptions();
+    let { required, message } = that.findRequired(data, options);
     that.required = required;
     that.requiredMsg = message;
   }
@@ -295,13 +311,13 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     that.isObserveUnion = false;
     const context = that.context as ICCFormContext;
     const union = that.getUnionList();
-    if (that.unmount || Types.isEmptyArray(union)) return;
+    if (that.unmount || isEmptyArray(union)) return;
 
-    let {unionValue, unionValidate} = that.props;
+    let { unionValue, unionValidate } = that.props;
     const formInstance = context.formInstance;
     const formName = that.getFormName();
 
-    unionValue = Types.isFunction(unionValue) ? unionValue : () => (unionValidate ? that.value : void 0);
+    unionValue = isFunction(unionValue) ? unionValue : () => (unionValidate ? that.value : void 0);
 
     /**
      * 递归查询级联
@@ -311,7 +327,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const findUnion = function (name: string, ks: string[] = []) {
       let pUnions = formInstance.getField(name)?.getUnionList() || [];
       pUnions.forEach((un: string | string[]) => {
-        let fd = Types.isArray(un) ? un[0] : un;
+        let fd = isArray(un) ? un[0] : un;
         if (ks.indexOf(fd) === -1) {
           ks.push(fd);
           findUnion(fd, ks);
@@ -321,17 +337,17 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     };
 
     union.forEach((un: string | [string, Function]) => {
-      const [name, func] = Types.isArray(un) ? un : [un, unionValue];
+      const [name, func] = isArray(un) ? un : [un, unionValue];
       const unionAll = findUnion(name, [name]);
-      const reaction = Observer.autoRun(() => {
-        const {options, data, originData} = that.getOptions();
+      const reaction = autoRun(() => {
+        const { options, data, originData } = that.getOptions();
         const value = that.execCallback(func, data[name], {
           ...options,
           data: originData, // originData 不会引起连锁触发
         });
         let isFlag = false;
-        const onValue = (options: {valid?: boolean} = {}) => {
-          const {valid = false} = options;
+        const onValue = (options: { valid?: boolean } = {}) => {
+          const { valid = false } = options;
           !that.unmount &&
             name in data &&
             that.handleChange(value, () => {
@@ -340,13 +356,13 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
         };
         if (that.isObserveUnion && formInstance?.changeState !== CCFormStateStatusEnum.SET) {
           isFlag = true;
-          onValue({valid: true});
+          onValue({ valid: true });
         } else {
           // 递归监听一下上级.上级.等等
           unionAll.forEach((pun) => data[pun]);
         }
         // 如果没有字段名称, 初始化时触发联动设值
-        if (!isFlag && Types.isEmpty(formName)) onValue();
+        if (!isFlag && isEmpty(formName)) onValue();
       });
       that.observeReactions.push(reaction);
     });
@@ -355,20 +371,20 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   getUnionList() {
     const that = this;
-    let {union} = that.props;
-    if (Types.isBlank(union)) return null;
+    let { union } = that.props;
+    if (isBlank(union)) return null;
 
-    let {options} = that.getOptions();
-    union = Types.isFunction(union) ? union(options) : union;
+    let { options } = that.getOptions();
+    union = isFunction(union) ? union(options) : union;
 
-    if (Types.isBlank(union)) return null;
-    union = Types.isArray(union) ? union : union.split(',');
+    if (isBlank(union)) return null;
+    union = isArray(union) ? union : union.split(',');
     return union;
   }
 
   execCallback<T>(func: any | ((...a: T[]) => any), ...args: T[]) {
     try {
-      return Types.isFunction(func) ? func(...args) : func;
+      return isFunction(func) ? func(...args) : func;
     } catch (e) {
       console.warn(e);
     }
@@ -376,7 +392,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   getTitle(): ReactElement {
     const that = this;
-    let {options, data} = that.getOptions();
+    let { options, data } = that.getOptions();
     return that.execCallback(that.props.title, data, options);
   }
 
@@ -384,8 +400,8 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this;
     props = props || that.props;
     state = state || that.state;
-    const {inline, transform, ignore, convertValue, parentField} = props;
-    const {disabled, visible, error, required} = state;
+    const { inline, transform, ignore, convertValue, parentField } = props;
+    const { disabled, visible, error, required } = state;
     return {
       inline,
       form: that.getFormName(props),
@@ -403,10 +419,12 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   onChange(value: any, ...args: any[]) {
     const that = this;
-    const {normalize, valuePropName = 'value'} = that.props;
+    const { normalize, valuePropName = 'value' } = that.props;
     const context = that.context as ICCFormContext;
-    value = Tools.getValueFromEvent(valuePropName, value);
-    that.handleChange(normalize ? normalize(value, {val: that.state.value, data: context.data, args}) : value);
+    value = getValueFromEvent(valuePropName, value);
+    that.handleChange(
+      normalize ? normalize(value, { val: that.state.value, data: context.data, args }) : value,
+    );
   }
 
   handleChange(value: any, callback?: () => void) {
@@ -417,7 +435,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     }
 
     const context = that.context as ICCFormContext;
-    const {listener: {key, transform} = {}} = that.props;
+    const { listener: { key, transform } = {} } = that.props;
 
     that.changeFlag = true;
     that.changeForm = true;
@@ -437,9 +455,9 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   handleValue(value: any, callback?: () => void) {
     const that = this;
-    const {value: prevValue} = that.state;
+    const { value: prevValue } = that.state;
     if (!that.unmount && !that.equalsValue(value, prevValue)) {
-      that.setState({value}, callback);
+      that.setState({ value }, callback);
     } else {
       callback?.();
     }
@@ -447,11 +465,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   equalsValue(value: any, preValue: any): boolean {
     const that = this;
-    const {label, unique = DEFAULT_UNIQUE} = that.props;
+    const { label, unique = DEFAULT_UNIQUE } = that.props;
     if (value === preValue) return true;
 
-    const isEqualObject = (obj: {[key: string]: any}, prevObj: {[key: string]: any}) => {
-      if (Types.isEmptyObject(obj) || Types.isEmptyObject(prevObj)) return false;
+    const isEqualObject = (obj: { [key: string]: any }, prevObj: { [key: string]: any }) => {
+      if (isEmptyObject(obj) || isEmptyObject(prevObj)) return false;
       let v1, v2;
       if (unique in obj || unique in prevObj) {
         v1 = obj[unique];
@@ -462,10 +480,10 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       }
       return that.equalsValue(v1, v2);
     };
-    if (Types.isObject(value) || Types.isObject(preValue)) {
+    if (isObject(value) || isObject(preValue)) {
       return isEqualObject(value, preValue);
-    } else if (Types.isArray(value) || Types.isArray(preValue)) {
-      if (Types.isEmptyArray(value) || Types.isEmptyArray(preValue)) return false;
+    } else if (isArray(value) || isArray(preValue)) {
+      if (isEmptyArray(value) || isEmptyArray(preValue)) return false;
       if (value.length !== preValue.length) return false;
 
       return value.every((da: any, di: number) => that.equalsValue(da, preValue[di]));
@@ -475,22 +493,22 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   }
 
   set disabled(disabled: boolean) {
-    disabled !== this.state.disabled && this.setState({disabled});
+    disabled !== this.state.disabled && this.setState({ disabled });
   }
 
   public set required(required: boolean) {
-    required !== this.state.required && this.setState({required});
+    required !== this.state.required && this.setState({ required });
   }
 
   public set requiredMsg(requiredMessage: string | undefined) {
-    requiredMessage !== this.state.requiredMsg && this.setState({requiredMsg: requiredMessage});
+    requiredMessage !== this.state.requiredMsg && this.setState({ requiredMsg: requiredMessage });
   }
 
   set visible(visible: boolean) {
     const that = this;
     if (visible !== that.state.visible) {
-      if (!visible) that.setState({error: void 0, errors: void 0});
-      that.setState({visible});
+      if (!visible) that.setState({ error: void 0, errors: void 0 });
+      that.setState({ visible });
     }
   }
 
@@ -509,26 +527,26 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   }
 
   unionValidateErrors() {
-    return this._asyncValidateErrors({isUnionValid: true});
+    return this._asyncValidateErrors({ isUnionValid: true });
   }
 
-  async _asyncValidateErrors(options: {isUnionValid?: boolean} = {}) {
+  async _asyncValidateErrors(options: { isUnionValid?: boolean } = {}) {
     const that = this;
-    const {isUnionValid} = options;
-    let valid = that.validate({async: true, isUnionValid});
-    if (Types.isArray(valid)) {
+    const { isUnionValid } = options;
+    let valid = that.validate({ async: true, isUnionValid });
+    if (isArray(valid)) {
       // 走一步
       let newValid: any[] = [];
       let validSuccess = true;
       for (const it of valid) {
-        if (Types.isPromise(it)) {
+        if (isPromise(it)) {
           let value;
           try {
             value = await it;
           } catch (e) {
             value = e;
           }
-          if (Types.isString(value)) {
+          if (isString(value)) {
             newValid.push(value);
           } else if (!value) {
             validSuccess = false;
@@ -544,11 +562,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   private _validateErrors(valid: Array<ReturnRuleType | Promise<ReturnRuleType>> | boolean) {
     const that = this;
-    const {errors, error} = that.state;
+    const { errors, error } = that.state;
 
     let errorMessages;
     let currentError;
-    if (Types.isBoolean(valid)) {
+    if (isBoolean(valid)) {
       currentError = !valid;
       errorMessages = void 0;
     } else {
@@ -557,12 +575,12 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     }
 
     if (currentError !== error) {
-      that.setState({error: currentError});
+      that.setState({ error: currentError });
     }
     if (!that.equalsValue(errors, errorMessages)) {
-      that.setState({errors: errorMessages, _refreshMark: {}});
+      that.setState({ errors: errorMessages, _refreshMark: {} });
     }
-    return {error: currentError, errors: errorMessages};
+    return { error: currentError, errors: errorMessages };
   }
 
   /**
@@ -571,32 +589,32 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
    * @returns {boolean}
    */
   private validate(
-    options: {async?: boolean; isUnionValid?: boolean} = {},
+    options: { async?: boolean; isUnionValid?: boolean } = {},
   ): Array<ReturnRuleType | Promise<ReturnRuleType>> | boolean {
     const that = this;
     // isUnionValid 是否为联动触发验证, 联动验证只触发<方法验证>
-    const {async = false, isUnionValid = false} = options;
-    const {rules} = that.props;
-    const {required, requiredMsg, value, visible} = that.state;
+    const { async = false, isUnionValid = false } = options;
+    const { rules } = that.props;
+    const { required, requiredMsg, value, visible } = that.state;
 
     // if ((ignore && !required) || !visible) return true;
     if (!visible) return true;
 
     // 联动验证不触发空校验
     const isEmpty = isUnionValid ? false : that.validateEmpty(value);
-    if (required && isEmpty) return !Types.isBlank(requiredMsg) ? [requiredMsg] : false;
+    if (required && isEmpty) return !isBlank(requiredMsg) ? [requiredMsg] : false;
     if (isEmpty) return true;
 
-    const {options: callArgs, originData} = that.getOptions();
+    const { options: callArgs, originData } = that.getOptions();
 
     const validRule = (rule?: CCRulesType) => {
-      if (Types.isFunction(rule)) {
-        return (rule as Function)(originData, {...callArgs, isUnionValid});
+      if (isFunction(rule)) {
+        return (rule as Function)(originData, { ...callArgs, isUnionValid });
       } else if (!isUnionValid) {
         if (rule && rule instanceof RegExp) {
           return rule.test(value);
-        } else if (Types.isObject<CCRequiredType>(rule)) {
-          const {pattern, message} = rule;
+        } else if (isObject<CCRequiredType>(rule)) {
+          const { pattern, message } = rule;
           if (pattern && !pattern.test(value)) {
             return message || false;
           }
@@ -606,14 +624,14 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       return true;
     };
 
-    if (Types.isArray(rules)) {
+    if (isArray(rules)) {
       const messages: Array<string | Promise<string | boolean>> = [];
       let validSuccess = true;
       rules.forEach((rule) => {
         const valid = validRule(rule);
-        if (Types.isString(valid)) {
+        if (isString(valid)) {
           messages.push(valid);
-        } else if (async && Types.isPromise<string | boolean>(valid)) {
+        } else if (async && isPromise<string | boolean>(valid)) {
           messages.push(valid);
         } else if (!valid) {
           validSuccess = false;
@@ -621,9 +639,9 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       });
       return messages.length ? messages : validSuccess;
     } else if (!isUnionValid) {
-      if (Types.isObject(rules)) {
+      if (isObject(rules)) {
         const valid = validRule(rules);
-        return Types.isString(valid) ? [valid] : valid;
+        return isString(valid) ? [valid] : valid;
       }
     }
     return true;
@@ -634,35 +652,35 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
    * @returns {boolean}
    */
   validateEmpty(value: any): boolean {
-    let {label} = this.props;
+    let { label } = this.props;
 
-    let isEmptyObject = (obj: {[key: string]: any}): boolean => {
-      return Types.isEmptyObject(obj) || !!(label && Types.isBlank(obj[label]));
+    let isEmptyObject = (obj: { [key: string]: any }): boolean => {
+      return isEmptyObject(obj) || !!(label && isBlank(obj[label]));
     };
-    if (Types.isEmpty(value)) {
+    if (isEmpty(value)) {
       return true;
-    } else if (Types.isString(value)) {
-      return Types.isBlank(value);
-    } else if (Types.isObject(value)) {
+    } else if (isString(value)) {
+      return isBlank(value);
+    } else if (isObject(value)) {
       return isEmptyObject(value);
-    } else if (Types.isArray(value)) {
-      return Types.isEmptyArray(value) || (Types.isObject(value[0]) && isEmptyObject(value[0]));
+    } else if (isArray(value)) {
+      return isEmptyArray(value) || (isObject(value[0]) && isEmptyObject(value[0]));
     } else {
-      return Types.isEmpty(value);
+      return isEmpty(value);
     }
   }
 
   listenerValueChange(value: any) {
     const that = this;
     const context = this.context as ICCFormContext;
-    const {listener} = that.props;
+    const { listener } = that.props;
     that.handleValue(listener?.convertValue ? listener.convertValue(value, context.data) : value);
   }
 
   componentDidMount() {
     const that = this;
     const context = that.context as ICCFormContext;
-    const {listener: {key} = {}} = that.props;
+    const { listener: { key } = {} } = that.props;
     key && context.emitter?.addListener(key, that.listenerValueChange);
     context.formInstance.setField(that);
   }
@@ -671,7 +689,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const that = this;
     that.unmount = true;
     const context = that.context as ICCFormContext;
-    const {listener: {key} = {}} = that.props;
+    const { listener: { key } = {} } = that.props;
     key && context.emitter?.removeListener(key, that.listenerValueChange);
     context.formInstance.unmountField(that);
   }
@@ -690,21 +708,21 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       nextState._refreshMark !== state._refreshMark ||
       nextProps.form !== props.form ||
       that.getFormName(nextProps) !== that.getFormName(props) ||
-      Tools.shouldUpdate(props.shouldUpdate, nextProps.shouldUpdate)
+      shouldUpdate(props.shouldUpdate, nextProps.shouldUpdate)
     );
   }
 
   getSnapshotBeforeUpdate(prevProps: ICCField, prevState: CCFieldState) {
     const that = this;
-    const {formInstance} = this.context as ICCFormContext;
-    const {required, error, visible, disabled} = that.state;
+    const { formInstance } = this.context as ICCFormContext;
+    const { required, error, visible, disabled } = that.state;
     const formName = that.getFormName(that.props);
     const prevFormName = that.getFormName(prevProps);
     if (prevProps.form !== this.props.form) {
       formInstance.unmountField(this);
     }
 
-    if (formName !== prevFormName && !Types.isBlank(formName)) {
+    if (formName !== prevFormName && !isBlank(formName)) {
       formInstance.renameField(formName, that);
     }
 
@@ -714,7 +732,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       visible !== prevState.visible ||
       disabled !== prevState.disabled
     ) {
-      formInstance.setFieldStatus(formName, {required, error, visible, disabled});
+      formInstance.setFieldStatus(formName, { required, error, visible, disabled });
     }
 
     return null;
@@ -722,17 +740,17 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   componentDidUpdate(prevProps: ICCField, prevState: CCFieldState) {
     const that = this;
-    const {formInstance} = this.context as ICCFormContext;
-    const {value, required, error, errors} = that.state;
+    const { formInstance } = this.context as ICCFormContext;
+    const { value, required, error, errors } = that.state;
     const formName = that.getFormName(that.props);
     if (value !== prevState.value) {
-      formInstance.fieldChange(formName, value, {raw: !that.changeForm});
+      formInstance.fieldChange(formName, value, { raw: !that.changeForm });
       that.changeFlag && that.props.onChange?.(value);
     }
 
     if (
       (value !== prevState.value && that.changeFlag) ||
-      (required !== prevState.required && !required && !Types.isEmpty(error))
+      (required !== prevState.required && !required && !isEmpty(error))
     ) {
       that.asyncValidateErrors();
     }
@@ -742,10 +760,10 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     }
 
     if (formName !== that.getFormName(prevProps)) {
-      formInstance.fieldChange(formName, value, {raw: true});
+      formInstance.fieldChange(formName, value, { raw: true });
     }
 
-    if (!Types.isBlank(formName) && errors !== prevState.errors) {
+    if (!isBlank(formName) && errors !== prevState.errors) {
       formInstance.errorsChange(String(formName), errors);
     }
 
@@ -756,7 +774,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
   render() {
     const that = this;
     const context = that.context as ICCFormContext;
-    const {value, required, error, errors, disabled, visible} = that.state;
+    const { value, required, error, errors, disabled, visible } = that.state;
     const {
       forwardRef,
       // @ts-ignore
@@ -795,7 +813,11 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       />
     );
 
-    return !deliver ? element : <CCFieldContext.Provider value={providerValue} children={element} />;
+    return !deliver ? (
+      element
+    ) : (
+      <CCFieldContext.Provider value={providerValue} children={element} />
+    );
   }
 }
 
@@ -803,25 +825,30 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
  * @param {{defaultValue?: any}} options
  * @returns {function(*=): *}
  */
-export function CCField<T = {}>(options: {defaultValue?: any} = {}) {
-  const {defaultValue} = options;
+export function CCField<T = {}>(options: { defaultValue?: any } = {}) {
+  const { defaultValue } = options;
   return function (Target: ComponentType<T & IFieldItem>) {
     return (props: T & ICCFieldOmit) => (
       <CCFormListViewContext.Consumer>
         {(eachData) => {
           const listData = eachData as CCListViewContext;
-          let {initialValue, form, inline = DEFAULT_INLINE, injectListName = DEFAULT_INJECT_LIST_NAME} = props;
+          let {
+            initialValue,
+            form,
+            inline = DEFAULT_INLINE,
+            injectListName = DEFAULT_INJECT_LIST_NAME,
+          } = props;
           if (listData && injectListName) {
             const item = listData.data[listData.index];
             initialValue = form
-              ? Types.isObject(item) && form in item
+              ? isObject(item) && form in item
                 ? item[form]
                 : inline
+                  ? initialValue
+                  : item
+              : isUndefined(item)
                 ? initialValue
-                : item
-              : Types.isUndefined(item)
-              ? initialValue
-              : item;
+                : item;
           }
 
           return (

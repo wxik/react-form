@@ -3,11 +3,11 @@
  * @author wxik
  * @since 2023-06-24 22:27
  */
-import type {ReactNode, Ref} from 'react';
+import type { ReactNode, Ref } from 'react';
 
-import type {CCFieldWrapper} from './CCField';
-import type {CCForm} from './CCForm';
-import type {CCListWrapper} from './CCList';
+import type { CCFieldWrapper } from './CCField';
+import type { CCForm } from './CCForm';
+import type { CCListWrapper } from './CCList';
 
 export type CCFormData = Record<string, any>;
 
@@ -49,7 +49,7 @@ export type CCRulesType =
   | RegExp
   | ((
       formData: CCFormData,
-      options: CCOptions & {isUnionValid: boolean},
+      options: CCOptions & { isUnionValid: boolean },
     ) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
 
 export interface CCListContext {
@@ -99,7 +99,7 @@ export interface ICCField {
   visible?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
   union?: string | string[] | ((options: CCOptions) => string | string[]);
-  unionValue?: (value: any, data: {val: any; data: CCFormData; form?: string}) => any;
+  unionValue?: (value: any, data: { val: any; data: CCFormData; form?: string }) => any;
   /**
    * 开启联动验证
    * @default false
@@ -116,7 +116,7 @@ export interface ICCField {
    * @param {any} value
    * @param {{val: any, data: CCFormData: args: any[]}} data
    */
-  normalize?: (value: any, data: {val: any; data: CCFormData; args: any[]}) => any;
+  normalize?: (value: any, data: { val: any; data: CCFormData; args: any[] }) => any;
   /**
    * value 进入子组件后的别名
    */

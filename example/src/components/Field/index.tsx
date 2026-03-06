@@ -5,7 +5,7 @@
  */
 import './index.css';
 
-import { CCField, CCTypes } from '@guc/react-form';
+import { CCField, isNull, isUndefined } from '@guc/react-form';
 import cls from 'clsx';
 import type { ReactElement } from 'react';
 import { Children, cloneElement, useMemo } from 'react';
@@ -52,7 +52,7 @@ export const Field = CCField<IFieldProps>()((props) => {
     prefix = 'cc-form',
     colon = true,
   } = props;
-  const isNotTitle = CCTypes.isUndefined(title);
+  const isNotTitle = isUndefined(title);
   const { value: valueKey = 'value' } = fieldNames;
 
   const childCount = useMemo(() => {
@@ -108,7 +108,7 @@ export const Field = CCField<IFieldProps>()((props) => {
             className={cls(
               `${prefix}-item-label`,
               colon && `${prefix}-colon`,
-              !CCTypes.isNull(title) && required && `${prefix}-required-optional`,
+              !isNull(title) && required && `${prefix}-required-optional`,
               labelClassName,
             )}>
             {title}

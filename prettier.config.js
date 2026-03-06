@@ -2,6 +2,7 @@
 const config = {
   // 启动 editorconfig
   editorconfig: true,
+  printWidth: 100,
 
   // bracketSpacing: false,
   jsxBracketSameLine: true,

@@ -3,17 +3,17 @@
  * @author wxik
  * @since 2023-05-10 11:37
  */
-import type {MutableRefObject} from 'react';
-import {createRef, useContext, useMemo, useRef} from 'react';
+import type { MutableRefObject } from 'react';
+import { createRef, useContext, useMemo, useRef } from 'react';
 
-import {CCFormContext, CCFormListContext} from '../CCContext';
-import type {CCForm} from '../CCForm';
-import type {CCListWrapper} from '../CCList';
-import type {CCFormData, CCFormInstance, CCListInstance, CCNamePath} from '../interface';
-import {isArray} from './Types';
+import { CCFormContext, CCFormListContext } from '../CCContext';
+import type { CCForm } from '../CCForm';
+import type { CCListWrapper } from '../CCList';
+import type { CCFormData, CCFormInstance, CCListInstance, CCNamePath } from '../interface';
+import { isArray } from './Types';
 
 export const formHandler = (ref: MutableRefObject<CCForm | undefined>): CCFormInstance => {
-  let tmpData: {originData?: CCFormData; fieldData?: CCFormData} = {};
+  let tmpData: { originData?: CCFormData; fieldData?: CCFormData } = {};
   return {
     subData: (options) => {
       return ref.current?.subData(options)!;
@@ -110,7 +110,7 @@ export const useForm = (): [CCFormInstance] => {
 };
 
 export const useFormInstance = (): CCFormInstance => {
-  const {formInstance} = useContext(CCFormContext)!;
+  const { formInstance } = useContext(CCFormContext)!;
   const ref = useRef<CCForm>(formInstance);
   ref.current = formInstance;
   return useMemo<CCFormInstance>(() => formHandler(ref), []);
@@ -126,7 +126,7 @@ export const useList = (): [CCListInstance] => {
 };
 
 export const useListInstance = (): CCListInstance => {
-  const {listInstance} = useContext(CCFormListContext)!;
+  const { listInstance } = useContext(CCFormListContext)!;
   const ref = useRef<CCListWrapper>(listInstance);
   ref.current = listInstance;
   return useMemo<CCListInstance>(() => listHelder(ref), []);
