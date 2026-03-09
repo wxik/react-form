@@ -27,9 +27,9 @@ jobs:
       - name: Build Project
         run: |
           corepack enable
-          pnpm
+          pnpm i
           cd example
-          pnpm
+          pnpm i
           pnpm doc:build
 
       # 部署到github
