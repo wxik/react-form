@@ -27,10 +27,10 @@ jobs:
       - name: Build Project
         run: |
           corepack enable
-          yarn
+          pnpm
           cd example
-          yarn
-          yarn doc:build
+          pnpm
+          pnpm doc:build
 
       # 部署到github
       - name: Deploy to Github
