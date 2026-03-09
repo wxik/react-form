@@ -207,7 +207,7 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
     Object.keys(data).forEach((fi) => {
       if (isBlank(formName)) {
         let nfi = Number(fi);
-        let ois = fi.substr(0, fi.indexOf('.'));
+        let ois = fi.substring(0, fi.indexOf('.'));
         if (String(nfi) === fi && nfi < size) {
           formInstance.deleteField(fi, { isChange: false });
         } else if (/^[0-9]+$/.test(ois) && Number(ois) >= size) {

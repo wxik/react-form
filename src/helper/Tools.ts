@@ -140,8 +140,8 @@ export function extractData(
       // product.0.name = {lcName, lcEnName} => {product: [{lcName, lcEnName}]}
       let index = form.lastIndexOf('.');
       if (index !== -1) {
-        let start_field = form.substr(0, index),
-          end_field = form.substr(index + 1);
+        let start_field = form.substring(0, index),
+          end_field = form.substring(index + 1);
 
         let origin = getItemValue(newData, start_field);
         data = isObject(data) ? data : { [end_field]: data };
