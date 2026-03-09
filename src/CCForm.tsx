@@ -28,7 +28,7 @@ import {
 } from './helper/FormHelper';
 import { observable, raw } from './helper/Observer';
 import { extractData, get } from './helper/Tools';
-import { isArray, isBlank, isEmpty, isFunction, isObject, isUndefined } from './helper/Types';
+import { isArray, isBlank, isEmpty, isFunction, isObject } from './helper/Types';
 import type {
   CCFieldError,
   CCFieldStatus,
