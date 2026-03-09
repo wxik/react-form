@@ -28,7 +28,7 @@ import {
 } from './helper/FormHelper';
 import { observable, raw } from './helper/Observer';
 import { extractData, get } from './helper/Tools';
-import { isArray, isBlank, isEmpty, isFunction, isObject } from './helper/Types';
+import { isArray, isBlank, isEmpty, isFunction, isObject, isUndefined } from './helper/Types';
 import type {
   CCFieldError,
   CCFieldStatus,
@@ -358,9 +358,13 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   /**
    * 重置表单
    */
-  resetFields(paths?: CCNamePath[]) {
-    console.log('‼️SADO‼️', isArray(this.originData) ? [] : {}, paths);
-    this.setOriginData(isArray(this.originData) ? [] : {});
+  resetFields(paths: CCNamePath[] = []) {
+    console.log('‼️SADO‼️', paths);
+    this.setData(isArray(this.originData) ? [] : {}, {
+      isGet: true,
+      isChange: false,
+      resetPaths: paths,
+    });
   }
 
   /**
@@ -396,11 +400,15 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
    * @param {Object} options
    * @param {boolean} [options.isGet = false] 是否触发字段 convertValue
    * @param {boolean} [options.isChange = false] 是否触发字段 onChange
+   * @param {boolean} [options.resetPaths = CCNamePath[]] 是否重置字段
    */
-  setData(data: CCFormData | any[], options: { isChange?: boolean; isGet?: boolean } = {}) {
+  setData(
+    data: CCFormData | any[],
+    options: { isChange?: boolean; isGet?: boolean; resetPaths?: CCNamePath[] } = {},
+  ) {
     const that = this;
     if (isEmpty(data)) return;
-    const { isGet = false, isChange = false } = options;
+    const { isGet = false, isChange = false, resetPaths } = options;
     that.changeState = CCFormStateStatusEnum.SET;
 
     let count = 0;
@@ -411,20 +419,25 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       });
     };
     for (const f of that.fields) {
-      let { form, convertValue, alias } = f.getConfig();
-      if (form) {
+      let { form, convertValue, alias, initialValue } = f.getConfig();
+      if (form && (resetPaths ? resetPaths?.length === 0 || resetPaths.includes(form) : true)) {
         let sym = Symbol();
         // let prevValue = f.value;
         let value = sym;
 
         for (let dk of [form, ...alias]) {
-          let v = get(data, dk, sym);
+          let v = get(data, dk, resetPaths ? initialValue : sym);
           if (v !== sym) {
             value = v;
             form = dk;
           }
         }
-        if (sym === value) continue;
+        if (resetPaths) {
+          f.resetError();
+        }
+        if (sym === value) {
+          continue;
+        }
 
         value = isGet && isFunction(convertValue) ? f.execGetValue(form, value, data) : value;
 

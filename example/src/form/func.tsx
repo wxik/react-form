@@ -22,11 +22,12 @@ export default () => {
   };
 
   const handleReset = () => {
-    form.resetFields();
+    form.resetFields(['gender']);
   };
 
   const handleFill = () => {
-    form.setFieldData({ note: 'Hello world!', gender: 'male' });
+    // 设置值会触发对应字段的 onChange 但是 组件的 onChange 不会被触发
+    form.setFieldData({ note: 'Hello world!', gender: 'other' });
   };
 
   const handleGenderChange = (value: string) => {
@@ -58,11 +59,11 @@ export default () => {
           form={'gender'}
           title={'Gender'}
           rules={[{ required: true }]}
+          onChange={handleGenderChange}
           labelClassName={'w-40 justify-end'}>
           <Select
             allowClear
             placeholder="Select a option and change input text above"
-            onChange={handleGenderChange}
             className={'w-full'}
             options={[
               { label: 'male', value: 'male' },

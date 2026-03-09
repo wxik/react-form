@@ -401,7 +401,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     props = props || that.props;
     state = state || that.state;
     const { inline, transform, ignore, convertValue, parentField } = props;
-    const { disabled, visible, error, required } = state;
+    const { disabled, visible, error, required, initialValue } = state;
     return {
       inline,
       form: that.getFormName(props),
@@ -414,6 +414,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       error,
       required,
       convertValue,
+      initialValue,
     };
   }
 
@@ -510,6 +511,10 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       if (!visible) that.setState({ error: void 0, errors: void 0 });
       that.setState({ visible });
     }
+  }
+
+  resetError() {
+    this.setState({ error: void 0, errors: void 0 });
   }
 
   /**
