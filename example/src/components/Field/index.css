@@ -23,12 +23,12 @@
 .cc-form-horizontal {
   flex-direction: row;
   .cc-form-item-label {
-    padding: 0 0.5rem 0 0;
     height: 2rem;
   }
 
   .cc-form-colon::after {
     margin-inline-start: 0.125rem;
+    margin-inline-end: 0.5rem;
     content: ':';
     position: relative;
     margin-block: 0;
@@ -51,12 +51,12 @@
   .cc-form-default-layout {
     flex-direction: row;
     .cc-form-item-label {
-      padding: 0 0.5rem 0 0;
       height: 2rem;
     }
 
     .cc-form-colon::after {
       margin-inline-start: 0.125rem;
+      margin-inline-end: 0.5rem;
       content: ':';
       position: relative;
       margin-block: 0;

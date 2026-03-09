@@ -14,6 +14,7 @@ group:
 
 <code src="./hooks.tsx"></code>
 <code src="./clazz.tsx"></code>
+<code src="./func.tsx"></code>
 
 ### API
 

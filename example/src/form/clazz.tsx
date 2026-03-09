@@ -1,5 +1,6 @@
 /**
  * title: Class 中使用
+ * description: 通过 union 和 unionValue 实现2个字段双向关联
  */
 
 import { CCForm } from '@guc/react-form';
