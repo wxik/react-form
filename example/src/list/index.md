@@ -16,12 +16,13 @@ group: 组件总览
 
 ### API
 
-| key          | explain | type           | default |
-|:-------------|:--------|:---------------|:--------|
-| form         | 字段名     | string         | -       |
-| formList     | 代理对象    | CCListInstance | -       |
-| initRows     | 初始化行数   | number         | 1       |
-| initialValue | 初始值     | any[]          | -       |
+| key          | explain | type           | default | version |
+|:-------------|:--------|:---------------|:--------|:--------|
+| name         | 字段名     | string         | -       | >=0.5.5 |
+| ~~form~~         | 同 name, 已不推荐使用     | string         | -       | < 0.6.0 |
+| formList     | 代理对象    | CCListInstance | -       | -       |
+| initRows     | 初始化行数   | number         | 1       | -       |
+| initialValue | 初始值     | any[]          | -       | -       |
 
 
 ##### CCListInstance

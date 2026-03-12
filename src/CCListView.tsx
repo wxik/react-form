@@ -1,6 +1,6 @@
 /**
  *
- * @author wxik
+ * @author zehua.tang
  * @since 2023-06-12 16:47
  */
 import type { FC } from 'react';
@@ -16,12 +16,14 @@ export const CCListView: FC<ICCListView> = (props) => {
 
   if (!context || !children) return null;
 
-  const { keys, form: formName, listInstance } = context;
+  const { keys, name: formName, listInstance } = context;
 
   const viewContent = keys.map((key, index) => {
+    const name = isBlank(formName) ? String(index) : `${formName}.${index}`;
     const values: ICCListOperation = {
       ...context,
-      form: isBlank(formName) ? String(index) : `${formName}.${index}`,
+      form: name,
+      name,
       index,
       key,
       remove: listInstance.removeItem.bind(listInstance, index),

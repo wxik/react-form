@@ -1,6 +1,6 @@
 /* eslint-disable react/no-direct-mutation-state */
 /**
- * @author Quia
+ * @author zehua.tang
  * @sine 2020-04-11 16:03
  */
 import type {
@@ -180,9 +180,9 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const that = this;
     for (const field of that.fields) {
       const state = field.initState();
-      const form = field.getFormName();
-      if (!isBlank(form) && !(form in that.state.data)) {
-        that._setFieldValue(form, state.value, { raw: true });
+      const name = field.getFormName();
+      if (!isBlank(name) && !(name in that.state.data)) {
+        that._setFieldValue(name, state.value, { raw: true });
       }
       field.setState(state);
     }
@@ -312,11 +312,11 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   setField(field: CCFieldWrapper | CCListWrapper) {
     const that = this;
     if (isField(field)) {
-      let form = field.getFormName();
-      if (!isBlank(form)) that.fieldsMap.set(form, field);
+      let name = field.getFormName();
+      if (!isBlank(name)) that.fieldsMap.set(name, field);
       that.fields.add(field);
-      that._setFieldValue(form, field.value, { raw: true });
-      that.setFieldStatus(form, field.getConfig(), { raw: true });
+      that._setFieldValue(name, field.value, { raw: true });
+      that.setFieldStatus(name, field.getConfig(), { raw: true });
       that.updateFields.add(field);
 
       clearTimeout(that.autoRunTime);
@@ -326,8 +326,8 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     }
   }
 
-  renameField(form: string | number, field: CCFieldWrapper) {
-    this.fieldsMap.set(form, field);
+  renameField(name: string | number, field: CCFieldWrapper) {
+    this.fieldsMap.set(name, field);
   }
 
   /**
@@ -375,9 +375,9 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const that = this;
     that.originData = data;
     for (const f of that.listFields) {
-      const { form } = f.getConfig();
-      if (!isBlank(form)) {
-        const value = get(data, String(form));
+      const { name } = f.getConfig();
+      if (!isBlank(name)) {
+        const value = get(data, String(name));
         value && f.setData(value);
       } else if (isArray(data)) {
         f.setData(data);
@@ -419,17 +419,17 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       });
     };
     for (const f of that.fields) {
-      let { form, convertValue, alias, initialValue } = f.getConfig();
-      if (form && (resetPaths ? resetPaths?.length === 0 || resetPaths.includes(form) : true)) {
+      let { name, convertValue, alias, initialValue } = f.getConfig();
+      if (name && (resetPaths ? resetPaths?.length === 0 || resetPaths.includes(name) : true)) {
         let sym = Symbol();
         // let prevValue = f.value;
         let value = sym;
 
-        for (let dk of [form, ...alias]) {
+        for (let dk of [name, ...alias]) {
           let v = get(data, dk, resetPaths ? initialValue : sym);
           if (v !== sym) {
             value = v;
-            form = dk;
+            name = dk;
           }
         }
         if (resetPaths) {
@@ -439,7 +439,7 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
           continue;
         }
 
-        value = isGet && isFunction(convertValue) ? f.execGetValue(form, value, data) : value;
+        value = isGet && isFunction(convertValue) ? f.execGetValue(name, value, data) : value;
 
         count++;
         if (isChange) {
@@ -529,20 +529,20 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const that = this;
     let validStatus = false;
     for (let f of this.fields) {
-      let field = f.getConfig();
+      const { name, visible, parentVisible } = f.getConfig();
       if (
-        !isBlank(field.form) &&
-        field.visible &&
-        field.parentVisible &&
+        !isBlank(name) &&
+        visible &&
+        parentVisible &&
         (!paths.length ||
-          paths.findIndex((path) => String(field.form).indexOf(String(path)) === 0) !== -1)
+          paths.findIndex((path) => String(name).indexOf(String(path)) === 0) !== -1)
       ) {
         validStatus = true;
         callback(f, (data: { error: boolean; errors?: string[] }) => {
           const { error, errors: messages } = data;
-          const errorData = { key: field.form, messages };
-          error && errors.set(field.form, errorData);
-          that.errorsMap.set(String(field.form), errorData);
+          const errorData = { key: name, messages };
+          error && errors.set(name, errorData);
+          that.errorsMap.set(String(name), errorData);
         });
       }
     }
@@ -560,16 +560,17 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
       ignoreKeys = [];
     const { data, initialValue } = that.state;
     for (const f of that.removeFields) {
-      const field = f.getConfig();
-      if (field.form) {
-        ignoreKeys.push(field.form);
+      const { name } = f.getConfig();
+      if (name) {
+        ignoreKeys.push(name);
       }
     }
     for (const f of that.fields) {
       const field = f.getConfig();
-      if (field.form) {
-        ignoreKeys.push(field.form);
-        !field.ignore && field.parentVisible && field.visible && config.push(field);
+      const { name, ignore, visible, parentVisible } = field;
+      if (name) {
+        ignoreKeys.push(name);
+        !ignore && parentVisible && visible && config.push(field);
       }
     }
     const subData: CCFormData = extractData(data, config as any);
@@ -585,11 +586,11 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
     const originData = that.originData ?? initialValue;
     if (merge && originData) {
       for (const f of that.listFields) {
-        const { form } = f.getConfig();
+        const { name } = f.getConfig();
         const listData = f.getData();
         let deleteIndex = f.deleteIndex;
-        const subListData = get(subData, String(form!));
-        if (form && subListData && listData && isObject(listData[0])) {
+        const subListData = get(subData, String(name!));
+        if (name && subListData && listData && isObject(listData[0])) {
           listData.forEach((da, index) => {
             if (!deleteIndex.includes(index)) {
               subListData[index] = Object.assign({}, da, subListData[index]);

@@ -16,7 +16,7 @@
 .cc-form-vertical {
   flex-direction: column;
   .cc-form-item-label {
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
   }
 }
 

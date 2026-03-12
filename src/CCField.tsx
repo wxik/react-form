@@ -1,6 +1,6 @@
 /**
  *
- * @author wxik
+ * @author zehua.tang
  * @sine 2020-04-11 11:43
  */
 import type { ComponentType, ContextType, ReactElement } from 'react';
@@ -18,7 +18,7 @@ import {
   isEmpty,
   isEmptyArray,
   isEmptyObject,
-  isFunction,
+  isFunction, isNumber,
   isObject,
   isPromise,
   isString,
@@ -158,12 +158,12 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
    * @returns {string}
    */
   getFormName(props?: ICCField): CCNamePath {
-    let { form, eachConfig, injectListName } = props || this.props;
+    let { name, eachConfig, injectListName } = props || this.props;
     return eachConfig && injectListName
-      ? typeof form !== 'number' && form
-        ? `${eachConfig.form}.${form}`
-        : eachConfig.form
-      : form;
+      ? !isNumber(name) && name
+        ? `${eachConfig.name}.${name}`
+        : eachConfig.name
+      : name;
   }
 
   /**
@@ -177,7 +177,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
     alias = (isArray(alias) ? alias : [alias]) as string[];
     return alias.map((formName) =>
-      eachConfig ? (formName ? `${eachConfig.form}.${formName}` : eachConfig.form) : formName,
+      eachConfig ? (formName ? `${eachConfig.name}.${formName}` : eachConfig.name) : formName,
     );
   }
 
@@ -211,7 +211,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     if (!inline && !isBlank(formName)) {
       const name = String(formName);
       let pForm =
-        eachConfig && eachConfig.form ? eachConfig.form : name.substring(0, name.lastIndexOf('.'));
+        eachConfig && eachConfig.name ? eachConfig.name : name.substring(0, name.lastIndexOf('.'));
       let pData = !isBlank(pForm) ? get(data, pForm) : data;
       value = pData ?? value;
     }
@@ -242,11 +242,12 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
   getOptions(): IFieldOptions {
     const that = this;
-    let { form, data: listData } = that.props.eachConfig || {};
+    let { name, data: listData } = that.props.eachConfig || {};
     let { value, disabled, visible, error, required } = that.state || {};
     let { data, originData, fieldStatus } = that.context as ICCFormContext;
     let options = {
-      form,
+      name,
+      form: name,
       val: value,
       data: originData, // 使用 originData 不会触发连锁反应
       status: fieldStatus,
@@ -404,7 +405,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const { disabled, visible, error, required, initialValue } = state;
     return {
       inline,
-      form: that.getFormName(props),
+      name: that.getFormName(props),
       alias: that.getFormAlias(props),
       transform,
       visible,
@@ -711,7 +712,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       nextState.visible !== state.visible ||
       nextState.disabled !== state.disabled ||
       nextState._refreshMark !== state._refreshMark ||
-      nextProps.form !== props.form ||
+      nextProps.name !== props.name ||
       that.getFormName(nextProps) !== that.getFormName(props) ||
       shouldUpdate(props.shouldUpdate, nextProps.shouldUpdate)
     );
@@ -723,7 +724,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
     const { required, error, visible, disabled } = that.state;
     const formName = that.getFormName(that.props);
     const prevFormName = that.getFormName(prevProps);
-    if (prevProps.form !== this.props.form) {
+    if (prevProps.name !== this.props.name) {
       formInstance.unmountField(this);
     }
 
@@ -760,7 +761,7 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
       that.asyncValidateErrors();
     }
 
-    if (prevProps.form !== that.props.form) {
+    if (prevProps.name !== that.props.name) {
       formInstance.setField(that);
     }
 
@@ -840,14 +841,16 @@ export function CCField<T = {}>(options: { defaultValue?: any } = {}) {
           let {
             initialValue,
             form,
+            name,
             inline = DEFAULT_INLINE,
             injectListName = DEFAULT_INJECT_LIST_NAME,
           } = props;
+          name = name ?? form;
           if (listData && injectListName) {
             const item = listData.data[listData.index];
-            initialValue = form
-              ? isObject(item) && form in item
-                ? item[form]
+            initialValue = name
+              ? isObject(item) && name in item
+                ? item[name]
                 : inline
                   ? initialValue
                   : item
@@ -862,6 +865,7 @@ export function CCField<T = {}>(options: { defaultValue?: any } = {}) {
                 <CCFieldWrapper
                   defaultValue={defaultValue}
                   {...props}
+                  name={name}
                   parentField={parentField}
                   initialValue={initialValue}
                   eachConfig={listData}

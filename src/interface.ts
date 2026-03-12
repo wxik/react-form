@@ -31,7 +31,12 @@ export interface ICCEmitter {
 
 export interface CCOptions {
   val: any;
+  /**
+   * @use name
+   * @deprecated
+   */
   form: CCNamePath;
+  name: CCNamePath;
   data: CCFormData;
   listData?: any[];
   status: Record<string, CCFieldStatus>;
@@ -53,7 +58,12 @@ export type CCRulesType =
     ) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
 
 export interface CCListContext {
+  /**
+   * @use name
+   * @deprecated
+   */
   form: CCNamePath;
+  name: CCNamePath;
   listInstance: CCListWrapper;
   keys: string[];
   data: any[];
@@ -66,8 +76,16 @@ export interface ICCFieldContext {
   visible: boolean;
 }
 
-export interface ICCField {
+export interface _ICCField {
+  /**
+   * @use name
+   * @deprecated
+   */
   form?: CCNamePath; // field name
+}
+
+export interface ICCField {
+  name?: CCNamePath; // field name
   alias?: string | Array<string>; // alias field name
   title?: ReactNode | ((formData: CCFormData, options: CCOptions) => ReactNode); // field title
   label?: string; //
@@ -99,7 +117,7 @@ export interface ICCField {
   visible?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
   union?: string | string[] | ((options: CCOptions) => string | string[]);
-  unionValue?: (value: any, data: { val: any; data: CCFormData; form?: string }) => any;
+  unionValue?: (value: any, options: CCOptions) => any;
   /**
    * 开启联动验证
    * @default false
@@ -226,7 +244,10 @@ export interface ReturnValidateError {
 /**
  * 给最后的组件 props 使用
  */
-export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName' | 'forValue'> {
+export interface IFieldItem extends Omit<
+  ICCField & _ICCField,
+  'forwardRef' | 'valuePropName' | 'forValue'
+> {
   title?: ReactNode;
   value: any;
   data: CCFormData;
@@ -239,7 +260,7 @@ export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName
   onChange: (value: any, ...args: any[]) => void;
 }
 
-export type ICCFieldOmit = Omit<ICCField, 'parentField' | 'eachConfig'>;
+export type ICCFieldOmit = Omit<ICCField & _ICCField, 'parentField' | 'eachConfig'>;
 
 export type CCRequiredType = {
   required?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
@@ -259,7 +280,12 @@ export interface CCListInstance {
 }
 
 export interface CCListViewContext extends CCListContext {
+  /**
+   * @use name
+   * @deprecated
+   */
   form: CCNamePath;
+  name: CCNamePath;
   index: number;
   key: string;
   remove: () => void;
@@ -267,8 +293,16 @@ export interface CCListViewContext extends CCListContext {
   move: (from: number, to: number) => void;
 }
 
-export interface ICCList {
+export interface _ICCList {
+  /**
+   * @use name
+   * @deprecated
+   */
   form?: CCNamePath;
+}
+
+export interface ICCList {
+  name?: CCNamePath;
   formList?: CCListInstance;
   initRows?: number;
   initialValue?: Array<any>;
@@ -280,7 +314,7 @@ export interface ICCList {
   shouldUpdate?: any | any[];
 }
 
-export interface IListItem extends Omit<ICCList, 'eachConfig'> {}
+export interface IListItem extends Omit<ICCList & _ICCList, 'eachConfig'> {}
 
 export type ICCListOperation = CCListViewContext;
 

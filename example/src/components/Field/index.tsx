@@ -14,6 +14,7 @@ interface IChildProps {
   onChange?: any;
   disabled?: boolean;
   status?: string;
+  id?: string | number;
 }
 
 export interface IFieldProps {
@@ -51,6 +52,8 @@ export const Field = CCField<IFieldProps>()((props) => {
     noStyle,
     prefix = 'cc-form',
     colon = true,
+    form,
+    name
   } = props;
   const isNotTitle = isUndefined(title);
   const { value: valueKey = 'value' } = fieldNames;
@@ -70,6 +73,7 @@ export const Field = CCField<IFieldProps>()((props) => {
   const element =
     childCount === 1
       ? cloneElement(children as ReactElement<IChildProps>, {
+          id: name ?? form,
           onChange: handleChange,
           [valueKey]: value,
           disabled,
@@ -78,7 +82,7 @@ export const Field = CCField<IFieldProps>()((props) => {
       : children;
 
   const content = (
-    <div className={cls('cc-form-item-content', isNotTitle && warpClassName)}>
+    <div className={cls(`${prefix}-item-content`, isNotTitle && warpClassName)}>
       {element}
       <div className={cls(`${prefix}-error-warp`, noStyle && 'no-style', errorClassName)}>
         {errors &&

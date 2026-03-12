@@ -29,15 +29,18 @@ export default () => {
     ],
     [],
   );
-  console.log('🤟 Code', initialValue);
+  console.log('‼️LOG‼️', initialValue);
 
   return (
     <CCForm form={form}>
       <div className={'flex flex-col items-baseline'}>
         <CCList initialValue={initialValue}>
-          {({ add, remove, index }) => (
+          {({ add, remove, index, length }) => (
             <div className={'flex gap-x-6 flex-wrap'}>
-              <Field form={'attrName'} title={'Attribute name'} rules={[{ required: true, message: 'Please input!' }]}>
+              <Field
+                form={'attrName'}
+                title={'Attribute name'}
+                rules={[{ required: true, message: 'Please input!' }]}>
                 <Input className={'w-60'} />
               </Field>
               <Field
@@ -53,7 +56,13 @@ export default () => {
                   shape="circle"
                   type="dashed"
                 />
-                <Button onClick={() => remove()} icon={<MinusIcon className="size-4" />} shape="circle" type="dashed" />
+                <Button
+                  disabled={length === 1}
+                  onClick={() => remove()}
+                  icon={<MinusIcon className="size-4" />}
+                  shape="circle"
+                  type="dashed"
+                />
               </div>
             </div>
           )}

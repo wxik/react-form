@@ -1,6 +1,6 @@
 /**
  *
- * @author Quia
+ * @author zehua.tang
  * @sine 2020-04-20 11:27
  */
 
@@ -89,8 +89,8 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
   }
 
   getFormName(props: ICCList): CCNamePath {
-    const { form, eachConfig } = props;
-    return eachConfig ? (form ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
+    const { name, eachConfig } = props;
+    return eachConfig ? (name ? `${eachConfig.name}.${name}` : eachConfig.name) : name;
   }
 
   setData(data: any[]) {
@@ -223,7 +223,7 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
   }
 
   getConfig() {
-    return { form: this.getFormName(this.props) };
+    return { name: this.getFormName(this.props) };
   }
 
   componentDidMount() {
@@ -245,7 +245,7 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
       props = that.props,
       state = that.state;
     return (
-      nextProps.form !== props.form ||
+      nextProps.name !== props.name ||
       nextState.keys !== state.keys ||
       that.getFormName(nextProps) !== that.getFormName(props) ||
       shouldUpdate(props.shouldUpdate, nextProps.shouldUpdate)
@@ -265,14 +265,15 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
   render() {
     const that = this;
     const context = that.context as ICCFormContext;
-    const form = that.getFormName(that.props);
+    const name = that.getFormName(that.props);
     const { children } = that.props;
     const { keys, data } = that.state;
 
     if (!children || !isArray(keys)) return null;
 
     const contextValues: CCListContext = {
-      form,
+      form: name,
+      name,
       listInstance: that,
       keys,
       data,
@@ -291,11 +292,12 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
 export const CCList: FC<IListItem> & { View: typeof CCListView } = (props) => {
   const eachData = useContext(CCFormListViewContext);
 
-  let { form, initialValue, children } = props;
+  let { form, name, initialValue, children } = props;
+  name = name ?? form;
   const listData = eachData as CCListViewContext;
   if (listData) {
     const item = listData.data[listData.index];
-    initialValue = form ? (isObject(item) && form in item ? item[form] : initialValue) : item;
+    initialValue = name ? (isObject(item) && name in item ? item[name] : initialValue) : item;
   }
   return (
     <CCListWrapper
