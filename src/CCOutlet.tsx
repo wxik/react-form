@@ -14,7 +14,7 @@ import type {
 } from 'react';
 import { cloneElement, forwardRef } from 'react';
 
-import { CCFormListViewContext } from './CCContext';
+import { CCFormListItemContext } from './CCContext';
 import { CCForm } from './CCForm';
 import type { CCListContext, ICCFormContext } from './interface';
 
@@ -32,7 +32,7 @@ export function CCOutlet<P = {}, T = any>() {
     Target: ComponentType<P & ICCOutlet>,
   ): ForwardRefExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
     return forwardRef<T, P>((props: any, ref) => (
-      <CCFormListViewContext.Consumer>
+      <CCFormListItemContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>
             {(fieldContext) => (
@@ -40,7 +40,7 @@ export function CCOutlet<P = {}, T = any>() {
             )}
           </CCForm.Context.Consumer>
         )}
-      </CCFormListViewContext.Consumer>
+      </CCFormListItemContext.Consumer>
     ));
   };
 }
@@ -49,3 +49,5 @@ export const CCOutletView = CCOutlet<IOutlet>()((props) => {
   const { children, forProps, ...rest } = props;
   return cloneElement(children, forProps ? forProps(rest) : rest);
 });
+
+CCOutlet.View = CCOutletView;

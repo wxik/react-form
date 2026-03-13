@@ -6,7 +6,7 @@
 import type { ComponentType, ContextType, ReactElement } from 'react';
 import { Component } from 'react';
 
-import { CCFieldContext, CCFormListViewContext } from './CCContext';
+import { CCFieldContext, CCFormListItemContext } from './CCContext';
 import { CCFieldEnum, CCForm, CCFormStateStatusEnum } from './CCForm';
 import { formHandler } from './helper/FormHelper';
 import { autoRun, unobserve } from './helper/Observer';
@@ -18,7 +18,8 @@ import {
   isEmpty,
   isEmptyArray,
   isEmptyObject,
-  isFunction, isNumber,
+  isFunction,
+  isNumber,
   isObject,
   isPromise,
   isString,
@@ -27,7 +28,7 @@ import {
 import type {
   CCFormData,
   CCFormInstance,
-  CCListViewContext,
+  CCListItemContext,
   CCNamePath,
   CCOptions,
   CCRequiredType,
@@ -829,15 +830,14 @@ export class CCFieldWrapper extends Component<ICCField, CCFieldState> {
 
 /**
  * @param {{defaultValue?: any}} options
- * @returns {function(*=): *}
  */
 export function CCField<T = {}>(options: { defaultValue?: any } = {}) {
   const { defaultValue } = options;
   return function (Target: ComponentType<T & IFieldItem>) {
     return (props: T & ICCFieldOmit) => (
-      <CCFormListViewContext.Consumer>
+      <CCFormListItemContext.Consumer>
         {(eachData) => {
-          const listData = eachData as CCListViewContext;
+          const listData = eachData as CCListItemContext;
           let {
             initialValue,
             form,
@@ -875,7 +875,7 @@ export function CCField<T = {}>(options: { defaultValue?: any } = {}) {
             </CCFieldContext.Consumer>
           );
         }}
-      </CCFormListViewContext.Consumer>
+      </CCFormListItemContext.Consumer>
     );
   };
 }

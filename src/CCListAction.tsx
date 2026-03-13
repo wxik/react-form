@@ -17,13 +17,6 @@ export const CCListAction: FC<ICCListAction> = (props) => {
   const { children } = props;
   const context = useContext(CCFormListContext);
   if (!context) return null;
-  const { listInstance } = context;
 
-  const values = {
-    ...context,
-    remove: listInstance.removeItem,
-    add: listInstance.addItem,
-    move: listInstance.moveItem,
-  };
-  return <>{children(values)}</>;
+  return <>{children(context)}</>;
 };

@@ -12,6 +12,7 @@ group: 组件总览
 ### 代码演示
 
 <code src="./basic.tsx"></code>
+<code src="./sort.tsx"></code>
 
 
 ### API

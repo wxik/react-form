@@ -9,7 +9,8 @@
   "dependencies": {
     "@guc/react-form": "link:../",
     "@heroicons/react": "^2.2.0",
-    "antd": "^6.3.1",
+    "@dnd-kit/react": "^0.3.2",
+    "antd": "^6.3.2",
     "clsx": "^2.1.1",
     "dumi": "^2.4.23",
     "react": "19.2.4",

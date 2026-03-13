@@ -5,9 +5,9 @@
  */
 import './index.css';
 
-import { CCField, isNull, isUndefined } from '@guc/react-form';
+import { CCField, isNull, isUndefined, ICCField } from '@guc/react-form';
 import cls from 'clsx';
-import type { ReactElement } from 'react';
+import type { ReactElement, FC } from 'react';
 import { Children, cloneElement, useMemo } from 'react';
 
 interface IChildProps {
@@ -17,7 +17,7 @@ interface IChildProps {
   id?: string | number;
 }
 
-export interface IFieldProps {
+export interface IItemProps {
   children?: ReactElement<IChildProps> | ReactElement<IChildProps>[];
   className?: string;
   warpClassName?: string;
@@ -32,7 +32,7 @@ export interface IFieldProps {
   colon?: boolean;
 }
 
-export const Field = CCField<IFieldProps>()((props) => {
+export const CCItem = CCField<IItemProps>()((props) => {
   const {
     value,
     onChange,
@@ -53,7 +53,7 @@ export const Field = CCField<IFieldProps>()((props) => {
     prefix = 'cc-form',
     colon = true,
     form,
-    name
+    name,
   } = props;
   const isNotTitle = isUndefined(title);
   const { value: valueKey = 'value' } = fieldNames;
@@ -124,8 +124,6 @@ export const Field = CCField<IFieldProps>()((props) => {
       )}
     </div>
   );
-});
+}) as FC<IItemProps & ICCField> & { Hide: FC<ICCField> };
 
-export const HideField = CCField()(() => {
-  return null;
-});
+CCItem.Hide = CCField()(() => null);

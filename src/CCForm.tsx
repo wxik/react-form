@@ -75,16 +75,40 @@ export class CCForm extends Component<ICCForm, ICCFormState> {
   static createForm: () => CCFormInstance = createForm;
   static createList: () => CCListInstance = createList;
 
+  /**
+   * @use CCOutlet
+   * @deprecated
+   */
   static Outlet: <T = {}, P = any>() => (
     Target: ComponentType<T & ICCOutlet>,
   ) => ForwardRefExoticComponent<PropsWithoutRef<T> & RefAttributes<P>>;
 
+  /**
+   * @use CCOutlet.View
+   * @deprecated
+   */
   static OutletView: FC<IOutlet>;
+  /**
+   * @use CCList
+   * @deprecated
+   */
   static List: FC<IListItem>;
+  /**
+   * @use CCField
+   * @deprecated
+   */
   static Field: <T = {}>(options?: {
     defaultValue?: any;
   }) => (Target: ComponentType<T & IFieldItem>) => (props: T & ICCFieldOmit) => JSX.Element;
+  /**
+   * @use CCList.View
+   * @deprecated
+   */
   static ListView: FunctionComponent<ICCListView>;
+  /**
+   * @use CCList.Action
+   * @deprecated
+   */
   static ListAction: FC<ICCListAction>;
 
   static getDerivedStateFromProps(nextProps: ICCForm, prevState: ICCFormState) {

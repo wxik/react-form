@@ -6,8 +6,8 @@
 import type { FC } from 'react';
 import { useContext } from 'react';
 
-import { CCFormListContext, CCFormListViewContext } from './CCContext';
-import { isBlank } from './helper/Types';
+import { CCFormListContext, CCFormListItemContext } from './CCContext';
+import { isBlank, isFunction } from './helper/Types';
 import type { ICCListOperation, ICCListView } from './interface';
 
 export const CCListView: FC<ICCListView> = (props) => {
@@ -16,7 +16,7 @@ export const CCListView: FC<ICCListView> = (props) => {
 
   if (!context || !children) return null;
 
-  const { keys, name: formName, listInstance } = context;
+  const { keys, name: formName, remove } = context;
 
   const viewContent = keys.map((key, index) => {
     const name = isBlank(formName) ? String(index) : `${formName}.${index}`;
@@ -26,12 +26,14 @@ export const CCListView: FC<ICCListView> = (props) => {
       name,
       index,
       key,
-      remove: listInstance.removeItem.bind(listInstance, index),
-      add: listInstance.addItem.bind(listInstance),
-      move: listInstance.moveItem.bind(listInstance),
+      remove: (delIndex) => remove(delIndex ?? index),
     };
     const child = (
-      <CCFormListViewContext.Provider value={values} key={key} children={children(values)} />
+      <CCFormListItemContext.Provider
+        value={values}
+        key={key}
+        children={isFunction(children) ? children(values) : children}
+      />
     );
     return provider ? provider(values, child) : child;
   });

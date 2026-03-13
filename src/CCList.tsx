@@ -7,14 +7,16 @@
 import type { ContextType, FC } from 'react';
 import { Component, useContext } from 'react';
 
-import { CCFormListContext, CCFormListViewContext } from './CCContext';
+import { CCFormListContext, CCFormListItemContext } from './CCContext';
 import { CCFieldEnum, CCForm } from './CCForm';
+import { CCListAction } from './CCListAction';
 import { CCListView } from './CCListView';
+import { useListItem } from './helper/FormHelper';
 import { get, shouldUpdate } from './helper/Tools';
 import { isArray, isBlank, isEmpty, isFunction, isObject } from './helper/Types';
 import type {
   CCListContext,
-  CCListViewContext,
+  CCListItemContext,
   CCNamePath,
   ICCFormContext,
   ICCList,
@@ -279,22 +281,25 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
       data,
       length: keys.length,
       formData: context.data,
+      add: (item, index) => that.addItem(item, index ),
+      remove: (index) => that.removeItem(index),
+      move: (from, to) => that.moveItem(from, to),
     };
-    const renderChildren = isFunction(children) ? (
-      <CCListView children={children} />
-    ) : (
-      children
-    );
+    const renderChildren = isFunction(children) ? <CCListView children={children} /> : children;
     return <CCFormListContext.Provider value={contextValues} children={renderChildren} />;
   }
 }
 
-export const CCList: FC<IListItem> & { View: typeof CCListView } = (props) => {
-  const eachData = useContext(CCFormListViewContext);
+export const CCList: FC<IListItem> & {
+  View: typeof CCListView;
+  Action: typeof CCListAction;
+  useItem: typeof useListItem;
+} = (props) => {
+  const eachData = useContext(CCFormListItemContext);
 
   let { form, name, initialValue, children } = props;
   name = name ?? form;
-  const listData = eachData as CCListViewContext;
+  const listData = eachData as CCListItemContext;
   if (listData) {
     const item = listData.data[listData.index];
     initialValue = name ? (isObject(item) && name in item ? item[name] : initialValue) : item;
@@ -302,6 +307,7 @@ export const CCList: FC<IListItem> & { View: typeof CCListView } = (props) => {
   return (
     <CCListWrapper
       {...props}
+      name={name}
       initialValue={initialValue}
       eachConfig={listData}
       children={children}
@@ -310,3 +316,5 @@ export const CCList: FC<IListItem> & { View: typeof CCListView } = (props) => {
 };
 
 CCList.View = CCListView;
+CCList.Action = CCListAction;
+CCList.useItem = useListItem;
