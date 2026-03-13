@@ -1,6 +1,6 @@
 /**
  *
- * @author wxik
+ * @author zehua.tang
  * @sine 2020-04-14 15:41
  */
 
@@ -41,4 +41,24 @@ export * from './helper/Types';
 export * from './helper/Tools';
 export * from './helper/Observer';
 
-export { CCField, CCForm, CCList, CCListAction, CCListView, CCOutlet, CCOutletView };
+export {
+  CCForm,
+  CCList,
+  CCField,
+  CCOutlet,
+  /**
+   * @use CCList.View
+   * @deprecated
+   */
+  CCListView,
+  /**
+   * @use CCList.Action
+   * @deprecated
+   */
+  CCListAction,
+  /**
+   * @use CCOutlet.View
+   * @deprecated
+   */
+  CCOutletView,
+};

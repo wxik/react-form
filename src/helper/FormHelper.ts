@@ -1,15 +1,21 @@
 /**
  *
- * @author wxik
+ * @author zehua.tang
  * @since 2023-05-10 11:37
  */
 import type { MutableRefObject } from 'react';
 import { createRef, useContext, useMemo, useRef } from 'react';
 
-import { CCFormContext, CCFormListContext } from '../CCContext';
+import { CCFormContext, CCFormListContext, CCFormListItemContext } from '../CCContext';
 import type { CCForm } from '../CCForm';
 import type { CCListWrapper } from '../CCList';
-import type { CCFormData, CCFormInstance, CCListInstance, CCNamePath } from '../interface';
+import type {
+  CCFormData,
+  CCFormInstance,
+  CCListInstance,
+  CCListItemContext,
+  CCNamePath,
+} from '../interface';
 import { isArray } from './Types';
 
 export const formHandler = (ref: MutableRefObject<CCForm | undefined>): CCFormInstance => {
@@ -130,4 +136,8 @@ export const useListInstance = (): CCListInstance => {
   const ref = useRef<CCListWrapper>(listInstance);
   ref.current = listInstance;
   return useMemo<CCListInstance>(() => listHelder(ref), []);
+};
+
+export const useListItem = (): CCListItemContext => {
+  return useContext(CCFormListItemContext)!;
 };

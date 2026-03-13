@@ -14,15 +14,15 @@ import { RadioGroup as IRadioGroup } from '@ibot/ibot/lib/radio';
 import { Input,Select } from 'antd';
 import React, { useEffect } from 'react';
 
-import type { IFieldProps } from './components/Field';
-import { Field } from './components/Field';
+import type { IItemProps } from './components/Item';
+import { CCItem } from './components/Item';
 
 class _App extends React.Component<any> {
   form = CCForm.createForm();
   list2 = CCForm.createList();
   list1 = CCForm.createList();
-  config: Array<IFieldProps>;
-  formList: Array<IFieldProps>;
+  config: Array<IItemProps>;
+  formList: Array<IItemProps>;
 
   private uuid = 0;
 
@@ -257,13 +257,13 @@ class _App extends React.Component<any> {
         <CCForm form={that.form} initialValue={initialValue} disabled={disabled} onErrorChange={that.onErrorChange}>
           <div style={styles.form}>
             {that.config.map((config, index) => (
-              <Field key={config.form} {...config}>
+              <CCItem key={config.form} {...config}>
                 <Input />
-              </Field>
+              </CCItem>
             ))}
           </div>
           <div className={'flex gap-4'}>
-            <Field
+            <CCItem
               form={'check_group'}
               title={'多选'}
               initialValue={[]}
@@ -277,8 +277,8 @@ class _App extends React.Component<any> {
                   { label: 'Vue', value: 'vue' },
                 ]}
               />
-            </Field>
-            <Field
+            </CCItem>
+            <CCItem
               form={'select2'}
               title={'对象'}
               unique={'value'}
@@ -294,18 +294,18 @@ class _App extends React.Component<any> {
                   { label: '凯利拉克', value: '3' },
                 ]}
               />
-            </Field>
+            </CCItem>
           </div>
           <div style={styles.form}>
-            <Field form={'radio'} title={'是否选择科目'} normalize={(data) => data?.value}>
+            <CCItem form={'radio'} title={'是否选择科目'} normalize={(data) => data?.value}>
               <IRadioGroup
                 optionList={[
                   { label: '隐藏', value: 'off' },
                   { label: '开启', value: 'on' },
                 ]}
               />
-            </Field>
-            <Field form={'select'} title={'科目'} antd visible={(formData) => formData.radio === 'on'}>
+            </CCItem>
+            <CCItem form={'select'} title={'科目'} antd visible={(formData) => formData.radio === 'on'}>
               <Select
                 className={'w-44'}
                 placeholder="请选择"
@@ -316,8 +316,8 @@ class _App extends React.Component<any> {
                   { label: 'Vue', value: 'vue' },
                 ]}
               />
-            </Field>
-            <Field
+            </CCItem>
+            <CCItem
               form={'des'}
               title={'科目描述'}
               union={'select'}
@@ -326,7 +326,7 @@ class _App extends React.Component<any> {
               unionValue={(value) => (value === 'react' ? '你好 React' : '')}
               visible={(formData, { status }) => formData.select !== 'vue' && status.select?.visible}>
               <Input />
-            </Field>
+            </CCItem>
           </div>
           <div style={styles.sop}>
             <div className={'flex gap-3'}>
@@ -363,12 +363,12 @@ class _App extends React.Component<any> {
                         <CCForm.List form="c" initRows={1}>
                           {({ add, remove, key, index: index2 }) => (
                             <div style={styles.form} key={key}>
-                              <Field
+                              <CCItem
                                 rules
                                 title={'SL 吃吃 - ' + (index + 1) + ' - ' + (index2 + 1)}
                                 initialValue={String(index + 1)}>
                                 <Input />
-                              </Field>
+                              </CCItem>
                               <div className={'mt-[30px] gap-3 flex'}>
                                 <button style={styles.btn2} onClick={() => add()}>
                                   +
@@ -403,9 +403,9 @@ class _App extends React.Component<any> {
                     </button>
                   </div>
                   {that.formList.map((config) => (
-                    <Field key={config.form} {...config}>
+                    <CCItem key={config.form} {...config}>
                       {config.fieldType === 'select' ? <Select className={'w-44'} {...config.fieldProps} /> : <Input />}
-                    </Field>
+                    </CCItem>
                   ))}
                   <div className={'mt-[30px] gap-3 flex'}>
                     <button style={styles.btn2} onClick={() => add({ a: that.genUUID(), sex: '', b: '' }, index + 1)}>

@@ -1,20 +1,22 @@
 /**
  *
- * @author Quia
+ * @author zehua.tang
  * @sine 2020-04-20 11:27
  */
 
 import type { ContextType, FC } from 'react';
 import { Component, useContext } from 'react';
 
-import { CCFormListContext, CCFormListViewContext } from './CCContext';
+import { CCFormListContext, CCFormListItemContext } from './CCContext';
 import { CCFieldEnum, CCForm } from './CCForm';
+import { CCListAction } from './CCListAction';
 import { CCListView } from './CCListView';
+import { useListItem } from './helper/FormHelper';
 import { get, shouldUpdate } from './helper/Tools';
 import { isArray, isBlank, isEmpty, isFunction, isObject } from './helper/Types';
 import type {
   CCListContext,
-  CCListViewContext,
+  CCListItemContext,
   CCNamePath,
   ICCFormContext,
   ICCList,
@@ -89,8 +91,8 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
   }
 
   getFormName(props: ICCList): CCNamePath {
-    const { form, eachConfig } = props;
-    return eachConfig ? (form ? `${eachConfig.form}.${form}` : eachConfig.form) : form;
+    const { name, eachConfig } = props;
+    return eachConfig ? (name ? `${eachConfig.name}.${name}` : eachConfig.name) : name;
   }
 
   setData(data: any[]) {
@@ -223,7 +225,7 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
   }
 
   getConfig() {
-    return { form: this.getFormName(this.props) };
+    return { name: this.getFormName(this.props) };
   }
 
   componentDidMount() {
@@ -245,7 +247,7 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
       props = that.props,
       state = that.state;
     return (
-      nextProps.form !== props.form ||
+      nextProps.name !== props.name ||
       nextState.keys !== state.keys ||
       that.getFormName(nextProps) !== that.getFormName(props) ||
       shouldUpdate(props.shouldUpdate, nextProps.shouldUpdate)
@@ -265,41 +267,47 @@ export class CCListWrapper extends Component<ICCList, ICCListState> {
   render() {
     const that = this;
     const context = that.context as ICCFormContext;
-    const form = that.getFormName(that.props);
+    const name = that.getFormName(that.props);
     const { children } = that.props;
     const { keys, data } = that.state;
 
     if (!children || !isArray(keys)) return null;
 
     const contextValues: CCListContext = {
-      form,
+      form: name,
+      name,
       listInstance: that,
       keys,
       data,
       length: keys.length,
       formData: context.data,
+      add: (item, index) => that.addItem(item, index ),
+      remove: (index) => that.removeItem(index),
+      move: (from, to) => that.moveItem(from, to),
     };
-    const renderChildren = isFunction(children) ? (
-      <CCListView children={children} />
-    ) : (
-      children
-    );
+    const renderChildren = isFunction(children) ? <CCListView children={children} /> : children;
     return <CCFormListContext.Provider value={contextValues} children={renderChildren} />;
   }
 }
 
-export const CCList: FC<IListItem> & { View: typeof CCListView } = (props) => {
-  const eachData = useContext(CCFormListViewContext);
+export const CCList: FC<IListItem> & {
+  View: typeof CCListView;
+  Action: typeof CCListAction;
+  useItem: typeof useListItem;
+} = (props) => {
+  const eachData = useContext(CCFormListItemContext);
 
-  let { form, initialValue, children } = props;
-  const listData = eachData as CCListViewContext;
+  let { form, name, initialValue, children } = props;
+  name = name ?? form;
+  const listData = eachData as CCListItemContext;
   if (listData) {
     const item = listData.data[listData.index];
-    initialValue = form ? (isObject(item) && form in item ? item[form] : initialValue) : item;
+    initialValue = name ? (isObject(item) && name in item ? item[name] : initialValue) : item;
   }
   return (
     <CCListWrapper
       {...props}
+      name={name}
       initialValue={initialValue}
       eachConfig={listData}
       children={children}
@@ -308,3 +316,5 @@ export const CCList: FC<IListItem> & { View: typeof CCListView } = (props) => {
 };
 
 CCList.View = CCListView;
+CCList.Action = CCListAction;
+CCList.useItem = useListItem;

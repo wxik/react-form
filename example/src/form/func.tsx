@@ -8,7 +8,7 @@ import { CCForm } from '@guc/react-form';
 import { Button, Input, Select } from 'antd';
 import React from 'react';
 
-import { Field } from '../components/Field';
+import { CCItem } from '../components/Item';
 
 export default () => {
   const [form] = CCForm.useForm();
@@ -48,14 +48,14 @@ export default () => {
   return (
     <CCForm form={form}>
       <div className={'flex flex-col w-lg cc-form-layout-col'}>
-        <Field
+        <CCItem
           form={'note'}
           title={'Note'}
           rules={[{ required: true }]}
           labelClassName={'w-40 justify-end'}>
           <Input />
-        </Field>
-        <Field
+        </CCItem>
+        <CCItem
           form={'gender'}
           title={'Gender'}
           rules={[{ required: true }]}
@@ -71,15 +71,15 @@ export default () => {
               { label: 'other', value: 'other' },
             ]}
           />
-        </Field>
-        <Field
+        </CCItem>
+        <CCItem
           form={'customizeGender'}
           title={'Customize Gender'}
           rules={[{ required: true }]}
           visible={(data) => data['gender'] === 'other'}
           labelClassName={'w-40 justify-end'}>
           <Input />
-        </Field>
+        </CCItem>
         <div className={'flex gap-2 ml-40'}>
           <Button onClick={handleReset}>Reset</Button>
           <Button type={'primary'} onClick={handleOk}>

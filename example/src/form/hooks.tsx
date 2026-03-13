@@ -8,7 +8,7 @@ import { CCForm } from '@guc/react-form';
 import { Button, Input } from 'antd';
 import React from 'react';
 
-import { Field } from '../components/Field';
+import { CCItem } from '../components/Item';
 
 export default () => {
   const [form] = CCForm.useForm();
@@ -24,20 +24,20 @@ export default () => {
   return (
     <CCForm form={form}>
       <div className={'flex flex-col w-80'}>
-        <Field
+        <CCItem
           form={'name'}
           initialValue={'admin'}
           title={'Username'}
           rules={[{ required: true, message: 'Please input your username!' }]}>
           <Input />
-        </Field>
-        <Field
+        </CCItem>
+        <CCItem
           form={'password'}
           initialValue={'admin'}
           title={'Password'}
           rules={[{ required: true, message: 'Please input your password!' }]}>
           <Input.Password />
-        </Field>
+        </CCItem>
         <Button type={'primary'} onClick={handleOk} className={'w-full mt-2'}>
           Login
         </Button>

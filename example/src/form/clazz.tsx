@@ -7,7 +7,7 @@ import { CCForm } from '@guc/react-form';
 import { Button, Input } from 'antd';
 import React, { Component } from 'react';
 
-import { Field } from '../components/Field';
+import { CCItem } from '../components/Item';
 
 export default class extends Component {
   form = CCForm.createForm();
@@ -24,12 +24,12 @@ export default class extends Component {
     return (
       <CCForm form={this.form} initialValue={{ name: 'union', 'user.name': '2424' }}>
         <div className={'flex gap-8 cc-form-layout-col'}>
-          <Field form={'name'} title={'Name'} union={'name'} unionValue={(v) => v}>
+          <CCItem form={'name'} title={'Name'} union={'name'} unionValue={(v) => v}>
             <Input className={'w-3xs'} />
-          </Field>
-          <Field form={'name'} title={'Name'} union={'name'} unionValue={(v) => v}>
+          </CCItem>
+          <CCItem form={'name'} title={'Name'} union={'name'} unionValue={(v) => v}>
             <Input className={'w-3xs'} />
-          </Field>
+          </CCItem>
           <div className={'flex gap-2'}>
             <Button onClick={this.onReset}>Reset</Button>
             <Button type={'primary'} onClick={this.onOk}>

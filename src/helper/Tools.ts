@@ -1,6 +1,6 @@
 /**
  *
- * @author wxik
+ * @author zehua.tang
  * @since 2023-02-27 11:12
  */
 
@@ -104,16 +104,16 @@ export function get(
  * field 取值字段, 或者方法返回值
  * inline 是否内联Object, 默认true
  * @param {Object} $data {a: {a1: 2, a2: 3}, b: [{b1: 1, b2: 2}]}
- * @param {Array<{[string]: {form: string, transform: string | Function, inline?: boolean}}>} config
+ * @param {Array<{[string]: {name: string, transform: string | Function, inline?: boolean}}>} config
  * @returns {Object}
  */
 export function extractData(
   $data: Record<string, any>,
-  config: { form: string; transform: string | Function; inline?: boolean }[],
+  config: { name: string; transform: string | Function; inline?: boolean }[],
 ) {
   let newData = Object.create(null);
-  (config || []).forEach(({ form, transform, inline = true }) => {
-    let data: any = normalObservable($data[form]);
+  (config || []).forEach(({ name, transform, inline = true }) => {
+    let data: any = normalObservable($data[name]);
 
     // 如果 inline = false 则由 transform 自己处理数组
     if (isFunction(transform)) {
@@ -129,19 +129,19 @@ export function extractData(
     }
 
     // 处理重复字段名称: (a.b@1, a.b@2) => a.b
-    form = form.replace(/@\w*/g, '');
+    name = name.replace(/@\w*/g, '');
     // 内挂 object
     if (inline) {
       // product.list.name = {lcName, lcEnName} => {product: list: {name: {lcName, lcEnName}}}
       // product.0.name = {lcName, lcEnName} => {product: [{name: {lcName, lcEnName}}]}
-      parseFieldData(newData, form, data);
+      parseFieldData(newData, name, data);
     } else {
       // product.list.name = {lcName, lcEnName} => {product: list: {lcName, lcEnName}}
       // product.0.name = {lcName, lcEnName} => {product: [{lcName, lcEnName}]}
-      let index = form.lastIndexOf('.');
+      let index = name.lastIndexOf('.');
       if (index !== -1) {
-        let start_field = form.substring(0, index),
-          end_field = form.substring(index + 1);
+        let start_field = name.substring(0, index),
+          end_field = name.substring(index + 1);
 
         let origin = getItemValue(newData, start_field);
         data = isObject(data) ? data : { [end_field]: data };
@@ -154,11 +154,11 @@ export function extractData(
 
         parseFieldData(newData, start_field, data);
       } else {
-        // form 不包含多层次结构(不包含: product.list)
+        // name 不包含多层次结构(不包含: product.list)
         if (isObject(data)) {
           Object.assign(newData, data);
         } else {
-          newData[form] = data;
+          newData[name] = data;
         }
       }
     }

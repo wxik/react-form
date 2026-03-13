@@ -1,6 +1,6 @@
 /**
  *
- * @author wxik
+ * @author zehua.tang
  * @since 2023-06-12 17:18
  */
 import type { FC, ReactNode } from 'react';
@@ -17,13 +17,6 @@ export const CCListAction: FC<ICCListAction> = (props) => {
   const { children } = props;
   const context = useContext(CCFormListContext);
   if (!context) return null;
-  const { listInstance } = context;
 
-  const values = {
-    ...context,
-    remove: listInstance.removeItem,
-    add: listInstance.addItem,
-    move: listInstance.moveItem,
-  };
-  return <>{children(values)}</>;
+  return <>{children(context)}</>;
 };

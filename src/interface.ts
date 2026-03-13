@@ -31,7 +31,12 @@ export interface ICCEmitter {
 
 export interface CCOptions {
   val: any;
+  /**
+   * @use name
+   * @deprecated
+   */
   form: CCNamePath;
+  name: CCNamePath;
   data: CCFormData;
   listData?: any[];
   status: Record<string, CCFieldStatus>;
@@ -52,8 +57,19 @@ export type CCRulesType =
       options: CCOptions & { isUnionValid: boolean },
     ) => ReturnRuleType | Promise<ReturnRuleType | unknown>);
 
-export interface CCListContext {
+export interface CCListOperation {
+  add: (item?: any, insertIndex?: number) => void;
+  remove: (index: number | number[]) => void;
+  move: (from: number, to: number) => void;
+}
+
+export interface CCListContext extends CCListOperation {
+  /**
+   * @use name
+   * @deprecated
+   */
   form: CCNamePath;
+  name: CCNamePath;
   listInstance: CCListWrapper;
   keys: string[];
   data: any[];
@@ -66,8 +82,16 @@ export interface ICCFieldContext {
   visible: boolean;
 }
 
-export interface ICCField {
+export interface _ICCField {
+  /**
+   * @use name
+   * @deprecated
+   */
   form?: CCNamePath; // field name
+}
+
+export interface ICCField {
+  name?: CCNamePath; // field name
   alias?: string | Array<string>; // alias field name
   title?: ReactNode | ((formData: CCFormData, options: CCOptions) => ReactNode); // field title
   label?: string; //
@@ -99,7 +123,7 @@ export interface ICCField {
   visible?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
   disabled?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
   union?: string | string[] | ((options: CCOptions) => string | string[]);
-  unionValue?: (value: any, data: { val: any; data: CCFormData; form?: string }) => any;
+  unionValue?: (value: any, options: CCOptions) => any;
   /**
    * 开启联动验证
    * @default false
@@ -226,7 +250,10 @@ export interface ReturnValidateError {
 /**
  * 给最后的组件 props 使用
  */
-export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName' | 'forValue'> {
+export interface IFieldItem extends Omit<
+  ICCField & _ICCField,
+  'forwardRef' | 'valuePropName' | 'forValue'
+> {
   title?: ReactNode;
   value: any;
   data: CCFormData;
@@ -239,7 +266,7 @@ export interface IFieldItem extends Omit<ICCField, 'forwardRef' | 'valuePropName
   onChange: (value: any, ...args: any[]) => void;
 }
 
-export type ICCFieldOmit = Omit<ICCField, 'parentField' | 'eachConfig'>;
+export type ICCFieldOmit = Omit<ICCField & _ICCField, 'parentField' | 'eachConfig'>;
 
 export type CCRequiredType = {
   required?: boolean | ((formData: CCFormData, options: CCOptions) => boolean);
@@ -249,45 +276,44 @@ export type CCRequiredType = {
 
 export type ReturnRuleType = undefined | boolean | string;
 
-export interface CCListInstance {
-  add: (value?: any, insertIndex?: number) => void;
-  remove: (index: number | number[]) => void;
-  move: (from: number, to: number) => void;
+export interface CCListInstance extends CCListOperation {
   setData: (data: any[]) => void;
   getData: () => void;
   getSize: () => number;
 }
 
-export interface CCListViewContext extends CCListContext {
-  form: CCNamePath;
+export interface CCListItemContext extends CCListContext {
   index: number;
   key: string;
-  remove: () => void;
-  add: (item?: any, insertIndex?: number) => void;
-  move: (from: number, to: number) => void;
+  remove: (index?: number | number[]) => void;
+}
+
+export interface _ICCList {
+  /**
+   * @use name
+   * @deprecated
+   */
+  form?: CCNamePath;
 }
 
 export interface ICCList {
-  form?: CCNamePath;
+  name?: CCNamePath;
   formList?: CCListInstance;
   initRows?: number;
   initialValue?: Array<any>;
-  eachConfig?: CCListViewContext;
-  children: ((props: CCListViewContext) => ReactNode) | ReactNode;
+  eachConfig?: CCListItemContext;
+  children: ((props: CCListItemContext) => ReactNode) | ReactNode;
   /**
    * 自定义字段更新逻辑
    */
   shouldUpdate?: any | any[];
 }
 
-export interface IListItem extends Omit<ICCList, 'eachConfig'> {}
+export interface IListItem extends Omit<ICCList & _ICCList, 'eachConfig'> {}
 
-export type ICCListOperation = CCListViewContext;
+export type ICCListOperation = CCListItemContext;
 
 export interface ICCListActionOperation extends CCListContext {
-  remove: (index: number | number[]) => void;
-  add: (item?: any, insertIndex?: number) => void;
-  move: (from: number, to: number) => void;
 }
 
 export interface CCFieldStatus {
@@ -300,5 +326,5 @@ export interface CCFieldStatus {
 export interface ICCListView {
   component?: (values: CCListContext, children: ReactNode) => ReactNode;
   provider?: (operation: ICCListOperation, children: ReactNode) => ReactNode;
-  children: (operation: ICCListOperation) => ReactNode;
+  children: ((operation: ICCListOperation) => ReactNode) | ReactNode;
 }

@@ -9,7 +9,8 @@ import { Button, Input } from 'antd';
 import React, { useMemo } from 'react';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 
-import { Field } from '../components/Field';
+import { CCItem } from '../components/Item';
+import { Operation } from './components/Operation';
 
 export default () => {
   const [form] = CCForm.useForm();
@@ -29,34 +30,28 @@ export default () => {
     ],
     [],
   );
-  console.log('🤟 Code', initialValue);
 
   return (
     <CCForm form={form}>
       <div className={'flex flex-col items-baseline'}>
         <CCList initialValue={initialValue}>
-          {({ add, remove, index }) => (
+          <CCList.View>
             <div className={'flex gap-x-6 flex-wrap'}>
-              <Field form={'attrName'} title={'Attribute name'} rules={[{ required: true, message: 'Please input!' }]}>
+              <CCItem
+                name={'attrName'}
+                title={'Attribute name'}
+                rules={[{ required: true, message: 'Please input!' }]}>
                 <Input className={'w-60'} />
-              </Field>
-              <Field
-                form={'attrValue'}
+              </CCItem>
+              <CCItem
+                name={'attrValue'}
                 title={'Attribute value'}
                 rules={[{ required: true, message: 'Please input!' }]}>
                 <Input className={'w-60'} />
-              </Field>
-              <div className={'flex items-center gap-2'}>
-                <Button
-                  onClick={() => add(void 0, index + 1)}
-                  icon={<PlusIcon className="size-4" />}
-                  shape="circle"
-                  type="dashed"
-                />
-                <Button onClick={() => remove()} icon={<MinusIcon className="size-4" />} shape="circle" type="dashed" />
-              </div>
+              </CCItem>
+              <Operation />
             </div>
-          )}
+          </CCList.View>
         </CCList>
 
         <Button type={'primary'} onClick={handleOk} className={'mt-2'}>

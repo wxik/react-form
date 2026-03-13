@@ -2,7 +2,7 @@
  * 对于普通组件也可以注入表单数据
  * 1. 循环体中的行数据
  * 2. 表单整体数据
- * @author Quia
+ * @author zehua.tang
  * @since 2020-05-21 11:47
  */
 import type {
@@ -14,7 +14,7 @@ import type {
 } from 'react';
 import { cloneElement, forwardRef } from 'react';
 
-import { CCFormListViewContext } from './CCContext';
+import { CCFormListItemContext } from './CCContext';
 import { CCForm } from './CCForm';
 import type { CCListContext, ICCFormContext } from './interface';
 
@@ -32,7 +32,7 @@ export function CCOutlet<P = {}, T = any>() {
     Target: ComponentType<P & ICCOutlet>,
   ): ForwardRefExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
     return forwardRef<T, P>((props: any, ref) => (
-      <CCFormListViewContext.Consumer>
+      <CCFormListItemContext.Consumer>
         {(eachContext) => (
           <CCForm.Context.Consumer>
             {(fieldContext) => (
@@ -40,7 +40,7 @@ export function CCOutlet<P = {}, T = any>() {
             )}
           </CCForm.Context.Consumer>
         )}
-      </CCFormListViewContext.Consumer>
+      </CCFormListItemContext.Consumer>
     ));
   };
 }
@@ -49,3 +49,5 @@ export const CCOutletView = CCOutlet<IOutlet>()((props) => {
   const { children, forProps, ...rest } = props;
   return cloneElement(children, forProps ? forProps(rest) : rest);
 });
+
+CCOutlet.View = CCOutletView;
